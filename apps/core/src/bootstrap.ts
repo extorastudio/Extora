@@ -11,9 +11,9 @@ export interface BootstrapContext {
 
 export async function bootstrap(): Promise<BootstrapContext> {
   // 1. Initialize logger
-  const isDev = process.env["NODE_ENV"] === "development";
+  const isDev = process.env.NODE_ENV === "development";
   const logger = pino({
-    level: process.env["LOG_LEVEL"] ?? "info",
+    level: process.env.LOG_LEVEL ?? "info",
     ...(isDev && {
       transport: {
         target: "pino-pretty",
@@ -37,7 +37,7 @@ export async function bootstrap(): Promise<BootstrapContext> {
 
   // 3. Connect to Redis
   logger.info("[2/8] Connecting to Redis...");
-  const redisUrl = process.env["REDIS_URL"] ?? "redis://localhost:6379";
+  const redisUrl = process.env.REDIS_URL ?? "redis://localhost:6379";
   const redis = new Redis(redisUrl, {
     maxRetriesPerRequest: 3,
     retryStrategy(times) {

@@ -212,6 +212,7 @@ export interface QueryOptions {
 
 export interface CacheManager {
   get<T = unknown>(key: string): Promise<T | null>;
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters -- T narrows value type for callers
   set<T = unknown>(key: string, value: T, ttlMs?: number): Promise<void>;
   del(key: string): Promise<void>;
   has(key: string): Promise<boolean>;
@@ -230,6 +231,7 @@ export interface CacheManager {
 
 export interface ConfigManager {
   get<T = unknown>(key: string): Promise<T | undefined>;
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters -- T narrows value type for callers
   set<T = unknown>(key: string, value: T, isSecret?: boolean): Promise<void>;
   has(key: string): Promise<boolean>;
   del(key: string): Promise<void>;
@@ -482,7 +484,7 @@ export interface SearchQuery {
 }
 
 export interface SearchResult<T = unknown> {
-  hits: Array<{ id: string; score: number; data: T }>;
+  hits: { id: string; score: number; data: T }[];
   total: number;
   page: number;
   totalPages: number;
@@ -526,7 +528,7 @@ export class ExtoraError extends Error {
   constructor(
     message: string,
     public readonly code: string,
-    public readonly statusCode: number = 500,
+    public readonly statusCode = 500,
     public readonly details?: unknown,
   ) {
     super(message);

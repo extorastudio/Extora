@@ -15,14 +15,14 @@ export async function createServer(ctx: BootstrapContext): Promise<FastifyInstan
 
   // CORS
   await server.register(cors, {
-    origin: process.env["CORS_ORIGIN"] ?? "*",
+    origin: process.env.CORS_ORIGIN ?? "*",
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization", "X-API-Key"],
   });
 
   // Request logging
-  server.addHook("onRequest", async (request) => {
+  server.addHook("onRequest", (request) => {
     ctx.logger.debug(`${request.method} ${request.url}`, {
       method: request.method,
       url: request.url,
@@ -37,10 +37,10 @@ export async function createServer(ctx: BootstrapContext): Promise<FastifyInstan
     const statusCode = error.statusCode ?? 500;
     const apiError: ApiError = {
       code: error.code ?? "INTERNAL_ERROR",
-      message: error.message ?? "An unexpected error occurred",
+      message: error.message,
       requestId: _request.id,
     };
-    ctx.logger.error(`[${statusCode}] ${error.message}`, {
+    ctx.logger.error(`[${String(statusCode)}] ${error.message}`, {
       code: error.code,
       url: _request.url,
       requestId: _request.id,
@@ -93,18 +93,18 @@ export async function createServer(ctx: BootstrapContext): Promise<FastifyInstan
     };
   });
 
-  server.get("/api/v1/system/info", async () => {
+  server.get("/api/v1/system/info", () => {
     return {
       version: "0.0.0",
       nodeVersion: process.version,
       platform: process.platform,
       arch: process.arch,
-      env: process.env["NODE_ENV"] ?? "development",
+      env: process.env.NODE_ENV ?? "development",
       pid: process.pid,
       memory: {
-        heapUsed: Math.round(process.memoryUsage().heapUsed / 1024 / 1024) + " MB",
-        heapTotal: Math.round(process.memoryUsage().heapTotal / 1024 / 1024) + " MB",
-        rss: Math.round(process.memoryUsage().rss / 1024 / 1024) + " MB",
+        heapUsed: `${String(Math.round(process.memoryUsage().heapUsed / 1024 / 1024))} MB`,
+        heapTotal: `${String(Math.round(process.memoryUsage().heapTotal / 1024 / 1024))} MB`,
+        rss: `${String(Math.round(process.memoryUsage().rss / 1024 / 1024))} MB`,
       },
     };
   });
