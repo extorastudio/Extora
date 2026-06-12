@@ -14,8 +14,8 @@ Thank you for your interest in contributing! Extora is a community-driven projec
 
 ```bash
 # Clone the repository
-git clone https://github.com/extora/extora.git
-cd extora
+git clone https://github.com/Rishi2727/Extora_Studio.git
+cd Extora_Studio
 
 # Install dependencies
 pnpm install
@@ -33,7 +33,7 @@ pnpm dev
 ## Monorepo Structure
 
 ```
-extora/
+Extora_Studio/
 ├── apps/           # Applications (core, studio, cli, marketplace, etc.)
 ├── packages/       # Shared libraries (types, sdk, utils, ui, config)
 ├── plugins/        # Official plugins (auth, cms, commerce, forms)
@@ -100,8 +100,8 @@ pnpm test          # All tests pass
 
 ## Community
 
-- [GitHub Discussions](https://github.com/extora/extora/discussions)
-- Report bugs via [GitHub Issues](https://github.com/extora/extora/issues)
+- [GitHub Discussions](https://github.com/Rishi2727/Extora_Studio/discussions)
+- Report bugs via [GitHub Issues](https://github.com/Rishi2727/Extora_Studio/issues)
 - Follow our [Code of Conduct](CODE_OF_CONDUCT.md)
 
 ## License
