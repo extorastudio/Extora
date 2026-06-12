@@ -2,7 +2,7 @@
   "$schema": "https://turbo.build/schema.json",
   "globalDependencies": ["tsconfig.base.json", ".env"],
   "globalEnv": ["NODE_ENV", "DATABASE_URL", "REDIS_URL", "JWT_SECRET", "ENCRYPTION_KEY"],
-  "pipeline": {
+  "tasks": {
     "build": {
       "dependsOn": ["^build"],
       "outputs": ["dist/**", ".next/**"],
