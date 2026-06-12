@@ -1,0 +1,299 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String         @id @default(cuid())
+  email         String         @unique
+  emailVerified DateTime?
+  passwordHash  String?
+  displayName   String
+  avatarUrl     String?
+  role          String         @default("VIEWER")
+  isActive      Boolean        @default(true)
+  lastLoginAt   DateTime?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  sessions      Session[]
+  apiKeys       ApiKey[]
+  identities    AuthIdentity[]
+  mfaMethods    MfaMethod[]
+  auditLogs     AuditLog[]
+  userRoles     UserRole[]
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash    String   @unique
+  refreshToken String?  @unique
+  ipAddress    String?
+  userAgent    String?
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+
+  @@index([userId])
+  @@index([tokenHash])
+}
+
+model ApiKey {
+  id         String    @id @default(cuid())
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name       String
+  keyPrefix  String
+  keyHash    String    @unique
+  scopes     Json      @default("[]")
+  expiresAt  DateTime?
+  lastUsedAt DateTime?
+  createdAt  DateTime  @default(now())
+  revokedAt  DateTime?
+
+  @@index([userId])
+  @@index([keyHash])
+}
+
+model AuthIdentity {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider       String
+  providerUserId String
+  providerData   Json?
+  createdAt      DateTime @default(now())
+
+  @@unique([provider, providerUserId])
+  @@index([userId])
+}
+
+model MfaMethod {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String
+  secret    String?
+  isEnabled Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model Permission {
+  id              String           @id @default(cuid())
+  resource        String
+  action          String
+  description     String?
+  createdAt       DateTime         @default(now())
+  rolePermissions RolePermission[]
+
+  @@unique([resource, action])
+}
+
+model RolePermission {
+  roleId       String
+  role         RoleDefinition @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permissionId String
+  permission   Permission     @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+}
+
+model RoleDefinition {
+  id          String           @id @default(cuid())
+  name        String           @unique
+  description String?
+  isSystem    Boolean          @default(false)
+  createdAt   DateTime         @default(now())
+  permissions RolePermission[]
+  users       UserRole[]
+}
+
+model UserRole {
+  userId String
+  user   User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  roleId String
+  role   RoleDefinition @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([userId, roleId])
+}
+
+model Plugin {
+  id           String            @id @default(cuid())
+  name         String            @unique
+  title        String
+  description  String?
+  version      String
+  type         String            @default("plugin")
+  author       String
+  authorEmail  String?
+  license      String            @default("UNLICENSED")
+  entryServer  String?
+  entryStudio  String?
+  entryCli     String?
+  manifest     Json
+  permissions  Json              @default("[]")
+  dependencies Json              @default("{}")
+  isActive     Boolean           @default(false)
+  isSystem     Boolean           @default(false)
+  checksum     String?
+  installedAt  DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  configs      PluginConfig[]
+  migrations   PluginMigration[]
+}
+
+model PluginConfig {
+  id        String   @id @default(cuid())
+  pluginId  String
+  plugin    Plugin   @relation(fields: [pluginId], references: [id], onDelete: Cascade)
+  key       String
+  value     Json
+  isSecret  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([pluginId, key])
+}
+
+model PluginMigration {
+  id        String   @id @default(cuid())
+  pluginId  String
+  plugin    Plugin   @relation(fields: [pluginId], references: [id], onDelete: Cascade)
+  name      String
+  version   String
+  appliedAt DateTime @default(now())
+
+  @@unique([pluginId, name])
+}
+
+model Theme {
+  id          String        @id @default(cuid())
+  name        String        @unique
+  title       String
+  version     String
+  author      String
+  isActive    Boolean       @default(false)
+  manifest    Json
+  installedAt DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  configs     ThemeConfig[]
+}
+
+model ThemeConfig {
+  id       String  @id @default(cuid())
+  themeId  String
+  theme    Theme   @relation(fields: [themeId], references: [id], onDelete: Cascade)
+  key      String
+  value    Json
+  isSecret Boolean @default(false)
+
+  @@unique([themeId, key])
+}
+
+model SystemConfig {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     Json
+  isSecret  Boolean  @default(false)
+  updatedAt DateTime @updatedAt
+}
+
+model ConfigHistory {
+  id        String   @id @default(cuid())
+  configKey String
+  oldValue  Json?
+  newValue  Json
+  changedBy String?
+  changedAt DateTime @default(now())
+
+  @@index([configKey])
+}
+
+model Event {
+  id        String   @id @default(cuid())
+  type      String
+  payload   Json
+  source    String?
+  tenantId  String?
+  createdAt DateTime @default(now())
+
+  @@index([type])
+  @@index([source])
+  @@index([tenantId])
+  @@index([createdAt])
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action    String
+  resource  String
+  outcome   String
+  details   Json?
+  ipAddress String?
+  userAgent String?
+  tenantId  String?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([action])
+  @@index([resource])
+  @@index([createdAt])
+}
+
+model Media {
+  id             String   @id @default(cuid())
+  filename       String
+  originalName   String
+  mimeType       String
+  size           Int
+  width          Int?
+  height         Int?
+  storageBackend String   @default("local")
+  storagePath    String
+  url            String
+  thumbnailUrl   String?
+  metadata       Json?
+  uploadedBy     String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([mimeType])
+  @@index([uploadedBy])
+}
+
+model Job {
+  id          String    @id @default(cuid())
+  queue       String
+  name        String
+  data        Json
+  status      String    @default("waiting")
+  priority    Int       @default(0)
+  attempts    Int       @default(0)
+  maxAttempts Int       @default(3)
+  error       String?
+  startedAt   DateTime?
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([queue, status])
+  @@index([status])
+}
+
+model RateLimit {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  points    Int      @default(0)
+  expiresAt DateTime
+
+  @@index([key])
+  @@index([expiresAt])
+}
