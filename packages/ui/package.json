@@ -1,0 +1,16 @@
+{
+  "name": "@extora/ui",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Extora ui — pending implementation",
+  "main": "./src/index.ts",
+  "dependencies": {
+    "@extora/types": "workspace:*"
+  },
+  "scripts": {
+    "build": "echo 'No build yet'",
+    "typecheck": "echo 'No typecheck yet'",
+    "lint": "echo 'No lint yet'",
+    "clean": "rm -rf dist"
+  }
+}

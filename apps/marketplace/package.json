@@ -1,0 +1,13 @@
+{
+  "name": "@extora/marketplace",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Extora marketplace — pending implementation",
+  "scripts": {
+    "build": "echo 'No build yet'",
+    "typecheck": "echo 'No typecheck yet'",
+    "lint": "echo 'No lint yet'",
+    "test": "echo 'No tests yet'",
+    "clean": "rm -rf dist"
+  }
+}

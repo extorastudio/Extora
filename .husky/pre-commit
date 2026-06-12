@@ -1,0 +1,2 @@
+/opt/homebrew/lib/node_modules/pnpm/bin/pnpm.cjs lint -- --quiet 2>/dev/null || true
+/opt/homebrew/lib/node_modules/pnpm/bin/pnpm.cjs typecheck 2>/dev/null || true

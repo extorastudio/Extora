@@ -1,0 +1,10 @@
+{
+  "name": "@extora/ecommerce",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Extora ecommerce — pending implementation",
+  "scripts": {
+    "build": "echo 'No build yet'",
+    "clean": "rm -rf dist"
+  }
+}

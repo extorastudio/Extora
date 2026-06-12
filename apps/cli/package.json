@@ -1,0 +1,13 @@
+{
+  "name": "@extora/cli",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Extora cli — pending implementation",
+  "scripts": {
+    "build": "echo 'No build yet'",
+    "typecheck": "echo 'No typecheck yet'",
+    "lint": "echo 'No lint yet'",
+    "test": "echo 'No tests yet'",
+    "clean": "rm -rf dist"
+  }
+}

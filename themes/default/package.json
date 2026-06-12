@@ -1,0 +1,10 @@
+{
+  "name": "@extora/default",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Extora default — pending implementation",
+  "scripts": {
+    "build": "echo 'No build yet'",
+    "clean": "rm -rf dist"
+  }
+}
