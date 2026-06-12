@@ -7,7 +7,7 @@ describe("Extora Core", () => {
   });
 
   it("should have environment variables accessible", () => {
-    process.env["NODE_ENV"] = "test";
-    expect(process.env["NODE_ENV"]).toBe("test");
+    process.env.NODE_ENV = "test";
+    expect(process.env.NODE_ENV).toBe("test");
   });
 });
