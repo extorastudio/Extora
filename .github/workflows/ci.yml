@@ -126,7 +126,7 @@ jobs:
           DATABASE_URL: postgresql://extora:extora@localhost:5432/extora_test
 
       - name: Run tests
-        run: pnpm test -- --coverage
+        run: pnpm --filter @extora/core test -- --coverage
         env:
           DATABASE_URL: postgresql://extora:extora@localhost:5432/extora_test
           REDIS_URL: redis://localhost:6379
