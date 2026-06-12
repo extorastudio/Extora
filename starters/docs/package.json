@@ -1,8 +1,8 @@
 {
-  "name": "@extora/docs",
+  "name": "@extora/starter-docs",
   "version": "0.0.0",
   "private": true,
-  "description": "Extora docs — pending implementation",
+  "description": "Extora documentation starter kit — pending implementation",
   "scripts": {
     "build": "echo 'No build yet'",
     "clean": "rm -rf dist"
