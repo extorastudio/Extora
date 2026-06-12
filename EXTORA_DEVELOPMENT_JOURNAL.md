@@ -452,6 +452,17 @@ Each contains a name, version 0.0.0, private: true, and echo-based placeholder s
 **Changed To:** Removed trailing comma
 **Reason:** pnpm's JSON parser is strict and rejects trailing commas. The error message was: "Expected double-quoted property name in JSON at position 1123".
 
+### Amendment A-005: Changed license from MIT to Proprietary (UNLICENSED)
+**Date:** June 12, 2026
+**Original State:** LICENSE file was MIT License. Root package.json had no license field. packages/types/package.json had `"license": "MIT"`. README displayed MIT badge.
+**Changed To:** 
+- `LICENSE` file replaced with proprietary "All Rights Reserved" license
+- Root `package.json` added `"license": "UNLICENSED"`
+- `packages/types/package.json` changed `"license": "MIT"` to `"license": "UNLICENSED"`
+- `README.md` badge changed from MIT-blue to Proprietary-red; license section updated
+- `CONTRIBUTING.md` license section updated to reference proprietary license
+**Reason:** Founder decision — the open-source vs proprietary split for each component has not yet been finalized. The entire repository is being marked as proprietary/private until the open core strategy is fully defined (Mega Blueprint Section 26). This will be revisited when specific repositories are carved out as MIT while others remain proprietary.
+
 ---
 
 ## ERRORS & RESOLUTIONS

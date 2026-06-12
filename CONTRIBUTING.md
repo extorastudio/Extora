@@ -107,4 +107,4 @@ pnpm test          # All tests pass
 ## License
 
 By contributing, you agree that your contributions will be licensed under the
-[MIT License](LICENSE).
+project's proprietary license. See [LICENSE](LICENSE) for details.

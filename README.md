@@ -1,7 +1,7 @@
 # Extora
 
 [![CI](https://github.com/extora/extora/actions/workflows/ci.yml/badge.svg)](https://github.com/extora/extora/actions/workflows/ci.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![License](https://img.shields.io/badge/License-Proprietary-red.svg)](LICENSE)
 
 **Build Anything. Plugin Everything.**
 
@@ -75,4 +75,5 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for development workflow, commit conventi
 
 ## License
 
-Core components are licensed under [MIT](LICENSE). See individual packages for details. Marketplace, Cloud, and Enterprise components are proprietary.
+This repository and all its contents are proprietary and confidential. All rights reserved.
+See [LICENSE](LICENSE) for details.
