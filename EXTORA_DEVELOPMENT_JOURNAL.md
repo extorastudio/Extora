@@ -1001,3 +1001,16 @@ c492d48 chore: change license from MIT to Proprietary (UNLICENSED)
 
 **Verification:** lint=0 errors, typecheck=pass, vite build=pass
 
+
+### Phase 2.2-2.4: Plugin + User Pages + Hash Routing
+**Date:** June 13, 2026 | **Commit:** `fb881cc`
+**Duration:** ~45 minutes
+
+**Files Created:**
+- `apps/studio/src/stores/plugin-store.ts` — Zustand: fetchPlugins(), togglePlugin(activate/deactivate)
+- `apps/studio/src/pages/Plugins.tsx` — Plugin list with activate/deactivate toggle buttons, loading spinner, empty state
+- `apps/studio/src/pages/Users.tsx` — User table with avatar, email, role badge, status indicator, join date
+- `apps/studio/src/App.tsx` (updated) — Hash-based routing via PAGE_MAP, `#/dashboard`, `#/plugins`, `#/users`
+
+**Verification:** lint=0 errors, typecheck=pass, vite build=pass (264KB JS, 19KB CSS)
+
