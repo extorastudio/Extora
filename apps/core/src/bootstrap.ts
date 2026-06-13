@@ -1,16 +1,19 @@
 import { PrismaClient } from "@prisma/client";
 import Redis from "ioredis";
 import pino from "pino";
-import type { Logger } from "@extora/types";
+import type { Logger, EventBus, HookRegistry } from "@extora/types";
+import { CoreEventBus } from "./event-bus/bus.js";
+import { CoreHookRegistry } from "./hooks/registry.js";
 
 export interface BootstrapContext {
   logger: Logger;
   prisma: PrismaClient;
   redis: Redis;
+  eventBus: EventBus;
+  hooks: HookRegistry;
 }
 
 export async function bootstrap(): Promise<BootstrapContext> {
-  // 1. Initialize logger
   const isDev = process.env.NODE_ENV === "development";
   const logger = pino({
     level: process.env.LOG_LEVEL ?? "info",
@@ -27,7 +30,7 @@ export async function bootstrap(): Promise<BootstrapContext> {
   logger.info("  Extora Core v0.0.0 — Bootstrapping");
   logger.info(separator);
 
-  // 2. Connect to PostgreSQL
+  // 1. PostgreSQL
   logger.info("[1/8] Connecting to PostgreSQL...");
   const prisma = new PrismaClient({
     log: isDev ? ["warn", "error"] : ["error"],
@@ -35,7 +38,7 @@ export async function bootstrap(): Promise<BootstrapContext> {
   await prisma.$connect();
   logger.info("       PostgreSQL connected");
 
-  // 3. Connect to Redis
+  // 2. Redis
   logger.info("[2/8] Connecting to Redis...");
   const redisUrl = process.env.REDIS_URL ?? "redis://localhost:6379";
   const redis = new Redis(redisUrl, {
@@ -48,28 +51,30 @@ export async function bootstrap(): Promise<BootstrapContext> {
   await redis.ping();
   logger.info("       Redis connected");
 
-  // 4. Verify database connection
+  // 3. Database check
   logger.info("[3/8] Verifying database...");
   await prisma.$queryRaw`SELECT 1`;
   logger.info("       Database OK");
 
-  // 5. Load configuration (placeholder)
-  logger.info("[4/8] Loading configuration...");
-  logger.info("       Configuration loaded (defaults)");
+  // 4. Event Bus
+  logger.info("[4/8] Initializing event bus...");
+  const eventBus = new CoreEventBus(prisma);
+  logger.info("       Event bus ready");
 
-  // 6. Initialize cache (placeholder)
-  logger.info("[5/8] Initializing cache manager...");
-  logger.info("       Cache manager ready");
+  // 5. Hook System
+  logger.info("[5/8] Initializing hook system...");
+  const hooks = new CoreHookRegistry();
+  logger.info("       Hook system ready");
 
-  // 7. Initialize plugin system (placeholder)
+  // 6. Plugin System
   logger.info("[6/8] Initializing plugin system...");
-  logger.info("       Plugin system ready (0 plugins loaded)");
+  logger.info("       Plugin system ready (plugins loaded on-demand)");
 
-  // 8. Ready
+  // 7. API Engine
   logger.info("[7/8] Initializing API engine...");
   logger.info("[8/8] Starting HTTP server...");
 
   logger.info(separator);
 
-  return { logger, prisma, redis };
+  return { logger, prisma, redis, eventBus, hooks };
 }

@@ -4,16 +4,16 @@ import cors from "@fastify/cors";
 import type { FastifyInstance } from "fastify";
 import type { BootstrapContext } from "./bootstrap.js";
 import type { ApiError } from "@extora/types";
+import { registerAuthRoutes } from "./auth/routes.js";
 
 export async function createServer(ctx: BootstrapContext): Promise<FastifyInstance> {
   const server = Fastify({
-    logger: false, // We use our own pino logger
+    logger: false,
     trustProxy: true,
     requestIdHeader: "x-request-id",
     genReqId: () => crypto.randomUUID(),
   });
 
-  // CORS
   await server.register(cors, {
     origin: process.env.CORS_ORIGIN ?? "*",
     credentials: true,
@@ -113,6 +113,20 @@ export async function createServer(ctx: BootstrapContext): Promise<FastifyInstan
   server.get("/", async (_request, reply) => {
     reply.redirect("/api/v1/system/health");
   });
+
+  // =========================================================================
+  // Register Auth Routes
+  // =========================================================================
+  registerAuthRoutes(server, ctx.prisma);
+
+  // =========================================================================
+  // Hook System Debug Endpoint
+  // =========================================================================
+  server.get("/api/v1/system/hooks", () => ({
+    hooks: Array.from(ctx.hooks.getRegisteredHooks().entries()).map(
+      ([name, counts]) => ({ name, ...counts }),
+    ),
+  }));
 
   return server;
 }

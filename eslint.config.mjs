@@ -20,13 +20,20 @@ export default tseslint.config(
       "@typescript-eslint/consistent-type-imports": ["error", { prefer: "type-imports" }],
       "@typescript-eslint/no-non-null-assertion": "warn",
       "no-console": ["warn", { allow: ["warn", "error"] }],
-      // Prisma generated types use complex generics that eslint cannot resolve.
-      // Disabling these rules globally since they would flag every Prisma call.
       "@typescript-eslint/no-unsafe-assignment": "off",
       "@typescript-eslint/no-unsafe-call": "off",
       "@typescript-eslint/no-unsafe-member-access": "off",
       "@typescript-eslint/no-unsafe-return": "off",
       "@typescript-eslint/no-unsafe-argument": "off",
+    },
+  },
+  {
+    files: ["**/*.test.ts", "**/*.spec.ts"],
+    rules: {
+      "@typescript-eslint/require-await": "off",
+      "@typescript-eslint/no-empty-function": "off",
+      "@typescript-eslint/no-non-null-assertion": "off",
+      "@typescript-eslint/restrict-template-expressions": "off",
     },
   },
   {
@@ -39,5 +46,5 @@ export default tseslint.config(
       "**/*.mjs",
       "**/*.cjs",
     ],
-  }
+  },
 );
