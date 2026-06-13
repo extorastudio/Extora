@@ -4,6 +4,11 @@ import LoginPage from "./pages/Login";
 import DashboardLayout from "./components/layout/DashboardLayout";
 import PluginsPage from "./pages/Plugins";
 import UsersPage from "./pages/Users";
+import ThemesPage from "./pages/Themes";
+import ServicesPage from "./pages/Services";
+import ConfigPage from "./pages/Config";
+import MonitoringPage from "./pages/Monitoring";
+import BackupsPage from "./pages/Backups";
 
 function DashboardPage() {
   return (
@@ -33,6 +38,11 @@ const PAGE_MAP: Record<string, React.ComponentType> = {
   dashboard: DashboardPage,
   plugins: PluginsPage,
   users: UsersPage,
+  themes: ThemesPage,
+  services: ServicesPage,
+  config: ConfigPage,
+  monitoring: MonitoringPage,
+  backups: BackupsPage,
 };
 
 export default function App() {
