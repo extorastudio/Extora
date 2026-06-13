@@ -1014,3 +1014,30 @@ c492d48 chore: change license from MIT to Proprietary (UNLICENSED)
 
 **Verification:** lint=0 errors, typecheck=pass, vite build=pass (264KB JS, 19KB CSS)
 
+
+### Phase 2.5: Remaining Studio Pages
+**Date:** June 13, 2026 | **Commit:** `a0494e0`
+**Duration:** ~1 hour
+
+**Files Created:**
+- `apps/studio/src/stores/theme-store.ts` — Zustand: fetchThemes(), activateTheme()
+- `apps/studio/src/pages/Themes.tsx` — Card grid with activate/deactivate
+- `apps/studio/src/pages/Services.tsx` — Live health check display with latency
+- `apps/studio/src/pages/Config.tsx` — Static config display with masked secrets
+- `apps/studio/src/pages/Monitoring.tsx` — System info with uptime formatter
+- `apps/studio/src/pages/Backups.tsx` — Backup list with size formatting
+- `apps/studio/src/App.tsx` — Updated PAGE_MAP with all 8 pages
+
+**All Studio Pages Built (8 pages):**
+1. Login (auth check → redirect)
+2. Dashboard (stat cards)
+3. Plugins (list + toggle activate/deactivate)
+4. Users (table with roles and status)
+5. Themes (card grid with activate)
+6. Services (health check with latency)
+7. Configuration (sections with masked secrets)
+8. Monitoring (system info + uptime)
+9. Backups (list + schedule)
+
+**Verification:** lint=0 errors, typecheck=pass, vite build=pass (278KB JS, 20KB CSS)
+
