@@ -823,6 +823,12 @@ After the initial Phase 0 push, the GitHub CI pipeline revealed multiple configu
 
 **Logged as:** Amendment A-017
 
+### Amendment A-018: Added test file ESLint override
+**Date:** June 13, 2026
+**Original State:** `eslint.config.mjs` applied all rules uniformly to test files, causing 41+ errors — `require-await` flagged every test callback without explicit `await`, `no-empty-function` flagged stub mock handlers.
+**Changed To:** Added a `files: ["**/*.test.ts", "**/*.spec.ts"]` override block in `eslint.config.mjs` disabling: `require-await`, `no-empty-function`, `no-non-null-assertion`, `restrict-template-expressions` for test files only.
+**Reason:** Test callbacks commonly use `async` without `await` (for type compatibility with test runner), empty stub handlers (for mock Prisma clients), non-null assertions (for test expectations on known values), and template literals with unknown types. These are standard test patterns.
+
 ---
 
 ## SESSION 2 — Phase 1 Completion
@@ -881,23 +887,95 @@ c492d48 chore: change license from MIT to Proprietary (UNLICENSED)
 
 ---
 
-## NEXT STEPS (Session 3)
+## SESSION 3 — Integration & Tests
 
-### Integration (Priority)
-- [ ] Wire auth routes into server.ts bootstrap
-- [ ] Wire plugin loader into server.ts bootstrap
-- [ ] Create plugin resolution + loading pipeline end-to-end
-- [ ] Write unit tests for auth (login, register, JWT), event bus, hook system
+**Date:** June 13, 2026
+**Duration:** ~2 hours
+**Objective:** Wire auth + plugin loader into bootstrap, write comprehensive tests, verify everything.
+
+### Work Completed
+
+**Integration:**
+- `bootstrap.ts`: Instantiate `CoreEventBus` and `CoreHookRegistry` in the bootstrap sequence. Added `eventBus` and `hooks` to `BootstrapContext`.
+- `server.ts`: Import and register `registerAuthRoutes()`. Added `/api/v1/system/hooks` debug endpoint exposing registered hook summary.
+- `plugin-loader/loader.ts`: `discoverPlugins()` reads plugin directories, loads manifests, resolves dependencies, returns `LoadedPlugin[]`. Includes `getPluginPermissions()` and `getPluginAllowedHosts()` helpers.
+- `plugin-loader/resolver.ts`: Full dependency resolver with:
+  - Topological sort for load ordering
+  - Cycle detection via DFS (WHITE/GRAY/BLACK coloring)
+  - Semver constraint checking (^, ~, >=, <=, >, <, *)
+  - Installed deps satisfied via installed map (not added to order)
+  - Returns `PluginResolverResult` with errors, conflicts, unresolved list
+
+**Tests Written (37 new, 39 total):**
+- `tests/event-bus.test.ts` (6 tests): subscribe/publish, multiple subscribers, priority order, subscriber count, unsubscribe, event types
+- `tests/hooks.test.ts` (13 tests): action registration/execution, priority order, argument passing, empty hooks, error isolation, removal, plugin tagging, filter chaining, unmodified passthrough, error in chain, filter removal, hook summary, plugin cleanup
+- `tests/resolver.test.ts` (6 tests): no deps, deps in order, cycle detect, missing deps, 3-deep chain, satisfied from installed map
+- `tests/auth.test.ts` (12 tests): JWT create/verify access, create/verify refresh, invalid token, token hashing, password hash/verify, wrong password, strength validation (short, no upper, no lower, no number, valid)
+
+**Fixes Applied:**
+- Resolver bug: `visit()` now skips dependencies only in installed map (not in plugin set)
+- Bcrypt prefix test: matches `$2a$` or `$2b$` (bcryptjs uses `$2b$` on newer versions)
+- ESLint config: added test file override block disabling `require-await`, `no-empty-function`, `no-non-null-assertion`, `restrict-template-expressions` for `**/*.test.ts`
+
+**Logged as:** Amendment A-018 (test eslint rules)
+
+### Verification Results (End of Session 3)
+
+| Check | Result |
+|---|---|
+| Lint (all core src + tests) | PASS (0 errors, 1 warning) |
+| TypeScript typecheck (core) | PASS (0 errors) |
+| Vitest tests | PASS (39/39 across 5 files) |
+| Prisma build (generate + tsc) | PASS |
+| Auth routes wired to server | DONE |
+| Plugin loader + resolver pipeline | DONE |
+| Event bus + hook system wired | DONE |
+| Docker services | NOT YET VERIFIED |
+
+---
+
+## GIT HISTORY (Complete — Sessions 1–3)
+
+```
+ce7a51e feat: Phase 1 complete — Integration + Tests
+4f7f5a8 docs: journal update — Session 2, Phase 1.5-1.7, Amendment A-017
+01f4064 feat: Phase 1.5-1.7 — Sandbox, Event Bus, Hook System
+d30b48c docs: full development journal update — Session 1 complete
+a809386 fix: run vitest directly in CI, add coverage package
+32052c5 fix: include tests in tsconfig for ESLint project service
+e69752c feat: Phase 1 — Auth engine, RBAC, plugin loader, Prisma schema
+4b59438 fix: add Prisma schema and generate client before core build
+5decb49 fix: rename pipeline to tasks in turbo.json (Turborepo v2)
+1a39afe fix: rename starters/docs package to avoid name collision
+1a9638f fix: remove explicit pnpm version from CI workflow
+cad87bb fix: restore packageManager field for Turborepo CI compatibility
+ccfcf4d docs: update development journal with amendments A-006, A-007, A-008
+0004c8e fix: update GitHub URLs to correct repo Rishi2727/Extora_Studio
+c492d48 chore: change license from MIT to Proprietary (UNLICENSED)
+68d13bd feat: initialize Extora monorepo with Phase 0 foundation
+```
+
+**Total commits:** 16
+**Total files:** 70 tracked
+**Total tests:** 39 (5 test files)
+**Total amendments:** 18 (A-001 through A-018)
+
+---
+
+## NEXT STEPS (Session 4)
+
+### Phase 2: Studio MVP
+- [ ] Init React 19 + Vite + Tailwind + shadcn/ui in apps/studio
+- [ ] Login page + auth flow
+- [ ] Dashboard layout (sidebar, navbar, content area)
+- [ ] Plugin management UI (list, install, activate, deactivate)
 
 ### Phase 0 Verification (Deferred)
 - [ ] Start Docker services: `pnpm docker:up`
 - [ ] Core server startup + health check
-- [ ] GitHub CI full green pipeline
 
 ---
 
-*End of Session 2 — June 13, 2026*
-*14 commits, 64 files, Phase 0 complete, Phase 1 complete*
-*Next: Integration + Phase 2 (Studio MVP)*
-*End of Session 1 — June 12, 2026 (11:00 PM IST)*
-*12 commits, 61 files, Phase 0 complete, Phase 1 50% complete*
+*End of Session 3 — June 13, 2026*
+*16 commits, 70 files, 39 tests, Phase 0 + Phase 1 complete*
+*Next: Phase 2 — Studio MVP*
