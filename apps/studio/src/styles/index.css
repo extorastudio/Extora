@@ -1,0 +1,6 @@
+@import "tailwindcss";
+
+:root {
+  --sidebar-width: 260px;
+  --navbar-height: 56px;
+}
