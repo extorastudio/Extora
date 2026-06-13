@@ -1,7 +1,9 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useAuthStore } from "./stores/auth-store";
 import LoginPage from "./pages/Login";
 import DashboardLayout from "./components/layout/DashboardLayout";
+import PluginsPage from "./pages/Plugins";
+import UsersPage from "./pages/Users";
 
 function DashboardPage() {
   return (
@@ -27,12 +29,29 @@ function StatCard({ title, value, subtitle }: { title: string; value: string; su
   );
 }
 
+const PAGE_MAP: Record<string, React.ComponentType> = {
+  dashboard: DashboardPage,
+  plugins: PluginsPage,
+  users: UsersPage,
+};
+
 export default function App() {
   const { isAuthenticated, isLoading, checkSession } = useAuthStore();
+  const [currentPage, setCurrentPage] = useState("dashboard");
 
   useEffect(() => {
     void checkSession();
   }, [checkSession]);
+
+  useEffect(() => {
+    const handleHash = () => {
+      const hash = window.location.hash.slice(2) || "dashboard";
+      setCurrentPage(hash);
+    };
+    window.addEventListener("hashchange", handleHash);
+    handleHash();
+    return () => { window.removeEventListener("hashchange", handleHash); };
+  }, []);
 
   if (isLoading) {
     return (
@@ -46,9 +65,11 @@ export default function App() {
     return <LoginPage />;
   }
 
+  const PageComponent = PAGE_MAP[currentPage] ?? DashboardPage;
+
   return (
-    <DashboardLayout currentPage="dashboard">
-      <DashboardPage />
+    <DashboardLayout currentPage={currentPage}>
+      <PageComponent />
     </DashboardLayout>
   );
 }

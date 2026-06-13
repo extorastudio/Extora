@@ -979,3 +979,25 @@ c492d48 chore: change license from MIT to Proprietary (UNLICENSED)
 *End of Session 3 — June 13, 2026*
 *16 commits, 70 files, 39 tests, Phase 0 + Phase 1 complete*
 *Next: Phase 2 — Studio MVP*
+
+---
+
+## SESSION 4 — Phase 2: Studio MVP
+
+### Phase 2.1: Studio Scaffolding
+**Date:** June 13, 2026 | **Commit:** `b6696e5`
+**Duration:** ~1 hour
+
+**Files Created:**
+- `apps/studio/` — Vite + React 19 + TypeScript 5.7 scaffold
+- `apps/studio/vite.config.ts` — Tailwind CSS 4 plugin, proxy /api → Core
+- `apps/studio/tsconfig.json` — Extends root, JSX react-jsx, DOM lib
+- `apps/studio/src/styles/index.css` — Tailwind import + CSS custom properties
+- `apps/studio/src/api/client.ts` — Axios with bearer token + auto-refresh interceptor
+- `apps/studio/src/stores/auth-store.ts` — Zustand: login, logout, checkSession
+- `apps/studio/src/pages/Login.tsx` — Dark-themed login form with error display
+- `apps/studio/src/components/layout/DashboardLayout.tsx` — Responsive layout (sidebar, navbar, content)
+- `apps/studio/src/App.tsx` — Auth gate + dashboard page with stat cards
+
+**Verification:** lint=0 errors, typecheck=pass, vite build=pass
+
