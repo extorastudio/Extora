@@ -76,9 +76,9 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
-          name: "Extora ${{ github.ref_name }}"
+          name: "Extora Studio ${{ github.ref_name }}"
           body: |
-            ## Extora ${{ github.ref_name }} — XAMPP-Style Platform
+            ## Extora Studio ${{ github.ref_name }}
 
             All-in-one package — unpack and run.
 
@@ -104,7 +104,7 @@ jobs:
             # 3. Open http://localhost in browser
             ```
 
-            ### 📦 Includes (XAMPP-Style Bundle)
+            ### 📦 Includes
             - Nginx reverse proxy
             - Extora Core Runtime
             - PostgreSQL 16, Redis 7, MinIO, OpenSearch
