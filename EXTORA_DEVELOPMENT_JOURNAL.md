@@ -1265,3 +1265,15 @@ c492d48 chore: change license from MIT to Proprietary (UNLICENSED)
 **Total project tests: 78 (49 core + 21 sdk + 8 cli)**
 **All pass:** lint=0, typecheck=pass
 
+
+### Phase 11: Studio Build Fix + Starter Kits
+**Date:** June 15, 2026 | **Commit:** `cf1f432`
+**Duration:** ~15 minutes
+
+**Changes:**
+- `apps/studio/package.json`: Fixed build script `tsc -b && vite build` → `vite build`
+- Starter kit manifests created: Blog, Ecommerce, SaaS, Portfolio
+- Each with plugin dependencies, themes, config, and postInstall messages
+
+**Verification:** studio build=pass, all 78 tests pass
+
