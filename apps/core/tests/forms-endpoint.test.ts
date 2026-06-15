@@ -42,7 +42,6 @@ afterAll(async () => {
 });
 
 describe("Forms Public Submission Workflow", () => {
-  const formSlug = "contact-us";
   const submissionData = { name: "John", email: "john@example.com", message: "Hello!" };
 
   it("should register a user (simulating form submit pre-auth)", async () => {

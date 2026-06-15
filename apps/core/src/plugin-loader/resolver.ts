@@ -95,7 +95,7 @@ export function resolveDependencies(
   }
 
 
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- name guaranteed in pluginMap from topological sort
+
   const resolved: ResolvedPlugin[] = order.map((name, index) => ({
     manifest: pluginMap.get(name)!,
     loadOrder: index,
