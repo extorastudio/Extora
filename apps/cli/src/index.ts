@@ -398,6 +398,45 @@ dockerCmd
   });
 
 // =========================================================================
+// status — Show Extora installation status
+// =========================================================================
+program
+  .command("status")
+  .description("Show Extora installation status")
+  .action(() => {
+    const cwd = process.cwd();
+
+    console.log(chalk.bold.green("\nExtora Installation Status"));
+
+    // Check extora.json
+    const manifestPath = path.join(cwd, "extora.json");
+    if (fs.existsSync(manifestPath)) {
+      const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf-8")) as Record<string, unknown>;
+      const name = typeof manifest.name === "string" ? manifest.name : "unknown";
+      const ver = typeof manifest.version === "string" ? manifest.version : "0.0.0";
+      console.log(chalk.white(`  Plugin: ${name} v${ver}`));
+    }
+
+    // Check plugins directory
+    const pluginsDir = path.join(cwd, "plugins");
+    if (fs.existsSync(pluginsDir)) {
+      const count = fs.readdirSync(pluginsDir, { withFileTypes: true }).filter(d => d.isDirectory()).length;
+      console.log(chalk.white(`  Plugins installed: ${String(count)}`));
+    }
+
+    // Check dist directory
+    const distDir = path.join(cwd, "dist");
+    console.log(chalk.white(`  Build output: ${fs.existsSync(distDir) ? "Yes" : "No (run extora build)"}`));
+
+    console.log(chalk.gray("\n  Commands:"));
+    console.log(chalk.gray("    extora dev      Start development server"));
+    console.log(chalk.gray("    extora build    Build for production"));
+    console.log(chalk.gray("    extora test     Run tests"));
+    console.log(chalk.gray("    extora serve    Start production server"));
+    console.log("");
+  });
+
+// =========================================================================
 // generate — Code scaffolding
 // =========================================================================
 program
