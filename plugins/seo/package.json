@@ -1,17 +1,1 @@
-{
-  "name": "@extora/seo",
-  "version": "0.0.0",
-  "private": true,
-  "description": "Extora seo plugin — pending implementation",
-  "dependencies": {
-    "@extora/types": "workspace:*",
-    "@extora/sdk": "workspace:*"
-  },
-  "scripts": {
-    "build": "echo 'No build yet'",
-    "typecheck": "echo 'No typecheck yet'",
-    "lint": "echo 'No lint yet'",
-    "test": "echo 'No tests yet'",
-    "clean": "rm -rf dist"
-  }
-}
+{"name":"@extora/seo","version":"0.0.0","private":true,"dependencies":{"@extora/sdk":"workspace:*","@extora/types":"workspace:*"},"devDependencies":{"@types/node":"^22.0.0","typescript":"^5.7.0"},"scripts":{"build":"tsc","typecheck":"tsc --noEmit"}}

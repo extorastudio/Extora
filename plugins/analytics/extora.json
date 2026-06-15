@@ -1,0 +1,1 @@
+{"name":"@extora/seo","version":"0.0.0","type":"plugin","title":"Extora SEO","extora":{"core":">=1.0.0"},"permissions":[],"entry":{"server":"dist/index.js"}}
