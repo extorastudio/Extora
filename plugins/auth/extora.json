@@ -1,0 +1,22 @@
+{
+  "name": "@extora/auth",
+  "version": "0.0.0",
+  "type": "plugin",
+  "title": "Extora Authentication",
+  "description": "Core authentication plugin — local password, OAuth, MFA",
+  "author": { "name": "Extora Team", "email": "team@extora.dev" },
+  "license": "UNLICENSED",
+  "extora": { "core": ">=1.0.0 <2.0.0" },
+  "permissions": ["database:read", "database:write", "user:read", "user:write"],
+  "entry": { "server": "dist/index.js" },
+  "hooks": {
+    "actions": ["user.registered", "user.login", "user.logout"],
+    "filters": ["auth.token_payload"]
+  },
+  "api": {
+    "rest": { "endpoints": ["/api/v1/auth/*"] }
+  },
+  "database": {
+    "migrations": "dist/migrations/"
+  }
+}
