@@ -73,7 +73,7 @@ export async function bootstrap(): Promise<BootstrapContext> {
   // 6. Plugin System — discover, load, activate
   logger.info("[6/8] Loading plugins...");
   const loadedPlugins = await discoverPlugins(prisma);
-  logger.info(`       Found ${loadedPlugins.length} plugins`);
+  logger.info(`       Found ${String(loadedPlugins.length)} plugins`);
 
   for (const plugin of loadedPlugins) {
     try {

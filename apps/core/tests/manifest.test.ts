@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { validateManifest, PluginManifestSchema } from "../src/plugin-loader/manifest";
+import { validateManifest } from "../src/plugin-loader/manifest";
 
 const validManifest = {
   name: "@test/plugin",
