@@ -1363,3 +1363,22 @@ c492d48 chore: change license from MIT to Proprietary (UNLICENSED)
 
 **The Core runtime now fully supports plugins end-to-end.**
 
+
+### Phase 18: SEO + Analytics Plugins
+**Date:** June 15, 2026 | **Commit:** `ead2f52`
+**Duration:** ~15 minutes
+
+**Files Created:**
+- `plugins/seo/` — SeoPlugin: meta tags table, seo.meta_tags/robots filters, content.published action
+- `plugins/analytics/extora.json` — Placeholder manifest
+
+**6 Official Plugins Now:**
+1. @extora/auth
+2. @extora/cms
+3. @extora/forms
+4. @extora/commerce
+5. @extora/seo
+6. @extora/analytics (placeholder)
+
+**Project: 48 commits, 107 files, 100 tests**
+
