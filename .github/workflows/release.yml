@@ -30,8 +30,8 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
-            extorastudio/extora-core:latest
-            extorastudio/extora-core:${{ github.ref_name }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/extora-core:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/extora-core:${{ github.ref_name }}
 
   npm-publish:
     name: Publish npm Packages

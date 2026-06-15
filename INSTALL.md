@@ -17,7 +17,7 @@
 
 ```bash
 # Pull the image
-docker pull extorastudio/extora-core:latest
+docker pull {username}/extora-core:latest
 
 # Run with Docker Compose
 curl -O https://raw.githubusercontent.com/extorastudio/Extora/main/docker/docker-compose.prod.yml
