@@ -1957,3 +1957,15 @@ Order lifecycle tests validate the full state machine:
 
 **118 commits, 209 files**
 
+
+### Phase 67: Returns + Form Settings + Real-time Tests
+**Date:** June 15, 2026 | **Commit:** `(pending)`
+**Duration:** ~10 minutes
+
+**Commerce: 125 (+4 returns: create, lifecycle, reject, multi-item)**
+**Forms: 36 (+4 settings: limits, max, close date, no limits)**
+**Analytics: 15 (+2 real-time: push, multiple events)**
+
+**Total tests: 410 (103+58+8+125+49+36+16+15) across 70 test files**
+**119 commits, 212 files**
+
