@@ -28,7 +28,7 @@ const PLUGIN_TEMPLATE = {
       license: "UNLICENSED",
       extora: { core: ">=1.0.0 <2.0.0" },
       permissions: [],
-      entry: { server: "dist/server/index.js" },
+      entry: { server: "dist/index.js" },
       hooks: { actions: [], filters: [] },
       database: { migrations: "dist/migrations/" },
     },
