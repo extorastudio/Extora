@@ -12,7 +12,7 @@
     "./hooks": "./src/hooks.ts",
     "./events": "./src/events.ts",
     "./api": "./src/api.ts",
-    "./cli": "./src/cli.ts",
+    "./cli": "./src/cli.ts"
   },
   "scripts": {
     "build": "tsc",

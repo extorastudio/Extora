@@ -1,0 +1,26 @@
+{
+  "name": "@extora/commerce",
+  "version": "0.0.0",
+  "type": "plugin",
+  "title": "Extora Commerce",
+  "description": "Full ecommerce plugin — products, cart, checkout, orders, payments, shipping, tax, coupons",
+  "author": { "name": "Extora Team", "email": "team@extora.dev" },
+  "license": "UNLICENSED",
+  "extora": { "core": ">=1.0.0 <2.0.0" },
+  "dependencies": { "@extora/auth": ">=1.0.0" },
+  "permissions": [
+    "database:read", "database:write", "database:schema",
+    "storage:read", "storage:write",
+    "http:outbound:*",
+    "user:read"
+  ],
+  "entry": { "server": "dist/index.js", "studio": "dist/studio/index.js" },
+  "hooks": {
+    "actions": ["order.created", "order.completed", "payment.received", "payment.refunded", "shipment.created"],
+    "filters": ["cart.total", "checkout.validate", "order.before_create", "product.price"],
+    "events": ["order.placed", "payment.authorized", "shipment.shipped", "inventory.updated"]
+  },
+  "api": { "rest": { "endpoints": ["/api/v1/commerce/*"] } },
+  "database": { "migrations": "dist/migrations/" },
+  "config": { "schema": "dist/config/schema.json" }
+}
