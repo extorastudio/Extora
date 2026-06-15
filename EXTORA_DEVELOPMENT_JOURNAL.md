@@ -1351,3 +1351,15 @@ c492d48 chore: change license from MIT to Proprietary (UNLICENSED)
 
 **Verification:** lint=0, typecheck=pass, frozen lockfile=pass
 
+
+### Phase 17: Wire Plugin Loader into Core Bootstrap
+**Date:** June 15, 2026 | **Commit:** `f768671`
+**Duration:** ~15 minutes
+
+**Changes:**
+- `apps/core/src/bootstrap.ts` — Now actually discovers, loads, and creates sandboxes for plugins
+- BootstrapContext now includes `plugins: LoadedPlugin[]`
+- Full plugin lifecycle: discover → validate → resolve deps → create sandbox → ready
+
+**The Core runtime now fully supports plugins end-to-end.**
+
