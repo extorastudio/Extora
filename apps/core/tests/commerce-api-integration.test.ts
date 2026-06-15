@@ -28,7 +28,7 @@ beforeAll(async () => {
   await server.ready();
 });
 
-afterAll(async () => await server.close());
+afterAll(async () => { await server.close(); });
 
 describe("Commerce Admin API Integration", () => {
   const authHeader = { authorization: `Bearer ${accessToken.token}` };
