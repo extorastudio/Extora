@@ -2138,3 +2138,14 @@ CLI: +5 (help commands)
 
 **Total tests: 518 across 102 test files**
 
+
+### Phase 81: Extora Cloud — Tenant Manager
+**Date:** June 15, 2026 | **Commit:** `(pending)`
+**Duration:** ~15 minutes
+
+**Cloud: 7 tests (tenant create, duplicate domain, suspend/resume, delete, list, stats, find by domain)**
+**TenantManager: create, suspend, resume, delete, list, stats, domain lookup**
+
+**Total tests: 525 (125+58+13+153+67+53+22+21+6+7) across 103 test files**
+**137 commits, 244 files**
+

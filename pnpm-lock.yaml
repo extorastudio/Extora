@@ -73,7 +73,11 @@ importers:
         specifier: ^2.0.0
         version: 2.1.9(@types/node@22.19.21)(lightningcss@1.32.0)
 
-  apps/cloud: {}
+  apps/cloud:
+    devDependencies:
+      vitest:
+        specifier: ^2.0.0
+        version: 2.1.9(@types/node@22.19.21)(lightningcss@1.32.0)
 
   apps/core:
     dependencies:

@@ -3,12 +3,11 @@
   "version": "0.0.0",
   "private": true,
   "license": "UNLICENSED",
-  "description": "Extora cloud — pending implementation",
+  "description": "Extora Cloud — managed multi-tenant hosting platform",
   "scripts": {
-    "build": "echo 'No build yet'",
-    "typecheck": "echo 'No typecheck yet'",
-    "lint": "echo 'No lint yet'",
-    "test": "echo 'No tests yet'",
-    "clean": "rm -rf dist"
+    "build": "echo 'Cloud infrastructure — no build'"
+  },
+  "devDependencies": {
+    "vitest": "^2.0.0"
   }
 }
