@@ -1631,3 +1631,14 @@ Order lifecycle tests validate the full state machine:
 **Total tests: 222 (97+43+8+42+12+10+4+6) across 28 test files**
 **80 commits, 152 files**
 
+
+### Phase 37: Forms Submit Flow + CMS Query Tests
+**Date:** June 15, 2026 | **Commit:** `(pending)`
+**Duration:** ~10 minutes
+
+**Forms: 16 tests (+6 submit flow, spam, validation, CSV export)**
+**CMS: 18 tests (+6 query filtering, sort, paginate, count)**
+
+**Total tests: 234 (97+43+8+42+18+16+4+6) across 30 test files**
+**81 commits, 155 files**
+
