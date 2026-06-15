@@ -28,7 +28,7 @@ export default tseslint.config(
     },
   },
   {
-    files: ["**/*.test.ts", "**/*.spec.ts", "packages/sdk/src/**/*.ts", "apps/cli/src/**/*.ts", "plugins/**/src/**/*.ts"],
+    files: ["**/*.test.ts", "**/*.spec.ts", "packages/sdk/src/**/*.ts", "apps/cli/src/**/*.ts", "apps/registry/src/**/*.ts", "plugins/**/src/**/*.ts"],
     rules: {
       "@typescript-eslint/require-await": "off",
       "@typescript-eslint/no-empty-function": "off",

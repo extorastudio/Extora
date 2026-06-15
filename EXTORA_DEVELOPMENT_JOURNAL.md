@@ -2064,3 +2064,24 @@ CLI: +5 (help commands)
 **Date:** June 15, 2026
 **Status:** In progress
 
+
+### Phase 76: Extora Registry — Foundation
+**Date:** June 15, 2026 | **Commit:** `(pending)`
+**Duration:** ~25 minutes
+
+**Files Created:**
+- `apps/registry/src/index.ts` — Fastify server with:
+  - `GET /-/health` — Health check
+  - `GET /-/v1/search` — Package search
+  - `GET /:name` — npm-compatible package metadata
+  - `GET /:name/:version` — Version metadata
+  - `PUT /:name` — Publish with security scan + policy check
+  - `GET /-/scan/:name/:version` — Scan results
+  - `GET/POST /-/admin/policies` — Policy management
+  - `GET /-/stats` — Registry statistics
+- Security scanner: CVE database, license blocking, malware detection
+- Policy engine: allow/block rules with regex patterns
+- `apps/registry/tsconfig.json`, `apps/registry/package.json`
+
+**Registry added to ESLint relaxed rules**
+

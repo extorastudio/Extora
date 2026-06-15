@@ -3,12 +3,23 @@
   "version": "0.0.0",
   "private": true,
   "license": "UNLICENSED",
-  "description": "Extora registry — pending implementation",
+  "description": "Extora Registry — private npm-compatible package registry with security scanning",
+  "type": "module",
   "scripts": {
-    "build": "echo 'No build yet'",
-    "typecheck": "echo 'No typecheck yet'",
-    "lint": "echo 'No lint yet'",
-    "test": "echo 'No tests yet'",
-    "clean": "rm -rf dist"
+    "dev": "tsx src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src/"
+  },
+  "dependencies": {
+    "fastify": "^5.0.0",
+    "dotenv": "^16.0.0",
+    "pino": "^9.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.7.0"
   }
 }

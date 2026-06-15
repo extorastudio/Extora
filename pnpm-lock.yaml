@@ -145,7 +145,27 @@ importers:
 
   apps/marketplace: {}
 
-  apps/registry: {}
+  apps/registry:
+    dependencies:
+      dotenv:
+        specifier: ^16.0.0
+        version: 16.6.1
+      fastify:
+        specifier: ^5.0.0
+        version: 5.8.5
+      pino:
+        specifier: ^9.0.0
+        version: 9.14.0
+    devDependencies:
+      '@types/node':
+        specifier: ^22.0.0
+        version: 22.19.21
+      tsx:
+        specifier: ^4.0.0
+        version: 4.22.4
+      typescript:
+        specifier: ^5.7.0
+        version: 5.9.3
 
   apps/studio:
     dependencies:
