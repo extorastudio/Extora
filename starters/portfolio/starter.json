@@ -1,0 +1,1 @@
+{"name":"extora-starter-portfolio","version":"1.0.0","title":"Portfolio Starter Kit","extora":{"core":">=1.0.0"},"plugins":{"@extora/auth":"^1.0.0","@extora/cms":"^1.0.0","@extora/forms":"^1.0.0"},"theme":{"name":"@extora/portfolio-theme","version":"^1.0.0"},"postInstall":{"message":"Portfolio is ready! Visit /studio to add projects."}}

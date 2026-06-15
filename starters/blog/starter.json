@@ -1,0 +1,23 @@
+{
+  "name": "extora-starter-blog",
+  "version": "1.0.0",
+  "title": "Blog Starter Kit",
+  "description": "Start a blog with Extora — CMS, SEO, comments, and a beautiful theme",
+  "extora": { "core": ">=1.0.0" },
+  "plugins": {
+    "@extora/auth": "^1.0.0",
+    "@extora/cms": "^1.0.0"
+  },
+  "theme": {
+    "name": "@extora/blog-theme",
+    "version": "^1.0.0"
+  },
+  "config": {
+    "site.name": "My Blog",
+    "site.description": "A blog powered by Extora",
+    "cms.defaultStatus": "published"
+  },
+  "postInstall": {
+    "message": "Blog is ready! Visit /studio to start writing."
+  }
+}

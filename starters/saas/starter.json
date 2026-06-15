@@ -1,0 +1,1 @@
+{"name":"extora-starter-saas","version":"1.0.0","title":"SaaS Starter Kit","extora":{"core":">=1.0.0"},"plugins":{"@extora/auth":"^1.0.0","@extora/cms":"^1.0.0","@extora/forms":"^1.0.0"},"config":{"site.name":"My SaaS","auth.requireEmailVerification":true},"postInstall":{"message":"SaaS is ready! Visit /studio to customize."}}
