@@ -1800,3 +1800,14 @@ Order lifecycle tests validate the full state machine:
 **Total tests: 320 (99+53+8+81+33+25+12+9) across 48 test files**
 **102 commits, 181 files**
 
+
+### Phase 52: Cart Flow Tests + Build Fix
+**Date:** June 15, 2026 | **Commit:** `(pending)`
+**Duration:** ~10 minutes
+
+**Commerce: 89 tests (+8 cart flow: empty, add, stack, multi, remove, coupon, duplicate reject, free shipping)**
+**Fix: forms-endpoint.test.ts TypeScript error (body.user unknown type)**
+
+**Total tests: 328 (99+53+8+89+33+25+12+9) across 49 test files**
+**103 commits, 183 files**
+

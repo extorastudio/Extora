@@ -52,7 +52,7 @@ describe("Forms Public Submission Workflow", () => {
       payload: { email: "john@example.com", password: "StrongPass1", displayName: "John" },
     });
     expect(res.statusCode).toBe(201);
-    const body = JSON.parse(res.payload) as Record<string, unknown>;
+    const body = JSON.parse(res.payload) as { user: { email: string } };
     expect(body.user.email).toBe("john@example.com");
   });
 
