@@ -1980,3 +1980,14 @@ Order lifecycle tests validate the full state machine:
 **Total tests: 416 (103+58+8+128+52+36+16+15) across 72 test files**
 **120 commits, 214 files**
 
+
+### Phase 69: Store Locator + Menu Builder Tests
+**Date:** June 15, 2026 | **Commit:** `(pending)`
+**Duration:** ~10 minutes
+
+**Commerce: 131 (+3 store locator: nearby, inactive, distant)**
+**CMS: 53 (+1 menu builder: tree)**
+
+**Total tests: 420 (103+58+8+131+53+36+16+15) across 75 test files**
+**121 commits, 216 files**
+
