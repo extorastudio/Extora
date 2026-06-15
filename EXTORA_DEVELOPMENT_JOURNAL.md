@@ -1672,3 +1672,13 @@ Order lifecycle tests validate the full state machine:
 **Total tests: 255 (97+49+8+57+18+16+4+6) across 33 test files**
 **86 commits, 160 files**
 
+
+### Phase 41: Commerce Inventory Tests
+**Date:** June 15, 2026 | **Commit:** `(pending)`
+**Duration:** ~10 minutes
+
+**Commerce: 65 tests (+8 inventory: reserve, release, backorder, low stock, available qty)**
+
+**Total tests: 263 (97+49+8+65+18+16+4+6) across 34 test files**
+**87 commits, 162 files**
+
