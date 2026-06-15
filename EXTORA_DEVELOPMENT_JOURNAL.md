@@ -1991,3 +1991,14 @@ Order lifecycle tests validate the full state machine:
 **Total tests: 420 (103+58+8+131+53+36+16+15) across 75 test files**
 **121 commits, 216 files**
 
+
+### Phase 70: Form Preview + Product Bundle Tests
+**Date:** June 15, 2026 | **Commit:** `(pending)`
+**Duration:** ~5 minutes
+
+**Forms: 39 (+3 preview: HTML render, required attributes, field names)**
+**Commerce: 134 (+3 bundle: discount, savings, zero discount)**
+
+**Total tests: 426 (103+58+8+134+53+39+16+15) across 77 test files**
+**122 commits, 218 files**
+
