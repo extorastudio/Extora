@@ -5,6 +5,7 @@ import type { FastifyInstance } from "fastify";
 import type { BootstrapContext } from "./bootstrap.js";
 import type { ApiError } from "@extora/types";
 import { registerAuthRoutes } from "./auth/routes.js";
+import { registerAdminRoutes } from "./admin-routes.js";
 
 export async function createServer(ctx: BootstrapContext): Promise<FastifyInstance> {
   const server = Fastify({
@@ -118,6 +119,11 @@ export async function createServer(ctx: BootstrapContext): Promise<FastifyInstan
   // Register Auth Routes
   // =========================================================================
   registerAuthRoutes(server, ctx.prisma);
+
+  // =========================================================================
+  // Register Admin Routes (plugins, users, themes, config)
+  // =========================================================================
+  registerAdminRoutes(server, ctx.prisma);
 
   // =========================================================================
   // Hook System Debug Endpoint
