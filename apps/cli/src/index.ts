@@ -178,6 +178,44 @@ program
   });
 
 // =========================================================================
+// serve — Start production server
+// =========================================================================
+program
+  .command("serve")
+  .description("Start Extora Core production server")
+  .option("-p, --port <port>", "Port number", "3000")
+  .option("--no-docker", "Skip Docker services")
+  .action((options: { port: string; docker: boolean }) => {
+    console.log(chalk.green("Starting Extora Core server..."));
+
+    if (options.docker) {
+      try {
+        execSync("docker compose -f docker/docker-compose.dev.yml up -d", {
+          stdio: "inherit", cwd: process.cwd(),
+        });
+        console.log(chalk.gray("  Docker services started"));
+      } catch {
+        console.log(chalk.yellow("  Docker not available, using local services"));
+      }
+    }
+
+    console.log(chalk.blue(`  Server: http://localhost:${options.port}`));
+    console.log(chalk.blue(`  Health: http://localhost:${options.port}/api/v1/system/health`));
+    console.log(chalk.blue(`  Studio: http://localhost:${options.port}/studio`));
+
+    try {
+      execSync(`node apps/core/dist/index.js`, {
+        stdio: "inherit",
+        cwd: process.cwd(),
+        env: { ...process.env, PORT: options.port, NODE_ENV: "production" },
+      });
+    } catch {
+      console.log(chalk.yellow("  Core not built. Run: pnpm --filter @extora/core build"));
+      console.log(chalk.yellow("  Then run: extora serve"));
+    }
+  });
+
+// =========================================================================
 // dev — Start development server
 // =========================================================================
 program
