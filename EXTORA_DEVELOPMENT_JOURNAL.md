@@ -2095,3 +2095,20 @@ CLI: +5 (help commands)
 **Total tests: 512 (125+58+13+150+65+52+22+21+6) across 99 test files**
 **131 commits, 237 files**
 
+
+### Phase 78: GraphQL Support for Core
+**Date:** June 15, 2026 | **Commit:** `(pending)`
+**Duration:** ~15 minutes
+
+**Files Created:**
+- `apps/core/src/graphql.ts` — GraphQLRegistry + registerGraphQLEndpoint
+  - Type registration with field definitions
+  - Query + Mutation registration with resolvers
+  - Schema builder (type/query/mutation -> SDL)
+  - Query execution engine (field parsing, resolver invocation)
+  - GET/POST /api/v1/graphql endpoints
+  - GET /api/v1/graphql/schema — SDL schema
+- `apps/core/src/server.ts` — Registered GraphQL with SystemInfo type + queries
+
+**GraphQL now has: health query, systemInfo query, SystemInfo type**
+

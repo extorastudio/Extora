@@ -6,6 +6,7 @@ import type { BootstrapContext } from "./bootstrap.js";
 import type { ApiError } from "@extora/types";
 import { registerAuthRoutes } from "./auth/routes.js";
 import { registerAdminRoutes } from "./admin-routes.js";
+import { registerGraphQLEndpoint, GraphQLRegistry } from "./graphql.js";
 
 export async function createServer(ctx: BootstrapContext): Promise<FastifyInstance> {
   const server = Fastify({
@@ -133,6 +134,34 @@ export async function createServer(ctx: BootstrapContext): Promise<FastifyInstan
       ([name, counts]) => ({ name, ...counts }),
     ),
   }));
+
+  // =========================================================================
+  // Register GraphQL Endpoint
+  // =========================================================================
+  const graphql = new GraphQLRegistry();
+  graphql.registerType({
+    name: "SystemInfo",
+    fields: [
+      { name: "version", type: "String" },
+      { name: "nodeVersion", type: "String" },
+      { name: "platform", type: "String" },
+    ],
+  });
+  graphql.registerQuery({
+    name: "systemInfo",
+    returnType: "SystemInfo",
+    resolve: async () => ({
+      version: "0.0.0",
+      nodeVersion: process.version,
+      platform: process.platform,
+    }),
+  });
+  graphql.registerQuery({
+    name: "health",
+    returnType: "String",
+    resolve: async () => "ok",
+  });
+  registerGraphQLEndpoint(server, graphql);
 
   return server;
 }
