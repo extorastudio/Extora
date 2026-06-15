@@ -1822,3 +1822,14 @@ Order lifecycle tests validate the full state machine:
 **Total tests: 337 (99+53+8+93+38+25+12+9) across 51 test files**
 **105 commits, 186 files**
 
+
+### Phase 54: Wishlist + Reviews + API Validation Tests
+**Date:** June 15, 2026 | **Commit:** `(pending)`
+**Duration:** ~10 minutes
+
+**Commerce: 99 tests (+6 wishlist/reviews: add, duplicate, remove, avg rating, unreviewed)**
+**Core: 103 tests (+4 API validation: endpoints, health, auth, mutations)**
+
+**Total tests: 347 (103+53+8+99+38+25+12+9) across 53 test files**
+**106 commits, 188 files**
+
