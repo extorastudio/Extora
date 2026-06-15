@@ -2002,3 +2002,17 @@ Order lifecycle tests validate the full state machine:
 **Total tests: 426 (103+58+8+134+53+39+16+15) across 77 test files**
 **122 commits, 218 files**
 
+
+### Phase 71: CLI + Cache + Rate Limit + Batch Tests
+**Date:** June 15, 2026 | **Commit:** `(pending)`
+**Duration:** ~20 minutes
+
+**CLI: 13 tests (+5: version, plugin/docker/generate/publish help)**
+**Core: 111 (+8 cache/rate limit)**
+**Commerce: 137 (+3 batch ops)**
+**SEO: 19 (+3 OG image)**
+**Analytics: 16 (+1 funnel)**
+
+**Total tests: 446 (111+58+13+137+53+39+19+16) across 83 test files**
+**123 commits, 221 files**
+
