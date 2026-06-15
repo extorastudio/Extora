@@ -1082,3 +1082,19 @@ c492d48 chore: change license from MIT to Proprietary (UNLICENSED)
 **Commit:** (pending)
 **Duration:** (in progress)
 
+
+### Phase 3.1: Extora SDK Implementation
+**Date:** June 13, 2026 | **Commit:** `bb7b8f5`
+**Duration:** ~45 minutes
+
+**Files Created (6 new source files in packages/sdk):**
+- `packages/sdk/src/plugin.ts` — BasePlugin abstract class with lifecycle hooks (onInstall, onActivate, onDeactivate, onUninstall, onUpdate), protected accessors for logger/db/cache/config, publishEvent() and subscribeEvent() helpers
+- `packages/sdk/src/hooks.ts` — addAction(), addFilter(), removeAction(), removeFilter() with lazy registry binding
+- `packages/sdk/src/events.ts` — publishEvent(), subscribeEvent() with event bus binding
+- `packages/sdk/src/config.ts` — getConfig(), setConfig() with config manager binding
+- `packages/sdk/src/testing.ts` — 8 mock factories: createMockLogger, createMockEventBus, createMockDatabase, createMockCache, createMockConfig, createMockHookRegistry, createMockMediaItem, createMockPaginatedResponse
+- `packages/sdk/src/index.ts` — Re-exports all modules + @extora/types
+
+**ESLint:** Added `packages/sdk/src/**/*.ts` to the relaxed rules override (mock/testing patterns)
+**Verification:** lint=0 errors, typecheck=pass
+
