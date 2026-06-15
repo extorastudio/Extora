@@ -1789,3 +1789,14 @@ Order lifecycle tests validate the full state machine:
 **Total tests: 315 (94+53+8+81+33+25+12+9) across 47 test files**
 **100 commits, 178 files**
 
+
+### Phase 51: Forms Endpoint + CLI Serve Tests
+**Date:** June 15, 2026 | **Commit:** `(pending)`
+**Duration:** ~15 minutes
+
+**Core: 99 tests (+5 forms endpoint: register flow, validation, spam detection, clean filtering, form states)**
+**CLI: Added `extora serve` command (10 commands total)**
+
+**Total tests: 320 (99+53+8+81+33+25+12+9) across 48 test files**
+**102 commits, 181 files**
+
