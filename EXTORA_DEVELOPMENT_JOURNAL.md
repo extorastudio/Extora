@@ -2127,3 +2127,14 @@ CLI: +5 (help commands)
   - Auto-cleanup on disconnect
 - `apps/core/src/server.ts` — Registered @fastify/websocket plugin + /api/v1/ws endpoint
 
+
+### Phase 80: Sales Report + Draft Compare + Form Stats Tests
+**Date:** June 15, 2026 | **Commit:** `(pending)`
+**Duration:** ~5 minutes
+
+**Commerce: 153 (+3 sales report)**
+**CMS: 67 (+2 draft compare)**
+**Forms: 53 (+1 submission stats)**
+
+**Total tests: 518 across 102 test files**
+
