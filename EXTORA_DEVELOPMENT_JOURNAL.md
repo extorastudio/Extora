@@ -1757,3 +1757,14 @@ Order lifecycle tests validate the full state machine:
 
 **Total tests: 304 (97+49+8+81+29+25+9+6) across 42 test files**
 
+
+### Phase 48: Auth Flow + CMS Bulk Operations Tests
+**Date:** June 15, 2026 | **Commit:** `(pending)`
+**Duration:** ~10 minutes
+
+**Core: 94 tests (+4 auth flow: full register→verify→login→refresh cycle)**
+**CMS: 33 tests (+4 bulk operations: publish, archive, delete, empty IDs)**
+
+**Total tests: 305 (94+49+8+81+33+25+9+6) across 44 test files**
+**98 commits, 175 files**
+
