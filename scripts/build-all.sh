@@ -1,13 +1,15 @@
 #!/bin/bash
 set -e
+PNPM="/opt/homebrew/lib/node_modules/pnpm/bin/pnpm.cjs"
+[ -f "$PNPM" ] || PNPM="pnpm"
+
 echo "============================================"
 echo "  Extora Build Pipeline v$(cat VERSION)"
 echo "============================================"
 echo ""
 
-# Step 1: Verify frozen lockfile
 echo "[1/5] Verifying dependencies..."
-pnpm install --frozen-lockfile --silent
+$PNPM install --frozen-lockfile --silent
 echo "  ✓ Dependencies verified"
 
 # Step 2: Lint
