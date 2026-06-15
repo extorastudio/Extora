@@ -45,7 +45,6 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/apps/core/dist ./dist
 COPY --from=builder /app/apps/core/prisma ./prisma
 COPY --from=builder /app/apps/core/package.json ./
-COPY --from=builder /app/docker/docker-compose.prod.yml ./docker-compose.prod.yml
 
 USER extora
 EXPOSE 3000
