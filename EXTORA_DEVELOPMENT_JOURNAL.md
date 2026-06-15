@@ -1662,3 +1662,13 @@ Order lifecycle tests validate the full state machine:
 **Total tests: 249 (97+43+8+57+18+16+4+6) across 32 test files**
 **84 commits, 158 files**
 
+
+### Phase 40: SDK Hooks Module Tests
+**Date:** June 15, 2026 | **Commit:** `(pending)`
+**Duration:** ~10 minutes
+
+**SDK: 49 tests (+6 hooks module: register, chain, remove, null safety)**
+
+**Total tests: 255 (97+49+8+57+18+16+4+6) across 33 test files**
+**86 commits, 160 files**
+
