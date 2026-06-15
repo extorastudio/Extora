@@ -1167,3 +1167,21 @@ c492d48 chore: change license from MIT to Proprietary (UNLICENSED)
 **Verified:** Tested `extora create plugin my-test-plugin` — successfully created valid extora.json, package.json, tsconfig.json, and src/index.ts with correct class name "MyTestPlugin".
 **Verification:** lint=0, typecheck=pass
 
+
+### Phase 6: SDK Database Helpers + Sample Plugin
+**Date:** June 15, 2026 | **Commit:** `1eb0c06`
+**Duration:** ~30 minutes
+
+**SDK Additions:**
+- `packages/sdk/src/database.ts` — BaseMigration abstract class + createMigrationRunner() with register, runPending, rollback, status
+
+**Sample Plugin Created:**
+- `plugins/auth/extora.json` — Full manifest with permissions, hooks, api, database
+- `plugins/auth/src/index.ts` — AuthPlugin extends BasePlugin:
+  - Uses BaseMigration for creating plugin_auth_providers table
+  - Registers `user.registered` action hook on activate
+  - Full lifecycle: onInstall (migrations) → onActivate (hooks) → onDeactivate
+  - Demonstrates complete SDK usage pattern
+
+**Verification:** core typecheck=pass, sdk typecheck=pass, tests=60/60
+
