@@ -40,9 +40,10 @@ jobs:
             ${{ secrets.DOCKERHUB_USERNAME }}/extora-core:latest
             ${{ secrets.DOCKERHUB_USERNAME }}/extora-core:${{ github.ref_name }}
 
-  platform-builds:
-    name: Build Platform Packages
+  release:
+    name: Build & Create Release
     runs-on: ubuntu-latest
+    needs: docker
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -72,99 +73,51 @@ jobs:
       - name: Package for platforms
         run: bash scripts/package-platforms.sh
 
-      - name: Upload Linux build
-        uses: actions/upload-artifact@v4
-        with:
-          name: extora-linux-x64
-          path: dist/releases/extora-v*-linux-x64.tar.gz
-          if-no-files-found: error
-
-      - name: Upload macOS Intel build
-        uses: actions/upload-artifact@v4
-        with:
-          name: extora-darwin-x64
-          path: dist/releases/extora-v*-darwin-x64.tar.gz
-          if-no-files-found: error
-
-      - name: Upload macOS Apple Silicon build
-        uses: actions/upload-artifact@v4
-        with:
-          name: extora-darwin-arm64
-          path: dist/releases/extora-v*-darwin-arm64.tar.gz
-          if-no-files-found: error
-
-      - name: Upload Windows build
-        uses: actions/upload-artifact@v4
-        with:
-          name: extora-win-x64
-          path: dist/releases/extora-v*-win-x64.zip
-          if-no-files-found: error
-
-  github-release:
-    name: Create GitHub Release
-    runs-on: ubuntu-latest
-    needs: [docker, platform-builds]
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Download Linux build
-        uses: actions/download-artifact@v4
-        with:
-          name: extora-linux-x64
-
-      - name: Download macOS Intel build
-        uses: actions/download-artifact@v4
-        with:
-          name: extora-darwin-x64
-
-      - name: Download macOS Apple Silicon build
-        uses: actions/download-artifact@v4
-        with:
-          name: extora-darwin-arm64
-
-      - name: Download Windows build
-        uses: actions/download-artifact@v4
-        with:
-          name: extora-win-x64
-
-      - name: Create Release
+      - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
           name: "Extora ${{ github.ref_name }}"
           body: |
-            ## Extora v${{ github.ref_name }}
+            ## Extora ${{ github.ref_name }} — XAMPP-Style Platform
 
-            ### Download
+            All-in-one package — unpack and run.
+
+            ### 📦 Downloads
+
             | Platform | Download |
             |---|---|
-            | 🐧 Linux | `extora-v${{ github.ref_name }}-linux-x64.tar.gz` |
-            | 🍎 macOS Intel | `extora-v${{ github.ref_name }}-darwin-x64.tar.gz` |
-            | 🍎 macOS M1/M2 | `extora-v${{ github.ref_name }}-darwin-arm64.tar.gz` |
-            | 🪟 Windows | `extora-v${{ github.ref_name }}-win-x64.zip` |
-            | 🐳 Docker | `{username}/extora-core:${{ github.ref_name }}` |
+            | 🐧 Linux | `extora-${{ github.ref_name }}-linux-x64.tar.gz` |
+            | 🍎 macOS Intel | `extora-${{ github.ref_name }}-darwin-x64.tar.gz` |
+            | 🍎 macOS M1/M2 | `extora-${{ github.ref_name }}-darwin-arm64.tar.gz` |
+            | 🪟 Windows | `extora-${{ github.ref_name }}-win-x64.zip` |
+            | 🐳 Docker | `{user}/extora-core:${{ github.ref_name }}` |
 
-            ### Quick Start
+            ### 🚀 Quick Start
             ```bash
-            # Extract
-            tar -xzf extora-v${{ github.ref_name }}-linux-x64.tar.gz
-            cd extora-v${{ github.ref_name }}
+            # 1. Download & Extract
+            tar -xzf extora-${{ github.ref_name }}-linux-x64.tar.gz
+            cd extora-${{ github.ref_name }}
 
-            # Configure
-            cp .env.example .env
-
-            # Start
+            # 2. Start (requires Docker)
             ./start.sh
+
+            # 3. Open http://localhost in browser
             ```
 
-            Open http://localhost:3000 in your browser.
+            ### 📦 Includes (XAMPP-Style Bundle)
+            - Nginx reverse proxy
+            - Extora Core Runtime
+            - PostgreSQL 16, Redis 7, MinIO, OpenSearch
+            - Extora Studio (Admin UI)
+            - 6 pre-installed plugins (Auth, CMS, Commerce, Forms, SEO, Analytics)
 
-            ### Requirements
-            - Node.js 22+ installed on your system
+            ### ⚙️ Requirements
+            - Docker Desktop installed
+            - 4GB+ RAM available
           draft: false
           prerelease: false
           files: |
-            extora-v*-linux-x64.tar.gz
-            extora-v*-darwin-x64.tar.gz
-            extora-v*-darwin-arm64.tar.gz
-            extora-v*-win-x64.zip
+            dist/releases/extora-*-linux-x64.tar.gz
+            dist/releases/extora-*-darwin-x64.tar.gz
+            dist/releases/extora-*-darwin-arm64.tar.gz
+            dist/releases/extora-*-win-x64.zip
