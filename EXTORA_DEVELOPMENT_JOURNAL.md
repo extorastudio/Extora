@@ -1969,3 +1969,14 @@ Order lifecycle tests validate the full state machine:
 **Total tests: 410 (103+58+8+125+49+36+16+15) across 70 test files**
 **119 commits, 212 files**
 
+
+### Phase 68: Product Compare + Revision Diff Tests
+**Date:** June 15, 2026 | **Commit:** `(pending)`
+**Duration:** ~5 minutes
+
+**Commerce: 128 (+3 compare: matching, different, identical)**
+**CMS: 52 (+3 revision diff: changed fields, unchanged, before/after)**
+
+**Total tests: 416 (103+58+8+128+52+36+16+15) across 72 test files**
+**120 commits, 214 files**
+
