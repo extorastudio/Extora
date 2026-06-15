@@ -1612,3 +1612,12 @@ Order lifecycle tests validate the full state machine:
 
 **78 commits, 150 files**
 
+
+### Phase 35: Resolver Edge Cases + 214 Tests
+**Date:** June 15, 2026 | **Commit:** `(pending)`
+**Duration:** ~10 minutes
+
+**Core: 97 tests (+7 resolver edge cases — diamond deps, semver operators, empty list)**
+
+**Total tests: 214 (97 core + 43 sdk + 8 cli + 34 commerce + 12 cms + 10 forms + 4 seo + 6 analytics)**
+
