@@ -1748,3 +1748,12 @@ Order lifecycle tests validate the full state machine:
 
 **96 commits, 171 files**
 
+
+### Phase 47: Category Tree Tests
+**Date:** June 15, 2026 | **Commit:** `(pending)`
+**Duration:** ~5 minutes
+
+**Commerce: 81 tests (+4 category tree: build, nested children, leaves, descendants)**
+
+**Total tests: 304 (97+49+8+81+29+25+9+6) across 42 test files**
+
