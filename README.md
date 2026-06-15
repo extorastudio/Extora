@@ -1,6 +1,6 @@
 # Extora
 
-[![CI](https://github.com/Rishi2727/Extora_Studio/actions/workflows/ci.yml/badge.svg)](https://github.com/Rishi2727/Extora_Studio/actions/workflows/ci.yml)
+[![CI](https://github.com/extorastudio/Extora/actions/workflows/ci.yml/badge.svg)](https://github.com/extorastudio/Extora/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/License-MIT%20%2B%20Proprietary-blue.svg)](LICENSE)
 
 **Build Anything. Plugin Everything.**
@@ -31,7 +31,7 @@ Extora is composed of 15 components organized in a pnpm + Turborepo monorepo:
 # Prerequisites: Node.js 22+, pnpm 9+, Docker Desktop
 
 # Clone and install
-git clone https://github.com/Rishi2727/Extora_Studio.git
+git clone https://github.com/extorastudio/Extora.git
 cd Extora_Studio
 
 # Install dependencies

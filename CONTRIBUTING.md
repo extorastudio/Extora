@@ -14,7 +14,7 @@ Thank you for your interest in contributing! Extora is a community-driven projec
 
 ```bash
 # Clone the repository
-git clone https://github.com/Rishi2727/Extora_Studio.git
+git clone https://github.com/extorastudio/Extora.git
 cd Extora_Studio
 
 # Install dependencies
@@ -100,8 +100,8 @@ pnpm test          # All tests pass
 
 ## Community
 
-- [GitHub Discussions](https://github.com/Rishi2727/Extora_Studio/discussions)
-- Report bugs via [GitHub Issues](https://github.com/Rishi2727/Extora_Studio/issues)
+- [GitHub Discussions](https://github.com/extorastudio/Extora/discussions)
+- Report bugs via [GitHub Issues](https://github.com/extorastudio/Extora/issues)
 - Follow our [Code of Conduct](CODE_OF_CONDUCT.md)
 
 ## License
