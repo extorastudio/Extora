@@ -1932,3 +1932,12 @@ Order lifecycle tests validate the full state machine:
 **Total tests: 389 (103+58+8+117+42+32+16+13) across 64 test files**
 **116 commits, 206 files**
 
+
+### Phase 65: CMS Tag Manager Tests
+**Date:** June 15, 2026 | **Commit:** `(pending)`
+**Duration:** ~5 minutes
+
+**CMS: 45 tests (+3 tags: create, duplicate prevention, count increment)**
+
+**Total tests: 392 (103+58+8+117+45+32+16+13) across 65 test files**
+
