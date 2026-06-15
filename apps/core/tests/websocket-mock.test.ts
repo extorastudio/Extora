@@ -10,7 +10,7 @@ class WsMock {
 }
 
 describe("WebSocket Mock", () => {
-  it("should register client", () => { const w = new WsMock(); const c = w.register(); expect(w.clients.size).toBe(1); });
+  it("should register client", () => { const w = new WsMock(); w.register(); expect(w.clients.size).toBe(1); });
   it("should subscribe to events", () => { const w = new WsMock(); const c = w.register(); w.subscribe(c.id, "order.placed"); expect(c.subscribedEvents.has("order.placed")).toBe(true); });
   it("should broadcast to subscribers", () => { const w = new WsMock(); const c = w.register(); w.subscribe(c.id, "test"); const sent = w.broadcast("test"); expect(sent).toBe(1); });
 });
