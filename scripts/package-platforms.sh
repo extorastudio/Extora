@@ -35,29 +35,37 @@ cp -r apps/studio/dist/* "$DEPLOY_DIR/studio/"
 cp -r apps/core/dist "$DEPLOY_DIR/core/"
 cp apps/core/package.json "$DEPLOY_DIR/core/"
 cp -r apps/core/prisma "$DEPLOY_DIR/core/"
-cp docker/docker-compose.prod.yml "$DEPLOY_DIR/"
+cp docker/docker-compose.full.yml "$DEPLOY_DIR/"
+cp docker/docker-compose.dev.yml "$DEPLOY_DIR/"
+cp docker/nginx.conf "$DEPLOY_DIR/"
+cp docker/Dockerfile.core "$DEPLOY_DIR/"
+cp extora-launcher.js "$DEPLOY_DIR/"
 cp .env.example "$DEPLOY_DIR/.env"
 cp VERSION "$DEPLOY_DIR/"
 cp INSTALL.md "$DEPLOY_DIR/"
 cp README.md "$DEPLOY_DIR/"
 
-# Create start script
+# Create Linux/macOS start script
 cat > "$DEPLOY_DIR/start.sh" << 'EOF'
 #!/bin/bash
 cd "$(dirname "$0")"
-echo "Starting Extora v$(cat VERSION)..."
-echo "Studio: http://localhost:3000"
-echo "API: http://localhost:3000/api/v1/system/health"
-node core/dist/prod-server.js
+echo ""
+echo "  Extora — Plugin Ecosystem Platform"
+echo "  Starting all services..."
+echo ""
+node extora-launcher.js start
 EOF
 chmod +x "$DEPLOY_DIR/start.sh"
 
 # Create Windows start script
 cat > "$DEPLOY_DIR/start.bat" << 'EOF'
 @echo off
-echo Starting Extora...
-echo Studio: http://localhost:3000
-node core\dist\prod-server.js
+title Extora Control Panel
+echo.
+echo   Extora — Plugin Ecosystem Platform
+echo   Starting all services...
+echo.
+node extora-launcher.js start
 pause
 EOF
 

@@ -2357,3 +2357,28 @@ pnpm build:all       # Full build pipeline
 
 **600 tests pass. 161 commits, 283 files.**
 
+
+### Phase 96: XAMPP-Style All-in-One Bundle
+**Date:** June 15, 2026 | **Commit:** `(pending)`
+**Duration:** ~25 minutes
+
+**Extora is now a XAMPP/WAMP-style bundled application:**
+
+Each platform package includes:
+- `docker-compose.full.yml` — All 7 services (Nginx, Core, PostgreSQL, Redis, MinIO, OpenSearch, Studio)
+- `nginx.conf` — Reverse proxy: Studio static files + API proxy
+- `extora-launcher.js` — Control panel: start/stop/restart/status/logs/open
+- `start.sh` / `start.bat` — One-click startup
+- All Core server files + Studio static files
+
+**User experience:**
+```bash
+tar -xzf extora-v0.1.0-linux-x64.tar.gz
+cd extora-v0.1.0
+./start.sh
+# → Nginx, Core, PostgreSQL, Redis, MinIO, OpenSearch start
+# → Browser opens to http://localhost (Studio)
+```
+
+**600 tests pass. 162 commits, 286 files.**
+
