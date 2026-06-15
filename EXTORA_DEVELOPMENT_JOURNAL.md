@@ -1420,3 +1420,16 @@ c492d48 chore: change license from MIT to Proprietary (UNLICENSED)
 **Verified:** lint=0, typecheck=pass, frozen lockfile=pass, all 108 tests pass
 **Repository:** https://github.com/Rishi2727/Extora
 
+
+### Phase 20: SDK Studio Module
+**Date:** June 15, 2026 | **Commit:** `6254144`
+**Duration:** ~15 minutes
+
+**SDK Studio Module:**
+- `packages/sdk/src/studio.ts`: Studio UI slot + route registration
+- `STUDIO_SLOTS`: 5 standard slot names
+- SDK now has 10 subpath exports
+
+**Total tests: 114 (70 core + 36 sdk + 8 cli)**
+**Commits: 53 | Files: 113**
+
