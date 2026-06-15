@@ -113,11 +113,11 @@ interface Shipment {
 interface TrackingInfo {
   trackingNumber: string;
   status: string;
-  events: Array<{
+  events: {
     timestamp: Date;
     location: string;
     description: string;
-  }>;
+  }[];
   estimatedDelivery?: Date;
 }
 

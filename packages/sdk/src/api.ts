@@ -1,6 +1,6 @@
 import type { ApiHandler, ApiMiddleware } from "@extora/types";
 
-interface ApiRouteOptions {
+export interface ApiRouteOptions {
   method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
   path: string;
   handler: ApiHandler;
