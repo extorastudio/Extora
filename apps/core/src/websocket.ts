@@ -12,7 +12,7 @@ class WebSocketManager {
   private clients = new Map<string, WsClient>();
 
   registerClient(socket: WebSocket): WsClient {
-    const id = `ws_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+    const id = `ws_${String(Date.now())}_${Math.random().toString(36).slice(2, 9)}`;
     const client: WsClient = {
       id,
       socket,
@@ -78,12 +78,11 @@ class WebSocketManager {
 
 export function registerWebSocketEndpoint(
   server: FastifyInstance,
-  eventBus: EventBus,
+  _eventBus: EventBus,
 ): WebSocketManager {
   const wsManager = new WebSocketManager();
 
-  // Register WebSocket upgrade handler using a Fastify-compatible approach
-  server.get("/api/v1/ws", { websocket: true }, (socket: WebSocket, req) => {
+  server.get("/api/v1/ws", { websocket: true }, (socket: WebSocket, _req) => {
     const client = wsManager.registerClient(socket);
 
     // Send welcome message
@@ -125,7 +124,7 @@ export function registerWebSocketEndpoint(
   });
 
   // Stats endpoint
-  server.get("/api/v1/ws/stats", async () => wsManager.getStats());
+  server.get("/api/v1/ws/stats", () => wsManager.getStats());
 
   return wsManager;
 }
