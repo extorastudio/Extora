@@ -1540,3 +1540,17 @@ Checkout integration tests validate the full commerce flow:
 
 **Total tests: 152 (70 core + 36 sdk + 8 cli + 24 commerce + 6 cms + 4 forms + 4 seo)**
 
+
+### Phase 30: CMS + Forms Integration Tests
+**Date:** June 15, 2026 | **Commit:** `(pending)`
+**Duration:** ~15 minutes
+
+**CMS: 12 tests (6 routes + 6 content lifecycle)**
+- Content type creation, entry CRUD, revisions, filtering, deletion
+
+**Forms: 10 tests (4 routes + 6 form lifecycle)**
+- Form creation, publishing, public submissions, spam detection, closed form handling
+
+**Total tests: 164 (70 core + 36 sdk + 8 cli + 24 commerce + 12 cms + 10 forms + 4 seo)**
+**74 commits, 142 files**
+
