@@ -1323,3 +1323,16 @@ c492d48 chore: change license from MIT to Proprietary (UNLICENSED)
 **Total tests: 87 (49 core + 30 sdk + 8 cli)**
 **Verification:** lint=0, typecheck=pass
 
+
+### Phase 15: Production Docker
+**Date:** June 15, 2026 | **Commit:** `cf9b89b`
+**Duration:** ~15 minutes
+
+**Files Created:**
+- `docker/docker-compose.prod.yml`: 6 services (nginx, core, postgres, redis, minio, opensearch)
+- `docker/Dockerfile.core`: Multi-stage build (node:22-alpine builder + runner)
+
+**Deployment modes now available:**
+1. Dev: `docker compose -f docker/docker-compose.dev.yml up`
+2. Prod: `docker compose -f docker/docker-compose.prod.yml up`
+
