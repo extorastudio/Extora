@@ -1148,3 +1148,22 @@ c492d48 chore: change license from MIT to Proprietary (UNLICENSED)
 - Tests: 60 (core 39 + sdk 21)
 - Amendments: 18
 
+
+### Phase 5: CLI Real Implementation
+**Date:** June 15, 2026 | **Commit:** `6c5e1c4`
+**Duration:** ~30 minutes
+
+**Changes:**
+- `apps/cli/src/index.ts` — All commands now have real implementations:
+
+**Working commands:**
+- `extora create plugin <name>` — Creates 4 files (extora.json, package.json, tsconfig.json, src/index.ts) with proper class name and title auto-generation
+- `extora build` — Runs `npx tsc` with stdio inherit
+- `extora test` — Runs `npx vitest` with optional --coverage
+- `extora plugin list` — Reads plugins/ directory and lists installed plugins
+- `extora docker up/down` — Runs `docker compose` commands
+- `extora dev` — Checks for tsx and provides guidance
+
+**Verified:** Tested `extora create plugin my-test-plugin` — successfully created valid extora.json, package.json, tsconfig.json, and src/index.ts with correct class name "MyTestPlugin".
+**Verification:** lint=0, typecheck=pass
+
