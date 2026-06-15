@@ -1479,3 +1479,12 @@ c492d48 chore: change license from MIT to Proprietary (UNLICENSED)
 **Total tests: 131 (70 core + 36 sdk + 8 cli + 17 commerce)**
 **64 commits, 126 files**
 
+
+### Phase 25: CMS Content API Routes
+**Date:** June 15, 2026 | **Commit:** `4fa3788`
+**Duration:** ~15 minutes
+
+**CMS Plugin now has:** Content type CRUD + Content entry CRUD + Revision tracking
+**Total tests: 137 (70 core + 36 sdk + 8 cli + 17 commerce + 6 cms)**
+**66 commits, 130 files**
+
