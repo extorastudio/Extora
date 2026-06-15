@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6A00FF"/>
+      <stop offset="100%" stop-color="#FF4FD8"/>
+    </linearGradient>
+    <linearGradient id="g2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FF5A3D"/>
+      <stop offset="100%" stop-color="#FFD54A"/>
+    </linearGradient>
+    <linearGradient id="g3" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1B2BFF"/>
+      <stop offset="100%" stop-color="#2ED8FF"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Top ribbon -->
+  <path d="M140 145
+           L250 80
+           Q265 72 280 80
+           L390 145
+           Q402 152 390 160
+           L325 198
+           Q315 204 304 198
+           L250 166
+           L176 210
+           Q160 220 140 208
+           Z"
+        fill="url(#g1)"/>
+
+  <!-- Middle ribbon -->
+  <path d="M140 205
+           L250 270
+           L325 225
+           Q340 216 355 225
+           L390 245
+           Q402 252 390 260
+           L290 320
+           Q270 332 250 320
+           L140 255
+           Z"
+        fill="url(#g2)"/>
+
+  <!-- Bottom ribbon -->
+  <path d="M140 300
+           L250 365
+           L390 285
+           Q402 278 402 292
+           L402 350
+           Q402 365 390 372
+           L280 435
+           Q265 444 250 435
+           L140 372
+           Q128 365 128 350
+           L128 312
+           Q128 292 140 300
+           Z"
+        fill="url(#g3)"/>
+</svg>
