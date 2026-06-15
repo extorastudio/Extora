@@ -1310,3 +1310,16 @@ c492d48 chore: change license from MIT to Proprietary (UNLICENSED)
 
 ---
 **Total project: 37 commits, 98 files, 78 tests**
+
+### Phase 14: SDK API + CLI Tests
+**Date:** June 15, 2026 | **Commit:** `6b7c6f7`
+**Duration:** ~15 minutes
+
+**Tests Written:** 9 tests (api-cli.test.ts)
+- createRouter: 4 tests (GET, chaining, all methods, middleware)
+- Middleware builders: 3 tests
+- CLI helpers: 2 tests
+
+**Total tests: 87 (49 core + 30 sdk + 8 cli)**
+**Verification:** lint=0, typecheck=pass
+
