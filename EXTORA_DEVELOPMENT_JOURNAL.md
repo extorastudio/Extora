@@ -1291,3 +1291,22 @@ c492d48 chore: change license from MIT to Proprietary (UNLICENSED)
 
 **Verification:** typecheck=pass, lint=0, all 78 tests pass
 
+
+### Phase 13: Extora Commerce Plugin
+**Date:** June 15, 2026 | **Commit:** `bc69214`
+**Duration:** ~35 minutes
+
+**Files Created:**
+- `plugins/commerce/extora.json` — Full manifest
+- `plugins/commerce/src/index.ts` — CommercePlugin with 12 tables, 6 hooks
+
+**All 4 Official Plugins Complete:**
+1. @extora/auth — Authentication (1 table, user hooks)
+2. @extora/cms — Content management (3 tables, content hooks)
+3. @extora/forms — Form builder (3 tables, form hooks)
+4. @extora/commerce — Ecommerce (12 tables, commerce hooks)
+
+**Verification:** lint=0, typecheck=pass, tests=78/78
+
+---
+**Total project: 37 commits, 98 files, 78 tests**
