@@ -2038,3 +2038,12 @@ CLI: +5 (help commands)
 
 **124 commits, 230 files**
 
+
+### Phase 73: Commerce API Integration Tests
+**Date:** June 15, 2026 | **Commit:** `(pending)`
+**Duration:** ~10 minutes
+
+**Core: 125 (+6 commerce API integration: plugins/users/themes list, config, auth rejection, 404)**
+
+**Total tests: 506 (125+58+13+150+65+52+22+21)**
+
