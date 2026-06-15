@@ -2226,3 +2226,14 @@ CLI: +5 (help commands)
 **Total tests: 552 (137+58+13+161+67+56+22+23+6+7+2) across 112 test files**
 **142 commits, 254 files**
 
+
+### Phase 86: Import Validation + Email Templates + Discount Stacking
+**Date:** June 15, 2026 | **Commit:** `(pending)`
+**Duration:** ~5 minutes
+
+**CMS: 70 (+3 import validation)**
+**Forms: 58 (+2 email templates)**
+**Commerce: 163 (+2 discount stacking)**
+
+**Total tests: 559 (137+58+13+163+70+58+22+23+6+7+2) across 115 test files**
+
