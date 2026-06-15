@@ -1185,3 +1185,26 @@ c492d48 chore: change license from MIT to Proprietary (UNLICENSED)
 
 **Verification:** core typecheck=pass, sdk typecheck=pass, tests=60/60
 
+
+### Phase 7: Extora CMS Plugin
+**Date:** June 15, 2026 | **Commit:** `01af1c2`
+**Duration:** ~40 minutes
+
+**Files Created:**
+- `plugins/cms/extora.json` — Full manifest with content hooks, REST + GraphQL API routes
+- `plugins/cms/src/index.ts` — CmsPlugin with:
+  - 3 migrations (content_types, content_entries, content_revisions tables)
+  - onInstall: Creates tables via plugin database client
+  - onActivate: Registers content.before_save filter, content.published action with event publishing
+  - Full lifecycle implementation
+
+**SDK enhancements:**
+- Added `addAction()`, `addFilter()` protected methods to BasePlugin
+- Added subpath exports: `@extora/sdk/database`, `@extora/sdk/hooks`, `@extora/sdk/events`, `@extora/sdk/config`
+
+**Verification:** cms=pass, sdk=pass, core=pass, tests=60/60, lint=0
+
+---
+
+**Now have 2 official plugins:** @extora/auth + @extora/cms
+
