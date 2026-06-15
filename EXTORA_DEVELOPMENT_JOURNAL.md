@@ -1779,3 +1779,13 @@ Order lifecycle tests validate the full state machine:
 **Total tests: 311 (94+49+8+81+33+25+12+9) across 46 test files**
 **99 commits, 177 files**
 
+
+### Phase 50: SDK Migration Runner Tests
+**Date:** June 15, 2026 | **Commit:** `(pending)`
+**Duration:** ~5 minutes
+
+**SDK: 53 tests (+4 migration: run, skip applied, rollback, status)**
+
+**Total tests: 315 (94+53+8+81+33+25+12+9) across 47 test files**
+**100 commits, 178 files**
+
