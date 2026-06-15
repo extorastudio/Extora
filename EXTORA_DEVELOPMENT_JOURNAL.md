@@ -1642,3 +1642,13 @@ Order lifecycle tests validate the full state machine:
 **Total tests: 234 (97+43+8+42+18+16+4+6) across 30 test files**
 **81 commits, 155 files**
 
+
+### Phase 38: Commerce Coupon System Tests
+**Date:** June 15, 2026 | **Commit:** `(pending)`
+**Duration:** ~10 minutes
+
+**Commerce: 50 tests (+8 coupon system: percentage, fixed, free shipping, expiry, limits, minimum order)**
+
+**Total tests: 242 (97+43+8+50+18+16+4+6) across 31 test files**
+**83 commits, 156 files**
+
