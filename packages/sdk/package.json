@@ -1,6 +1,6 @@
 {
   "name": "@extora/sdk",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "private": false,
   "description": "Extora SDK — build plugins and themes for the Extora ecosystem",
   "main": "./src/index.ts",
