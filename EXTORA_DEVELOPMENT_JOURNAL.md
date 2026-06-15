@@ -1941,3 +1941,19 @@ Order lifecycle tests validate the full state machine:
 
 **Total tests: 392 (103+58+8+117+45+32+16+13) across 65 test files**
 
+
+### Phase 66: 400 TESTS MILESTONE 🎯
+**Date:** June 15, 2026 | **Commit:** `(pending)`
+**Duration:** ~10 minutes
+
+**Commerce: 121 tests (+4 subscription: create, pause, cancel, billing check)**
+**CMS: 49 tests (+4 status: draft→published, published→archived, archived→draft, no self-transition)**
+
+**🎯 400 TESTS REACHED:**
+  Core: 103 | SDK: 58 | CLI: 8
+  Commerce: 121 | CMS: 49 | Forms: 32
+  SEO: 16 | Analytics: 13
+  **Total: 400 across 67 test files**
+
+**118 commits, 209 files**
+
