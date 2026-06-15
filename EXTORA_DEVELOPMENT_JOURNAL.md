@@ -2269,3 +2269,15 @@ CLI: +5 (help commands)
 
 **Total tests: 565 across 118 test files**
 
+
+### Phase 91: Health + Inventory Alert + Breadcrumb Tests
+**Date:** June 15, 2026 | **Commit:** `(pending)`
+**Duration:** ~5 minutes
+
+**Core: 139 (+2 health check validation)**
+**Commerce: 167 (+2 inventory alerts)**
+**CMS: 74 (+2 breadcrumb builder)**
+
+**Total tests: 571 across 121 test files**
+**149 commits, 266 files**
+
