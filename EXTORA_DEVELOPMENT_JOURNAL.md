@@ -1621,3 +1621,13 @@ Order lifecycle tests validate the full state machine:
 
 **Total tests: 214 (97 core + 43 sdk + 8 cli + 34 commerce + 12 cms + 10 forms + 4 seo + 6 analytics)**
 
+
+### Phase 36: Commerce API + Integration Tests
+**Date:** June 15, 2026 | **Commit:** `(pending)`
+**Duration:** ~10 minutes
+
+**Commerce: 42 tests (+8 commerce API: products, cart, inventory, orders, discounts)**
+
+**Total tests: 222 (97+43+8+42+12+10+4+6) across 28 test files**
+**80 commits, 152 files**
+
