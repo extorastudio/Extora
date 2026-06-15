@@ -1,16 +1,34 @@
 {
   "name": "@extora/sdk",
   "version": "0.0.0",
-  "private": true,
-  "description": "Extora sdk — pending implementation",
+  "private": false,
+  "description": "Extora SDK — build plugins and themes for the Extora ecosystem",
   "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./testing": "./src/testing.ts"
+  },
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src/",
+    "test": "vitest run",
+    "clean": "rm -rf dist"
+  },
   "dependencies": {
     "@extora/types": "workspace:*"
   },
-  "scripts": {
-    "build": "echo 'No build yet'",
-    "typecheck": "echo 'No typecheck yet'",
-    "lint": "echo 'No lint yet'",
-    "clean": "rm -rf dist"
-  }
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.7.0",
+    "vitest": "^2.0.0"
+  },
+  "keywords": [
+    "extora",
+    "sdk",
+    "plugin",
+    "theme"
+  ],
+  "license": "UNLICENSED"
 }

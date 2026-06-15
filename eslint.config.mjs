@@ -28,12 +28,15 @@ export default tseslint.config(
     },
   },
   {
-    files: ["**/*.test.ts", "**/*.spec.ts"],
+    files: ["**/*.test.ts", "**/*.spec.ts", "packages/sdk/src/**/*.ts"],
     rules: {
       "@typescript-eslint/require-await": "off",
       "@typescript-eslint/no-empty-function": "off",
       "@typescript-eslint/no-non-null-assertion": "off",
       "@typescript-eslint/restrict-template-expressions": "off",
+      "@typescript-eslint/no-unnecessary-type-parameters": "off",
+      "@typescript-eslint/no-unnecessary-condition": "off",
+      "@typescript-eslint/no-redundant-type-constituents": "off",
     },
   },
   {

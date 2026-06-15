@@ -1070,3 +1070,15 @@ c492d48 chore: change license from MIT to Proprietary (UNLICENSED)
 **Remote updated:** Rishi2727/Extora_Studio → Rishi2727/Extora
 **Verification:** lint=0 errors, typecheck=pass, tests=39/39, build=pass
 
+
+---
+
+## SESSION 5 — Phase 3: Extora SDK
+
+**Date:** June 13, 2026
+**Objective:** Build the @extora/sdk package — BasePlugin, hook helpers, event helpers, testing utilities
+
+### Phase 3.1: SDK Package Setup
+**Commit:** (pending)
+**Duration:** (in progress)
+
