@@ -1652,3 +1652,13 @@ Order lifecycle tests validate the full state machine:
 **Total tests: 242 (97+43+8+50+18+16+4+6) across 31 test files**
 **83 commits, 156 files**
 
+
+### Phase 39: Shipping + Tax Calculation Tests
+**Date:** June 15, 2026 | **Commit:** `(pending)`
+**Duration:** ~10 minutes
+
+**Commerce: 57 tests (+7 shipping/tax: rates, weight, free shipping, CA/NY/EU tax)**
+
+**Total tests: 249 (97+43+8+57+18+16+4+6) across 32 test files**
+**84 commits, 158 files**
+
