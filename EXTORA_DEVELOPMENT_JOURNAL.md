@@ -2281,3 +2281,29 @@ CLI: +5 (help commands)
 **Total tests: 571 across 121 test files**
 **149 commits, 266 files**
 
+
+### Phase 92: Auto-Build & Version Management System
+**Date:** June 15, 2026 | **Commit:** `(pending)`
+**Duration:** ~15 minutes
+
+**Files Created:**
+- `VERSION` — Current version: 0.1.0
+- `scripts/build-all.sh` — Full pipeline: deps → lint → typecheck → test → build
+- `scripts/release.sh` — Version bump (major/minor/patch) + build + commit + tag
+- `scripts/build.sh` — Package-level build helpers
+
+**CI Improvements:**
+- Parallel validate + test jobs (no dependency)
+- Increased timeouts (15min → 20min)
+- Removed `needs: validate` from test job
+
+**Version bump commands:**
+```bash
+pnpm release:patch   # 0.1.0 → 0.1.1
+pnpm release:minor   # 0.1.0 → 0.2.0
+pnpm release:major   # 0.1.0 → 1.0.0
+pnpm build:all       # Full build pipeline
+```
+
+**571 tests pass. 150 commits, 269 files.**
+

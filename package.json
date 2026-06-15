@@ -1,6 +1,6 @@
 {
   "name": "extora",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "private": true,
   "license": "MIT",
   "packageManager": "pnpm@9.15.9",
@@ -18,6 +18,10 @@
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md,yaml,yml}\"",
     "prepare": "husky",
     "clean": "turbo clean && rm -rf node_modules .turbo",
+    "build:all": "bash scripts/build-all.sh",
+    "release:patch": "bash scripts/release.sh patch",
+    "release:minor": "bash scripts/release.sh minor",
+    "release:major": "bash scripts/release.sh major",
     "docker:up": "docker compose -f docker/docker-compose.dev.yml up -d",
     "docker:down": "docker compose -f docker/docker-compose.dev.yml down",
     "docker:logs": "docker compose -f docker/docker-compose.dev.yml logs -f"

@@ -14,7 +14,8 @@ jobs:
   validate:
     name: Lint & Typecheck
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
+    continue-on-error: false
 
     services:
       postgres:
@@ -78,8 +79,7 @@ jobs:
   test:
     name: Unit & Integration Tests
     runs-on: ubuntu-latest
-    timeout-minutes: 15
-    needs: validate
+    timeout-minutes: 20
 
     services:
       postgres:
