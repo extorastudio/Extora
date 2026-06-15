@@ -18,7 +18,7 @@ const registeredRoutes: StudioRoute[] = [];
 export function registerSlot(
   slotName: string,
   componentName: string,
-  priority: number = 10,
+  priority = 10,
 ): void {
   registeredSlots.push({
     name: slotName,
