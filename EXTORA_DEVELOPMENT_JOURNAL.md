@@ -2258,3 +2258,14 @@ CLI: +5 (help commands)
 
 **559 tests pass. 145 commits, 260 files.**
 
+
+### Phase 90: Revenue Chart + Content Audit + A/B Tests
+**Date:** June 15, 2026 | **Commit:** `(pending)`
+**Duration:** ~5 minutes
+
+**Commerce: 165 (+2 revenue chart)**
+**CMS: 72 (+2 content audit)**
+**Forms: 60 (+2 A/B testing)**
+
+**Total tests: 565 across 118 test files**
+
