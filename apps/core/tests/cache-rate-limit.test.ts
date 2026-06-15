@@ -30,7 +30,7 @@ class RateLimiter {
 
 describe("SimpleCache", () => {
   const cache = new SimpleCache();
-  beforeEach(() => cache.clear());
+  beforeEach(() => { cache.clear(); });
 
   it("should store and retrieve values", () => {
     cache.set("k", "v", 60000);
