@@ -5,6 +5,13 @@ import fs from "node:fs";
 import path from "node:path";
 import { execSync } from "node:child_process";
 
+function formatBytes(bytes: number): string {
+  if (bytes < 1024) return `${String(bytes)} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  return `${(bytes / (1024 * 1024 * 1024)).toFixed(1)} GB`;
+}
+
 const program = new Command();
 
 program
@@ -187,6 +194,49 @@ program
     } catch {
       console.log(chalk.yellow("  tsx not found. Install: npm install -g tsx"));
       console.log(chalk.yellow("  Or run from the monorepo: pnpm dev"));
+    }
+  });
+
+// =========================================================================
+// package — Create .extora distributable archive
+// =========================================================================
+program
+  .command("package")
+  .description("Create .extora distributable archive")
+  .action(() => {
+    const cwd = process.cwd();
+    const manifestPath = path.join(cwd, "extora.json");
+
+    if (!fs.existsSync(manifestPath)) {
+      console.error(chalk.red("No extora.json found. Run 'extora create plugin <name>' first."));
+      process.exit(1);
+    }
+
+    console.log(chalk.green("Packaging plugin..."));
+
+    const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf-8")) as Record<string, unknown>;
+    const pluginName = typeof manifest.name === "string" ? manifest.name : "unknown";
+    const version = typeof manifest.version === "string" ? manifest.version : "0.0.0";
+    const safeName = pluginName.replace(/[@/]/g, "_").replace(/^_/, "");
+    const archiveName = `${safeName}-${version}.extora`;
+
+    const distPath = path.join(cwd, "dist");
+    if (!fs.existsSync(distPath)) {
+      console.error(chalk.red("No dist/ directory found. Run 'extora build' first."));
+      process.exit(1);
+    }
+
+    console.log(chalk.blue(`  Plugin: ${pluginName} v${version}`));
+
+    try {
+      execSync(`tar -czf "${archiveName}" -C dist .`, { encoding: "utf-8", cwd });
+      console.log(chalk.gray(`  Output: ${archiveName}`));
+
+      const stats = fs.statSync(path.join(cwd, archiveName));
+      console.log(chalk.green(`✓ Package created (${formatBytes(stats.size)})`));
+      console.log(chalk.white(`  Publish: extora publish`));
+    } catch {
+      console.log(chalk.yellow("  Package creation skipped (tar not available or build empty)"));
     }
   });
 
