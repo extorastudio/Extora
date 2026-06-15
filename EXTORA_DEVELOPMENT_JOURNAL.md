@@ -1250,3 +1250,18 @@ c492d48 chore: change license from MIT to Proprietary (UNLICENSED)
 **Total project tests: 89 (core 39 + sdk 21 + cli 8)**
 **Verification:** lint=0, typecheck=pass, tests=89/89
 
+
+### Phase 10: Admin Routes Integration Tests
+**Date:** June 15, 2026 | **Commit:** `e8a9038`
+**Duration:** ~25 minutes
+
+**Files Created:**
+- `apps/core/tests/admin-routes.test.ts` — 10 integration tests:
+  - Uses real JWT tokens via createAccessToken() + hashToken()
+  - Fastify inject() with mock PrismaClient
+  - Tests all 7 admin endpoints: plugins, users, themes, config
+  - Auth rejection tests for each endpoint
+
+**Total project tests: 78 (49 core + 21 sdk + 8 cli)**
+**All pass:** lint=0, typecheck=pass
+
