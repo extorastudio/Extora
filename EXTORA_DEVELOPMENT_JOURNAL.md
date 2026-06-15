@@ -1554,3 +1554,13 @@ Checkout integration tests validate the full commerce flow:
 **Total tests: 164 (70 core + 36 sdk + 8 cli + 24 commerce + 12 cms + 10 forms + 4 seo)**
 **74 commits, 142 files**
 
+
+### Phase 31: Analytics Tests
+**Date:** June 15, 2026 | **Commit:** `(pending)`
+**Duration:** ~10 minutes
+
+**Analytics: 6 tests — event tracking, custom events, ecommerce, query by type/visitor, counts**
+
+**Total tests: 170 (70+36+8+24+12+10+4+6) across 22 test files**
+**75 commits, 143 files**
+
