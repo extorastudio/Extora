@@ -1723,3 +1723,13 @@ Order lifecycle tests validate the full state machine:
 - `CONTRIBUTING.md` → Updated to reflect MIT contributions
 **Reason:** Per the Open Core strategy (Mega Blueprint Section 26), the open source components drive community adoption and ecosystem growth, while proprietary components protect revenue-generating assets (Studio premium, Commerce plugin, Marketplace, Cloud, Enterprise).
 
+
+### Phase 45: Commerce Pricing Rules Tests
+**Date:** June 15, 2026 | **Commit:** `(pending)`
+**Duration:** ~10 minutes
+
+**Commerce: 72 tests (+7 pricing rules: percentage, fixed, buy X get Y, SKU eligibility, min qty, empty cart, stacked)**
+
+**Total tests: 288 (97+49+8+72+25+22+9+6) across 38 test files**
+**95 commits, 168 files**
+
