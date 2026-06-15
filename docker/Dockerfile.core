@@ -1,5 +1,20 @@
-FROM node:22-alpine AS builder
+# =============================================================================
+# Extora — Multi-Platform Docker Build
+# =============================================================================
+# Builds for linux/amd64, linux/arm64, and macOS via Docker
+#
+# Usage:
+#   docker build -f docker/Dockerfile.core -t extorastudio/extora-core:latest .
+#   docker build --platform linux/amd64,linux/arm64 -f docker/Dockerfile.core -t extorastudio/extora-core:latest .
+#
+# Multi-arch push:
+#   docker buildx create --use
+#   docker buildx build --platform linux/amd64,linux/arm64 \
+#     -f docker/Dockerfile.core -t extorastudio/extora-core:latest --push .
+# =============================================================================
 
+# ── Stage 1: Build ──
+FROM node:22-alpine AS builder
 WORKDIR /app
 
 RUN corepack enable && corepack prepare pnpm@9 --activate
@@ -20,8 +35,8 @@ COPY apps/core/tsconfig.json apps/core/
 
 RUN pnpm --filter @extora/core build
 
+# ── Stage 2: Runtime ──
 FROM node:22-alpine AS runner
-
 WORKDIR /app
 
 RUN addgroup -g 1001 extora && adduser -u 1001 -G extora -s /bin/sh -D extora
@@ -30,9 +45,12 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/apps/core/dist ./dist
 COPY --from=builder /app/apps/core/prisma ./prisma
 COPY --from=builder /app/apps/core/package.json ./
+COPY --from=builder /app/docker/docker-compose.prod.yml ./docker-compose.prod.yml
 
 USER extora
-
 EXPOSE 3000
+
+HEALTHCHECK --interval=30s --timeout=3s --retries=3 \
+  CMD wget -qO- http://localhost:3000/api/v1/system/health || exit 1
 
 CMD ["node", "dist/index.js"]

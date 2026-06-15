@@ -2237,3 +2237,24 @@ CLI: +5 (help commands)
 
 **Total tests: 559 (137+58+13+163+70+58+22+23+6+7+2) across 115 test files**
 
+
+### Phase 87-89: Cross-Platform Builds + Release + Install Guide
+**Date:** June 15, 2026 | **Commit:** `(pending)`
+**Duration:** ~20 minutes
+
+**Files Created/Updated:**
+- `docker/Dockerfile.core` — Multi-arch Docker build (amd64, arm64), healthcheck, non-root user
+- `.github/workflows/release.yml` — Docker push + npm publish + GitHub Release workflow
+- `INSTALL.md` — Installation guide for all platforms
+- `.dockerignore` — Docker build optimization
+
+**Build Support Matrix:**
+| Platform | Method |
+|---|---|
+| Docker (linux/amd64, arm64) | `docker pull extorastudio/extora-core` |
+| Linux/macOS/Windows | `npm install -g @extora/cli` |
+| Monorepo dev | `pnpm install && pnpm dev` |
+| From source | `git clone + pnpm build` |
+
+**559 tests pass. 145 commits, 260 files.**
+
