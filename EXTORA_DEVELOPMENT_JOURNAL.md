@@ -1581,3 +1581,13 @@ Order lifecycle tests validate the full state machine:
 **Total tests: 180 (70+36+8+34+12+10+4+6) across 23 test files**
 **76 commits, 145 files**
 
+
+### Phase 33: Plugin Sandbox Tests
+**Date:** June 15, 2026 | **Commit:** `(pending)`
+**Duration:** ~5 minutes
+
+**Sandbox: 5 tests — create, execute code, built-in objects, safe modules, dispose**
+
+**Total tests: 185 (75+36+8+34+12+10+4+6) across 24 test files**
+**77 commits, 147 files**
+
