@@ -150,7 +150,7 @@ export async function createServer(ctx: BootstrapContext): Promise<FastifyInstan
   graphql.registerQuery({
     name: "systemInfo",
     returnType: "SystemInfo",
-    resolve: async () => ({
+    resolve: () => ({
       version: "0.0.0",
       nodeVersion: process.version,
       platform: process.platform,
@@ -159,7 +159,7 @@ export async function createServer(ctx: BootstrapContext): Promise<FastifyInstan
   graphql.registerQuery({
     name: "health",
     returnType: "String",
-    resolve: async () => "ok",
+    resolve: () => "ok",
   });
   registerGraphQLEndpoint(server, graphql);
 
