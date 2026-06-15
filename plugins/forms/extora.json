@@ -1,0 +1,17 @@
+{
+  "name": "@extora/forms",
+  "version": "0.0.0",
+  "type": "plugin",
+  "title": "Extora Forms",
+  "description": "Drag-and-drop form builder with submissions, notifications, webhooks, and spam protection",
+  "author": { "name": "Extora Team", "email": "team@extora.dev" },
+  "license": "UNLICENSED",
+  "extora": { "core": ">=1.0.0 <2.0.0" },
+  "permissions": ["database:read", "database:write", "storage:write", "http:outbound"],
+  "entry": { "server": "dist/index.js", "studio": "dist/studio/index.js" },
+  "hooks": {
+    "actions": ["form.submitted", "form.submission_created"],
+    "filters": ["form.before_submit", "form.email.template"]
+  },
+  "database": { "migrations": "dist/migrations/" }
+}

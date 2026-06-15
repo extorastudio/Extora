@@ -2,16 +2,17 @@
   "name": "@extora/forms",
   "version": "0.0.0",
   "private": true,
-  "description": "Extora forms plugin — pending implementation",
+  "description": "Extora Forms plugin",
   "dependencies": {
-    "@extora/types": "workspace:*",
-    "@extora/sdk": "workspace:*"
+    "@extora/sdk": "workspace:*",
+    "@extora/types": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.7.0"
   },
   "scripts": {
-    "build": "echo 'No build yet'",
-    "typecheck": "echo 'No typecheck yet'",
-    "lint": "echo 'No lint yet'",
-    "test": "echo 'No tests yet'",
-    "clean": "rm -rf dist"
+    "build": "tsc",
+    "typecheck": "tsc --noEmit"
   }
 }
