@@ -1235,3 +1235,18 @@ c492d48 chore: change license from MIT to Proprietary (UNLICENSED)
 **Date:** June 15, 2026
 **Objective:** Write CLI tests, integration tests, validate full pipeline
 
+
+### Phase 9: CLI Tests
+**Date:** June 15, 2026 | **Commit:** `03909cb`
+**Duration:** ~20 minutes
+
+**Files Created:**
+- `apps/cli/tests/cli.test.ts` — 8 tests covering:
+  - create plugin: 5 tests (scaffold, valid JSON, class name, existing dir, invalid type)
+  - plugin list: 2 tests (list installed, empty state)  
+  - version: 1 test
+- `apps/cli/vitest.config.ts` — Test runner config
+
+**Total project tests: 89 (core 39 + sdk 21 + cli 8)**
+**Verification:** lint=0, typecheck=pass, tests=89/89
+
