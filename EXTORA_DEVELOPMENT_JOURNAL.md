@@ -1208,3 +1208,22 @@ c492d48 chore: change license from MIT to Proprietary (UNLICENSED)
 
 **Now have 2 official plugins:** @extora/auth + @extora/cms
 
+
+### Phase 8: Extora Forms Plugin
+**Date:** June 15, 2026 | **Commit:** `9b04fbd`
+**Duration:** ~25 minutes
+
+**Files Created:**
+- `plugins/forms/extora.json` — Full manifest with form hooks
+- `plugins/forms/src/index.ts` — FormsPlugin:
+  - onInstall: Creates forms, submissions, webhooks tables
+  - onActivate: 3 hooks (form.before_submit filter, form.submitted action, form.email.template filter)
+  - Spam score filtering, event publishing, email template customization
+
+**All 3 Official Plugins Complete:**
+1. @extora/auth — Authentication with user hooks
+2. @extora/cms — Content management with revisions
+3. @extora/forms — Form builder with submissions
+
+**Verification:** lint=0, typecheck=pass, tests=60/60
+
