@@ -1,1 +1,19 @@
-{"name":"@extora/analytics","version":"0.0.0","private":true,"dependencies":{"@extora/sdk":"workspace:*","@extora/types":"workspace:*"},"devDependencies":{"@types/node":"^22.0.0","typescript":"^5.7.0","vitest":"^2.0.0"},"scripts":{"build":"tsc","typecheck":"tsc --noEmit"}}
+{
+  "name": "@extora/analytics",
+  "version": "0.0.0",
+  "private": true,
+  "license": "MIT",
+  "dependencies": {
+    "@extora/sdk": "workspace:*",
+    "@extora/types": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.7.0",
+    "vitest": "^2.0.0"
+  },
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit"
+  }
+}

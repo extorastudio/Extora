@@ -18,5 +18,5 @@
     "typescript": "^5.7.0"
   },
   "keywords": ["extora", "types"],
-  "license": "UNLICENSED"
+  "license": "MIT"
 }

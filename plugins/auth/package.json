@@ -2,6 +2,7 @@
   "name": "@extora/auth",
   "version": "0.0.0",
   "private": true,
+  "license": "MIT",
   "description": "Extora auth plugin — pending implementation",
   "dependencies": {
     "@extora/sdk": "workspace:*",

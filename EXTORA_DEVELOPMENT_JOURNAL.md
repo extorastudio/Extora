@@ -1710,3 +1710,16 @@ Order lifecycle tests validate the full state machine:
 
 **Total tests: 281 (97+49+8+65+25+22+9+6) across 37 test files**
 
+
+### Amendment A-019: Open Source Dual Licensing Split
+**Date:** June 15, 2026
+**Original State:** All packages marked UNLICENSED (proprietary). Root LICENSE was proprietary.
+**Changed To:**
+- Root `LICENSE` → MIT License
+- Root `package.json` → `"license": "MIT"`
+- **MIT-licensed (9 packages):** core, sdk, cli, types, auth, cms, forms, seo, analytics
+- **Proprietary (6 packages):** studio, commerce, marketplace, cloud, enterprise, registry
+- `README.md` → Dual license badge + explanation
+- `CONTRIBUTING.md` → Updated to reflect MIT contributions
+**Reason:** Per the Open Core strategy (Mega Blueprint Section 26), the open source components drive community adoption and ecosystem growth, while proprietary components protect revenue-generating assets (Studio premium, Commerce plugin, Marketplace, Cloud, Enterprise).
+

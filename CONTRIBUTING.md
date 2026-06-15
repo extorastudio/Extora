@@ -106,5 +106,8 @@ pnpm test          # All tests pass
 
 ## License
 
-By contributing, you agree that your contributions will be licensed under the
-project's proprietary license. See [LICENSE](LICENSE) for details.
+By contributing, you agree that your contributions to MIT-licensed packages
+will be licensed under the MIT License. See [LICENSE](LICENSE) for details.
+
+Proprietary packages (Studio, Commerce, Marketplace, Cloud, Enterprise, Registry)
+use a separate proprietary license.

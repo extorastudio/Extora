@@ -2,6 +2,7 @@
   "name": "@extora/enterprise",
   "version": "0.0.0",
   "private": true,
+  "license": "UNLICENSED",
   "description": "Extora enterprise — pending implementation",
   "scripts": {
     "build": "echo 'No build yet'",

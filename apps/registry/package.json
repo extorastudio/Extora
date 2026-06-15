@@ -2,6 +2,7 @@
   "name": "@extora/registry",
   "version": "0.0.0",
   "private": true,
+  "license": "UNLICENSED",
   "description": "Extora registry — pending implementation",
   "scripts": {
     "build": "echo 'No build yet'",

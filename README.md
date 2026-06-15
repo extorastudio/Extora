@@ -1,7 +1,7 @@
 # Extora
 
 [![CI](https://github.com/Rishi2727/Extora_Studio/actions/workflows/ci.yml/badge.svg)](https://github.com/Rishi2727/Extora_Studio/actions/workflows/ci.yml)
-[![License](https://img.shields.io/badge/License-Proprietary-red.svg)](LICENSE)
+[![License](https://img.shields.io/badge/License-MIT%20%2B%20Proprietary-blue.svg)](LICENSE)
 
 **Build Anything. Plugin Everything.**
 
@@ -75,5 +75,10 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for development workflow, commit conventi
 
 ## License
 
-This repository and all its contents are proprietary and confidential. All rights reserved.
-See [LICENSE](LICENSE) for details.
+This project uses a dual licensing model:
+
+**MIT License** — The Core runtime, SDK, CLI, and official plugins (auth, cms, forms, seo, analytics) are open source under the MIT License.
+
+**Proprietary** — The Studio admin UI, Commerce plugin, Marketplace, Cloud, and Enterprise components are proprietary. All rights reserved.
+
+See individual package `package.json` files for their specific license. The root [LICENSE](LICENSE) applies to all MIT-licensed packages.

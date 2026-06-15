@@ -2,6 +2,7 @@
   "name": "@extora/forms",
   "version": "0.0.0",
   "private": true,
+  "license": "MIT",
   "description": "Extora Forms plugin",
   "dependencies": {
     "@extora/sdk": "workspace:*",

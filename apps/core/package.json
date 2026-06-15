@@ -2,6 +2,7 @@
   "name": "@extora/core",
   "version": "0.0.0",
   "private": true,
+  "license": "MIT",
   "description": "Extora Core Runtime — plugin loader, event bus, hook system, API engine",
   "main": "./src/index.ts",
   "scripts": {
