@@ -1453,3 +1453,15 @@ c492d48 chore: change license from MIT to Proprietary (UNLICENSED)
 
 **58 commits, 119 files, 114 tests.**
 
+
+### Phase 23: Commerce Extension Interfaces + Tests
+**Date:** June 15, 2026 | **Commit:** `3acdaff`
+**Duration:** ~25 minutes
+
+**Files Created:**
+- `plugins/commerce/src/extensions.ts` — 3 extension interfaces + registry
+- `plugins/commerce/tests/extensions.test.ts` — 11 tests (full commerce flow)
+
+**Total tests: 125 (70 core + 36 sdk + 8 cli + 11 commerce)**
+**60 commits, 123 files**
+
