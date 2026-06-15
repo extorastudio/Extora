@@ -4,6 +4,9 @@ import pino from "pino";
 import type { Logger, EventBus, HookRegistry } from "@extora/types";
 import { CoreEventBus } from "./event-bus/bus.js";
 import { CoreHookRegistry } from "./hooks/registry.js";
+import { discoverPlugins } from "./plugin-loader/loader.js";
+import { createPluginSandbox } from "./plugin-loader/sandbox.js";
+import type { LoadedPlugin } from "@extora/types";
 
 export interface BootstrapContext {
   logger: Logger;
@@ -11,6 +14,7 @@ export interface BootstrapContext {
   redis: Redis;
   eventBus: EventBus;
   hooks: HookRegistry;
+  plugins: LoadedPlugin[];
 }
 
 export async function bootstrap(): Promise<BootstrapContext> {
@@ -66,9 +70,32 @@ export async function bootstrap(): Promise<BootstrapContext> {
   const hooks = new CoreHookRegistry();
   logger.info("       Hook system ready");
 
-  // 6. Plugin System
-  logger.info("[6/8] Initializing plugin system...");
-  logger.info("       Plugin system ready (plugins loaded on-demand)");
+  // 6. Plugin System — discover, load, activate
+  logger.info("[6/8] Loading plugins...");
+  const loadedPlugins = await discoverPlugins(prisma);
+  logger.info(`       Found ${loadedPlugins.length} plugins`);
+
+  for (const plugin of loadedPlugins) {
+    try {
+      const sandbox = createPluginSandbox({
+        manifest: plugin.manifest,
+        allowedPaths: [],
+        allowedHosts: [],
+        memoryLimitMB: 128,
+        cpuLimit: 0.5,
+      });
+
+      plugin.sandbox = sandbox;
+
+      if (plugin.manifest.name) {
+        logger.info(`       → ${plugin.manifest.name} v${plugin.manifest.version}`);
+      }
+    } catch (err: unknown) {
+      logger.error(`Failed to create sandbox for plugin: ${String(err)}`);
+    }
+  }
+
+  logger.info("       Plugin system ready");
 
   // 7. API Engine
   logger.info("[7/8] Initializing API engine...");
@@ -76,5 +103,5 @@ export async function bootstrap(): Promise<BootstrapContext> {
 
   logger.info(separator);
 
-  return { logger, prisma, redis, eventBus, hooks };
+  return { logger, prisma, redis, eventBus, hooks, plugins: loadedPlugins };
 }
