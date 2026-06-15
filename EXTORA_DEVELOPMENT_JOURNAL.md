@@ -1465,3 +1465,17 @@ c492d48 chore: change license from MIT to Proprietary (UNLICENSED)
 **Total tests: 125 (70 core + 36 sdk + 8 cli + 11 commerce)**
 **60 commits, 123 files**
 
+
+### Phase 24: Commerce API Routes
+**Date:** June 15, 2026 | **Commit:** `6e1daf5`
+**Duration:** ~25 minutes
+
+**Files Created:**
+- `plugins/commerce/src/routes.ts` — Product, Cart, Checkout, Order API routes
+- `plugins/commerce/tests/routes.test.ts` — 6 route validation tests
+
+**Commerce plugin now has:** extensions (3 interfaces), routes (4 endpoint groups), domain model (12 tables), hooks (6 hooks)
+
+**Total tests: 131 (70 core + 36 sdk + 8 cli + 17 commerce)**
+**64 commits, 126 files**
+
