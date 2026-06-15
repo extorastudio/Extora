@@ -1,0 +1,25 @@
+{
+  "name": "hello-extora",
+  "version": "0.0.0",
+  "type": "plugin",
+  "title": "Hello Extora",
+  "description": "A new Extora plugin",
+  "author": {
+    "name": "Developer"
+  },
+  "license": "UNLICENSED",
+  "extora": {
+    "core": ">=1.0.0 <2.0.0"
+  },
+  "permissions": [],
+  "entry": {
+    "server": "dist/server/index.js"
+  },
+  "hooks": {
+    "actions": [],
+    "filters": []
+  },
+  "database": {
+    "migrations": "dist/migrations/"
+  }
+}

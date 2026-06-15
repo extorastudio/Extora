@@ -1,0 +1,22 @@
+{
+  "name": "hello-extora",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "extora dev",
+    "build": "extora build",
+    "test": "extora test"
+  },
+  "dependencies": {
+    "@extora/sdk": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0"
+  },
+  "scripts": {
+    "dev": "extora dev",
+    "build": "extora build",
+    "test": "extora test"
+  }
+}
