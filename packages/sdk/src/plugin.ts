@@ -49,4 +49,20 @@ export abstract class BasePlugin implements PluginLifecycle {
   ): void {
     this.context.eventBus.subscribe(type, handler as (p: unknown) => Promise<void>, this.manifest.name);
   }
+
+  protected addAction(
+    hookName: string,
+    callback: (...args: unknown[]) => Promise<void> | void,
+    priority?: number,
+  ): void {
+    this.context.hooks.addAction(hookName, callback, priority, this.manifest.name);
+  }
+
+  protected addFilter<T>(
+    hookName: string,
+    callback: (value: T, ...args: unknown[]) => Promise<T> | T,
+    priority?: number,
+  ): void {
+    this.context.hooks.addFilter(hookName, callback, priority, this.manifest.name);
+  }
 }

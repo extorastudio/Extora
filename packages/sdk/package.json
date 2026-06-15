@@ -7,7 +7,11 @@
   "types": "./src/index.ts",
   "exports": {
     ".": "./src/index.ts",
-    "./testing": "./src/testing.ts"
+    "./testing": "./src/testing.ts",
+    "./database": "./src/database.ts",
+    "./hooks": "./src/hooks.ts",
+    "./events": "./src/events.ts",
+    "./config": "./src/config.ts"
   },
   "scripts": {
     "build": "tsc",

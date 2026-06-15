@@ -1,0 +1,27 @@
+{
+  "name": "@extora/cms",
+  "version": "0.0.0",
+  "type": "plugin",
+  "title": "Extora CMS",
+  "description": "Headless content management — custom types, entries, revisions, media, GraphQL",
+  "author": { "name": "Extora Team", "email": "team@extora.dev" },
+  "license": "UNLICENSED",
+  "extora": { "core": ">=1.0.0 <2.0.0" },
+  "dependencies": {},
+  "optionalDependencies": { "@extora/search": ">=1.0.0" },
+  "permissions": [
+    "database:read", "database:write", "database:schema",
+    "storage:read", "storage:write", "user:read"
+  ],
+  "entry": { "server": "dist/index.js", "studio": "dist/studio/index.js" },
+  "hooks": {
+    "actions": ["content.created", "content.updated", "content.deleted", "content.published"],
+    "filters": ["content.before_save", "content.after_fetch", "content.query"]
+  },
+  "api": {
+    "rest": { "endpoints": ["/api/v1/content/*"] },
+    "graphql": { "types": ["dist/graphql/schema.graphql"] }
+  },
+  "database": { "migrations": "dist/migrations/" },
+  "config": { "schema": "dist/config/schema.json" }
+}
