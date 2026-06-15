@@ -14,7 +14,7 @@ import "dotenv/config";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const studioDist = path.resolve(__dirname, "../../studio/dist");
-const port = parseInt(process.env["PORT"] ?? "3000", 10);
+const port = parseInt(process.env.PORT ?? "3000", 10);
 
 async function main(): Promise<void> {
   const server = Fastify({ logger: true });
@@ -38,7 +38,7 @@ async function main(): Promise<void> {
     server.get("/", async (_req, reply) => {
       return reply.send({
         name: "Extora",
-        version: process.env["EXTORA_VERSION"] ?? "0.1.0",
+        version: process.env.EXTORA_VERSION ?? "0.1.0",
         message: "Studio not built. Run: cd apps/studio && npm run build",
       });
     });
@@ -47,14 +47,14 @@ async function main(): Promise<void> {
   // API health check
   server.get("/api/v1/system/health", async () => ({
     status: "ok",
-    version: process.env["EXTORA_VERSION"] ?? "0.1.0",
+    version: process.env.EXTORA_VERSION ?? "0.1.0",
     uptime: process.uptime(),
     timestamp: new Date().toISOString(),
   }));
 
   try {
     await server.listen({ port, host: "0.0.0.0" });
-    console.log(`\n  Extora v${process.env["EXTORA_VERSION"] ?? "0.1.0"} ready`);
+    console.log(`\n  Extora v${process.env.EXTORA_VERSION ?? "0.1.0"} ready`);
     console.log(`  Studio: http://localhost:${port}`);
     console.log(`  API:    http://localhost:${port}/api/v1/system/health\n`);
   } catch (err: unknown) {
