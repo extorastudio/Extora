@@ -1111,3 +1111,40 @@ c492d48 chore: change license from MIT to Proprietary (UNLICENSED)
 
 **Total test count across project:** 39 (core) + 21 (sdk) = 60 tests
 
+
+### Phase 4: Extora CLI Implementation
+**Date:** June 13, 2026 | **Commit:** `ebe35e8`
+**Duration:** ~25 minutes
+
+**Files Created:**
+- `apps/cli/src/index.ts` — Full CLI with Commander.js:
+
+**Commands implemented:**
+1. `extora create` — Scaffold plugin/theme/starter with --api/--admin/--full
+2. `extora dev` — Start dev server with Docker service management
+3. `extora build` — Build plugin for production (--watch, --minify)
+4. `extora test` — Run tests (--watch, --coverage)
+5. `extora publish` — Publish to Marketplace (--channel, --message)
+6. `extora plugin` — Subcommands: install, list, activate, deactivate
+7. `extora docker` — Subcommands: up, down
+8. `extora generate` — Code scaffolding (migration, api-endpoint, hook, event, component)
+
+**Verification:** lint=0, typecheck=pass
+
+---
+
+## SESSION 5 SUMMARY
+
+| Phase | What | Commits | Tests |
+|---|---|---|---|
+| Phase 2.6 | Admin API endpoints | 1 | — |
+| Phase 3.1 | Extora SDK (6 modules) | 1 | — |
+| Phase 3.2 | SDK tests | 1 | +21 |
+| Phase 4 | CLI implementation | 1 | — |
+
+**Total project stats:**
+- Commits: 23
+- Files: 76
+- Tests: 60 (core 39 + sdk 21)
+- Amendments: 18
+
