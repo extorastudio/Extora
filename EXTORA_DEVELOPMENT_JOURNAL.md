@@ -2335,3 +2335,25 @@ pnpm build:all       # Full build pipeline
 
 **156 commits, 281 files**
 
+
+### Phase 95: Platform Packaging System
+**Date:** June 15, 2026 | **Commit:** `(pending)`
+**Duration:** ~20 minutes
+
+**Files Created/Updated:**
+- `apps/core/src/prod-server.ts` — Unified production server (API + Studio static files)
+- `scripts/package-platforms.sh` — Platform packaging (Linux tar.gz, macOS tar.gz, Windows zip)
+- `scripts/build-all.sh` — Updated to use direct pnpm binary
+- `.github/workflows/release.yml` — Platform builds + Docker + GitHub Release
+
+**Build Artifacts:**
+| Platform | Format |
+|---|---|
+| 🐧 Linux | `.tar.gz` |
+| 🍎 macOS Intel | `.tar.gz` |
+| 🍎 macOS M1/M2 | `.tar.gz` |
+| 🪟 Windows | `.zip` |
+| 🐳 Docker | `{user}/extora-core:latest` |
+
+**600 tests pass. 161 commits, 283 files.**
+

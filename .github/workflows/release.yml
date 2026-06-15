@@ -5,9 +5,12 @@ on:
     tags:
       - "v*"
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   docker:
-    name: Build & Push Docker Images
+    name: Build & Push Docker Image
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -33,8 +36,8 @@ jobs:
             ${{ secrets.DOCKERHUB_USERNAME }}/extora-core:latest
             ${{ secrets.DOCKERHUB_USERNAME }}/extora-core:${{ github.ref_name }}
 
-  npm-publish:
-    name: Publish npm Packages
+  platform-builds:
+    name: Build Platform Packages
     runs-on: ubuntu-latest
     needs: docker
     steps:
@@ -43,41 +46,82 @@ jobs:
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.9
+          run_install: false
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          registry-url: "https://registry.npmjs.org"
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build all packages
-        run: pnpm build
+      - name: Build Studio
+        run: cd apps/studio && npx vite build
 
-      - name: Publish @extora/types
-        run: cd packages/types && npm publish --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Build Core
+        run: cd apps/core && pnpm run build
 
-      - name: Publish @extora/sdk
-        run: cd packages/sdk && npm publish --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Package for platforms
+        run: bash scripts/package-platforms.sh
 
-      - name: Publish @extora/cli
-        run: cd apps/cli && npm publish --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Upload Linux build
+        uses: actions/upload-artifact@v4
+        with:
+          name: extora-linux-x64
+          path: dist/releases/extora-v*-linux-x64.tar.gz
+          if-no-files-found: error
+
+      - name: Upload macOS Intel build
+        uses: actions/upload-artifact@v4
+        with:
+          name: extora-darwin-x64
+          path: dist/releases/extora-v*-darwin-x64.tar.gz
+          if-no-files-found: error
+
+      - name: Upload macOS Apple Silicon build
+        uses: actions/upload-artifact@v4
+        with:
+          name: extora-darwin-arm64
+          path: dist/releases/extora-v*-darwin-arm64.tar.gz
+          if-no-files-found: error
+
+      - name: Upload Windows build
+        uses: actions/upload-artifact@v4
+        with:
+          name: extora-win-x64
+          path: dist/releases/extora-v*-win-x64.zip
+          if-no-files-found: error
 
   github-release:
     name: Create GitHub Release
     runs-on: ubuntu-latest
-    needs: [docker, npm-publish]
+    needs: [docker, platform-builds]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Download Linux build
+        uses: actions/download-artifact@v4
+        with:
+          name: extora-linux-x64
+
+      - name: Download macOS Intel build
+        uses: actions/download-artifact@v4
+        with:
+          name: extora-darwin-x64
+
+      - name: Download macOS Apple Silicon build
+        uses: actions/download-artifact@v4
+        with:
+          name: extora-darwin-arm64
+
+      - name: Download Windows build
+        uses: actions/download-artifact@v4
+        with:
+          name: extora-win-x64
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
@@ -86,22 +130,36 @@ jobs:
           body: |
             ## Extora v${{ github.ref_name }}
 
-            ### Installation
-            ```bash
-            # Docker
-            docker pull extorastudio/extora-core:${{ github.ref_name }}
-
-            # npm
-            npm install -g @extora/cli
-
-            # pnpm
-            pnpm add @extora/sdk @extora/types
-            ```
+            ### Download
+            | Platform | Download |
+            |---|---|
+            | 🐧 Linux | `extora-v${{ github.ref_name }}-linux-x64.tar.gz` |
+            | 🍎 macOS Intel | `extora-v${{ github.ref_name }}-darwin-x64.tar.gz` |
+            | 🍎 macOS M1/M2 | `extora-v${{ github.ref_name }}-darwin-arm64.tar.gz` |
+            | 🪟 Windows | `extora-v${{ github.ref_name }}-win-x64.zip` |
+            | 🐳 Docker | `{username}/extora-core:${{ github.ref_name }}` |
 
             ### Quick Start
             ```bash
-            extora create plugin my-plugin
-            extora dev
+            # Extract
+            tar -xzf extora-v${{ github.ref_name }}-linux-x64.tar.gz
+            cd extora-v${{ github.ref_name }}
+
+            # Configure
+            cp .env.example .env
+
+            # Start
+            ./start.sh
             ```
+
+            Open http://localhost:3000 in your browser.
+
+            ### Requirements
+            - Node.js 22+ installed on your system
           draft: false
           prerelease: false
+          files: |
+            extora-v*-linux-x64.tar.gz
+            extora-v*-darwin-x64.tar.gz
+            extora-v*-darwin-arm64.tar.gz
+            extora-v*-win-x64.zip
