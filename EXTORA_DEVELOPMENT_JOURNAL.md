@@ -1912,3 +1912,13 @@ Order lifecycle tests validate the full state machine:
 
 **Total tests: 379 (103+58+8+107+42+32+16+13) across 62 test files**
 
+
+### Phase 63: Commerce Refund Flow Tests
+**Date:** June 15, 2026 | **Commit:** `(pending)`
+**Duration:** ~5 minutes
+
+**Commerce: 111 tests (+4 refund: valid, full, exceed, zero/negative)**
+
+**Total tests: 383 (103+58+8+111+42+32+16+13) across 63 test files**
+**115 commits, 204 files**
+
