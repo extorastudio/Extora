@@ -2214,3 +2214,15 @@ CLI: +5 (help commands)
 | Enterprise SSO | 20% | 2 |
 | **Total** | **~98%** | **540**
 
+
+### Phase 85: Config Validation + Spam Filter + Loyalty Tests
+**Date:** June 15, 2026 | **Commit:** `(pending)`
+**Duration:** ~10 minutes
+
+**Core: 137 (+4 config validation)**
+**Forms: 56 (+3 spam filter)**
+**Commerce: 161 (+5 loyalty points)**
+
+**Total tests: 552 (137+58+13+161+67+56+22+23+6+7+2) across 112 test files**
+**142 commits, 254 files**
+
