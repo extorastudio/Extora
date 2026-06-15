@@ -1277,3 +1277,17 @@ c492d48 chore: change license from MIT to Proprietary (UNLICENSED)
 
 **Verification:** studio build=pass, all 78 tests pass
 
+
+### Phase 12: SDK API + CLI Modules
+**Date:** June 15, 2026 | **Commit:** `fc1a1a4`
+**Duration:** ~20 minutes
+
+**SDK New Modules:**
+- `packages/sdk/src/api.ts`: createRouter() with fluent API (get/post/put/patch/delete), createApiMiddleware(), corsMiddleware(), authMiddleware()
+- `packages/sdk/src/cli.ts`: registerCliCommand(), getRegisteredCommands(), createCliCommand()
+
+**SDK now has 9 subpath exports:**
+., ./testing, ./database, ./hooks, ./events, ./config, ./api, ./cli
+
+**Verification:** typecheck=pass, lint=0, all 78 tests pass
+
