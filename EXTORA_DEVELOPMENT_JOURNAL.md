@@ -1041,3 +1041,32 @@ c492d48 chore: change license from MIT to Proprietary (UNLICENSED)
 
 **Verification:** lint=0 errors, typecheck=pass, vite build=pass (278KB JS, 20KB CSS)
 
+
+### Phase 2.6: Admin API Endpoints (Studio Integration)
+**Date:** June 13, 2026 | **Commit:** `35f94fb`
+**Duration:** ~40 minutes
+
+**Files Created:**
+- `apps/core/src/admin-routes.ts` — Authenticated CRUD endpoints:
+  - `GET /api/v1/plugins` — list plugins (select: id, name, title, version, author, isActive)
+  - `POST /api/v1/plugins/:name/activate` — activate with audit log
+  - `POST /api/v1/plugins/:name/deactivate` — deactivate with audit log
+  - `GET /api/v1/users` — list users (auth: user:read permission required)
+  - `GET /api/v1/themes` — list themes
+  - `POST /api/v1/themes/:name/activate` — activate (auto-deactivates others)
+  - `GET /api/v1/config` — merged DB config + env vars with masked secrets
+- `apps/core/src/server.ts` — Registered `registerAdminRoutes()`
+
+**Now Studio pages can communicate with Core:**
+- Login page → `POST /auth/login` ✓
+- Dashboard → `GET /plugins` + `GET /users` + `GET /system/health` ✓
+- Plugins page → `GET /plugins` + `POST /plugins/:name/activate|deactivate` ✓
+- Users page → `GET /users` ✓
+- Themes page → `GET /themes` + `POST /themes/:name/activate` ✓
+- Services page → `GET /system/health` ✓
+- Config page → `GET /config` ✓
+- Monitoring page → `GET /system/info` ✓
+
+**Remote updated:** Rishi2727/Extora_Studio → Rishi2727/Extora
+**Verification:** lint=0 errors, typecheck=pass, tests=39/39, build=pass
+
