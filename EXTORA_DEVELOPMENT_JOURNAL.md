@@ -1564,3 +1564,20 @@ Checkout integration tests validate the full commerce flow:
 **Total tests: 170 (70+36+8+24+12+10+4+6) across 22 test files**
 **75 commits, 143 files**
 
+
+### Phase 32: Commerce Order Lifecycle Tests
+**Date:** June 15, 2026 | **Commit:** `(pending)`
+**Duration:** ~10 minutes
+
+**Commerce: 34 tests (11 ext + 6 routes + 7 checkout + 10 order lifecycle)**
+
+Order lifecycle tests validate the full state machine:
+- All valid transitions (pending→confirmed→processing→shipped→delivered→refunded)
+- Cancellation at multiple stages
+- Invalid transition rejection
+- Terminal state enforcement
+- Full happy path
+
+**Total tests: 180 (70+36+8+34+12+10+4+6) across 23 test files**
+**76 commits, 145 files**
+
