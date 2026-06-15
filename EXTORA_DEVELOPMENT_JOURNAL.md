@@ -1522,3 +1522,21 @@ c492d48 chore: change license from MIT to Proprietary (UNLICENSED)
 **CLI now has 9 commands:** create, dev, build, package, test, publish, plugin, docker, generate
 **72 commits, 139 files, 145 tests**
 
+
+### Phase 29: Commerce Checkout Integration Tests
+**Date:** June 15, 2026 | **Commit:** `(pending)`
+**Duration:** ~15 minutes
+
+**Commerce now has 24 tests (11 extensions + 6 routes + 7 checkout)**
+
+Checkout integration tests validate the full commerce flow:
+- Tax calculation with breakdown (state + city)
+- Shipping rates with multiple options
+- Payment create + capture
+- Shipment creation with tracking
+- Full 7-step checkout: tax → ship → pay → capture → ship → track → refund
+- Tax commit + refund lifecycle
+- Address validation for both shipping and tax providers
+
+**Total tests: 152 (70 core + 36 sdk + 8 cli + 24 commerce + 6 cms + 4 forms + 4 seo)**
+
