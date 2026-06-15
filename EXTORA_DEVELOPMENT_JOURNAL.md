@@ -1098,3 +1098,16 @@ c492d48 chore: change license from MIT to Proprietary (UNLICENSED)
 **ESLint:** Added `packages/sdk/src/**/*.ts` to the relaxed rules override (mock/testing patterns)
 **Verification:** lint=0 errors, typecheck=pass
 
+
+### Phase 3.2: SDK Tests
+**Date:** June 13, 2026 | **Commit:** `919207a`
+**Duration:** ~30 minutes
+
+**Tests Written (21 tests):**
+- `tests/plugin.test.ts` (5 tests): context injection, lifecycle hooks, logger accessor, db accessor, event publishing
+- `tests/testing.test.ts` (16 tests): All 8 mock factories verified
+
+**Verification:** lint=0, typecheck=pass, tests=21/21
+
+**Total test count across project:** 39 (core) + 21 (sdk) = 60 tests
+

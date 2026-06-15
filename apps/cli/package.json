@@ -2,12 +2,28 @@
   "name": "@extora/cli",
   "version": "0.0.0",
   "private": true,
-  "description": "Extora cli — pending implementation",
+  "type": "module",
+  "bin": {
+    "extora": "./dist/index.js"
+  },
   "scripts": {
-    "build": "echo 'No build yet'",
-    "typecheck": "echo 'No typecheck yet'",
-    "lint": "echo 'No lint yet'",
-    "test": "echo 'No tests yet'",
+    "dev": "tsx src/index.ts",
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src/",
+    "test": "vitest run",
     "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@extora/types": "workspace:*",
+    "commander": "^12.0.0",
+    "chalk": "^5.0.0",
+    "ora": "^8.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.7.0",
+    "vitest": "^2.0.0"
   }
 }

@@ -28,7 +28,7 @@ export default tseslint.config(
     },
   },
   {
-    files: ["**/*.test.ts", "**/*.spec.ts", "packages/sdk/src/**/*.ts"],
+    files: ["**/*.test.ts", "**/*.spec.ts", "packages/sdk/src/**/*.ts", "apps/cli/src/**/*.ts"],
     rules: {
       "@typescript-eslint/require-await": "off",
       "@typescript-eslint/no-empty-function": "off",
@@ -37,6 +37,7 @@ export default tseslint.config(
       "@typescript-eslint/no-unnecessary-type-parameters": "off",
       "@typescript-eslint/no-unnecessary-condition": "off",
       "@typescript-eslint/no-redundant-type-constituents": "off",
+      "no-console": "off",
     },
   },
   {
