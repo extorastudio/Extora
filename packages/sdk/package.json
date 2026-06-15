@@ -11,7 +11,8 @@
     "./database": "./src/database.ts",
     "./hooks": "./src/hooks.ts",
     "./events": "./src/events.ts",
-    "./config": "./src/config.ts"
+    "./api": "./src/api.ts",
+    "./cli": "./src/cli.ts",
   },
   "scripts": {
     "build": "tsc",
