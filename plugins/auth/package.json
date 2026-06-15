@@ -4,8 +4,8 @@
   "private": true,
   "description": "Extora auth plugin — pending implementation",
   "dependencies": {
-    "@extora/types": "workspace:*",
-    "@extora/sdk": "workspace:*"
+    "@extora/sdk": "workspace:*",
+    "@extora/types": "workspace:*"
   },
   "scripts": {
     "build": "echo 'No build yet'",
@@ -13,5 +13,8 @@
     "lint": "echo 'No lint yet'",
     "test": "echo 'No tests yet'",
     "clean": "rm -rf dist"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0"
   }
 }

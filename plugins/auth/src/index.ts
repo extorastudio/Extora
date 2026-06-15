@@ -1,6 +1,5 @@
 import { BasePlugin } from "@extora/sdk";
 import type { PluginManifest } from "@extora/types";
-import { createMigrationRunner, BaseMigration } from "@extora/sdk/database";
 
 const manifest: PluginManifest = {
   name: "@extora/auth",
@@ -20,14 +19,11 @@ const manifest: PluginManifest = {
   database: { migrations: "dist/migrations/" },
 };
 
-class InitialMigration extends BaseMigration {
-  override name = "0001_initial_auth_tables";
-  override version = "0.0.0";
+export default class AuthPlugin extends BasePlugin {
+  override manifest = manifest;
 
-  override async up(): Promise<void> {
-    // Create auth-specific tables via the plugin database client
-    const db = this.context?.database.getPluginDb("auth");
-    if (!db) return;
+  override async onInstall(): Promise<void> {
+    const db = this.db.getPluginDb("auth");
 
     await db.createTable("plugin_auth_providers", {
       id: "TEXT PRIMARY KEY",
@@ -37,22 +33,7 @@ class InitialMigration extends BaseMigration {
       is_enabled: "BOOLEAN DEFAULT false",
       created_at: "TIMESTAMP DEFAULT NOW()",
     });
-  }
 
-  override async down(): Promise<void> {
-    const db = this.context?.database.getPluginDb("auth");
-    if (!db) return;
-    await db.dropTable("plugin_auth_providers");
-  }
-}
-
-export default class AuthPlugin extends BasePlugin {
-  override manifest = manifest;
-  private migrations = createMigrationRunner("@extora/auth");
-
-  override async onInstall(): Promise<void> {
-    this.migrations.register(new InitialMigration());
-    await this.migrations.runPending();
     this.logger.info("Auth plugin installed");
   }
 
@@ -60,6 +41,12 @@ export default class AuthPlugin extends BasePlugin {
     this.addAction("user.registered", async (user: unknown) => {
       this.logger.info(`New user registered: ${String((user as { email?: string })?.email ?? "unknown")}`);
     });
+
+    this.addAction("user.login", async (user: unknown) => {
+      const u = user as { id?: string };
+      await this.publishEvent("auth.login.success", { userId: u.id });
+    });
+
     this.logger.info("Auth plugin activated");
   }
 

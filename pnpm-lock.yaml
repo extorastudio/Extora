@@ -262,6 +262,10 @@ importers:
       '@extora/types':
         specifier: workspace:*
         version: link:../../packages/types
+    devDependencies:
+      '@types/node':
+        specifier: ^22.0.0
+        version: 22.19.21
 
   plugins/cms:
     dependencies:
