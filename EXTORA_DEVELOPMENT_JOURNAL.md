@@ -1922,3 +1922,13 @@ Order lifecycle tests validate the full state machine:
 **Total tests: 383 (103+58+8+111+42+32+16+13) across 63 test files**
 **115 commits, 204 files**
 
+
+### Phase 64: Commerce Gift Card Tests
+**Date:** June 15, 2026 | **Commit:** `(pending)`
+**Duration:** ~5 minutes
+
+**Commerce: 117 tests (+6 gift cards: create, redeem, insufficient, expired, inactive, full)**
+
+**Total tests: 389 (103+58+8+117+42+32+16+13) across 64 test files**
+**116 commits, 206 files**
+
