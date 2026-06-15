@@ -79,6 +79,6 @@ describe("Plugin Sandbox", () => {
       cpuLimit: 0.1,
     });
 
-    expect(() => sandbox.dispose()).not.toThrow();
+    expect(() => { sandbox.dispose(); }).not.toThrow();
   });
 });
