@@ -2112,3 +2112,18 @@ CLI: +5 (help commands)
 
 **GraphQL now has: health query, systemInfo query, SystemInfo type**
 
+
+### Phase 79: WebSocket Support for Core
+**Date:** June 15, 2026 | **Commit:** `(pending)`
+**Duration:** ~15 minutes
+
+**Files Created:**
+- `apps/core/src/websocket.ts` — WebSocketManager + registerWebSocketEndpoint
+  - Client registration with unique IDs
+  - Event subscription/unsubscribe
+  - Real-time broadcast to subscribed clients
+  - Stats endpoint (GET /api/v1/ws/stats)
+  - Ping/pong support
+  - Auto-cleanup on disconnect
+- `apps/core/src/server.ts` — Registered @fastify/websocket plugin + /api/v1/ws endpoint
+

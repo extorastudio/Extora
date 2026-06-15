@@ -1,12 +1,14 @@
 import crypto from "node:crypto";
 import Fastify from "fastify";
 import cors from "@fastify/cors";
+import websocket from "@fastify/websocket";
 import type { FastifyInstance } from "fastify";
 import type { BootstrapContext } from "./bootstrap.js";
 import type { ApiError } from "@extora/types";
 import { registerAuthRoutes } from "./auth/routes.js";
 import { registerAdminRoutes } from "./admin-routes.js";
 import { registerGraphQLEndpoint, GraphQLRegistry } from "./graphql.js";
+import { registerWebSocketEndpoint } from "./websocket.js";
 
 export async function createServer(ctx: BootstrapContext): Promise<FastifyInstance> {
   const server = Fastify({
@@ -22,6 +24,8 @@ export async function createServer(ctx: BootstrapContext): Promise<FastifyInstan
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization", "X-API-Key"],
   });
+
+  await server.register(websocket);
 
   // Request logging
   server.addHook("onRequest", (request) => {
@@ -162,6 +166,11 @@ export async function createServer(ctx: BootstrapContext): Promise<FastifyInstan
     resolve: () => "ok",
   });
   registerGraphQLEndpoint(server, graphql);
+
+  // =========================================================================
+  // Register WebSocket Endpoint
+  // =========================================================================
+  registerWebSocketEndpoint(server, ctx.eventBus);
 
   return server;
 }
