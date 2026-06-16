@@ -666,7 +666,7 @@ export function registerAdminRoutes(server: FastifyInstance, prisma: PrismaClien
         ContentType: data.mimetype,
       }));
 
-      const url = `${process.env.S3_ENDPOINT ?? "http://minio:9000"}/${BUCKET}/${key}`;
+      const url = `/storage/${BUCKET}/${key}`;
 
       const media = await prisma.media.create({
         data: {

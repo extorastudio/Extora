@@ -136,12 +136,25 @@ export default function MediaPage() {
                 <input ref={fileInputRef} type="file" multiple accept="image/*,video/*" className="hidden" onChange={(e) => { handleFileSelect(e.target.files); }} />
               </div>
               {uploadFiles.length > 0 && (
-                <div className="mt-4 space-y-2 max-h-48 overflow-y-auto">
+                <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-3 max-h-64 overflow-y-auto">
                   {uploadFiles.map((f, i) => (
-                    <div key={i} className="flex items-center gap-3 rounded-lg border border-gray-700 bg-gray-800 p-2">
-                      <span className="text-sm text-gray-300 truncate flex-1">{f.name}</span>
-                      <span className="text-xs text-gray-500">{Math.round(f.size / 1024)} KB</span>
-                      <button onClick={() => { setUploadFiles(uploadFiles.filter((_, j) => j !== i)); }} className="text-gray-500 hover:text-red-400"><X className="h-3.5 w-3.5" /></button>
+                    <div key={i} className="relative group rounded-lg border border-gray-700 bg-gray-800 overflow-hidden">
+                      <div className="aspect-square flex items-center justify-center bg-gray-900">
+                        {f.type.startsWith("image/") ? (
+                          <img src={URL.createObjectURL(f)} alt={f.name} className="w-full h-full object-cover" />
+                        ) : f.type.startsWith("video/") ? (
+                          <video src={URL.createObjectURL(f)} className="w-full h-full object-cover" muted />
+                        ) : (
+                          <div className="flex flex-col items-center gap-1 text-gray-500"><Upload className="h-6 w-6" /><span className="text-xs">FILE</span></div>
+                        )}
+                      </div>
+                      <div className="p-1.5">
+                        <p className="text-xs text-gray-300 truncate">{f.name}</p>
+                        <p className="text-xs text-gray-500">{Math.round(f.size / 1024)} KB</p>
+                      </div>
+                      <button onClick={() => { setUploadFiles(uploadFiles.filter((_, j) => j !== i)); }} className="absolute top-1 right-1 rounded bg-red-600 p-1 text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                        <X className="h-3 w-3" />
+                      </button>
                     </div>
                   ))}
                 </div>
