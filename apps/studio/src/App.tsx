@@ -11,6 +11,7 @@ import ConfigPage from "./pages/Config";
 import MonitoringPage from "./pages/Monitoring";
 import BackupsPage from "./pages/Backups";
 import ProductsPage from "./pages/Products";
+import ContentPage from "./pages/Content";
 import { Globe, CheckCircle, AlertCircle } from "lucide-react";
 
 function DashboardPage() {
@@ -96,6 +97,7 @@ const PAGE_MAP: Record<string, React.ComponentType> = {
   users: UsersPage,
   themes: ThemesPage,
   products: ProductsPage,
+  content: ContentPage,
   services: ServicesPage,
   config: ConfigPage,
   monitoring: MonitoringPage,

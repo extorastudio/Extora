@@ -350,4 +350,75 @@ export function registerAdminRoutes(server: FastifyInstance, prisma: PrismaClien
       data: list.map((r) => ({ ...r, createdAt: r.createdAt.toISOString() })),
     });
   });
+
+  // =========================================================================
+  // Content Entries (Pages, Blog Posts)
+  // =========================================================================
+
+  server.get("/api/v1/content", async (request: FastifyRequest, reply: FastifyReply) => {
+    await authenticate(request, reply, prisma);
+    const type = (request.query as Record<string, string> | undefined)?.type;
+    const where = type ? { type } : {};
+    const list = await prisma.contentEntry.findMany({
+      where,
+      orderBy: { updatedAt: "desc" },
+    });
+    return await reply.send({ data: list });
+  });
+
+  server.post("/api/v1/content", async (request: FastifyRequest, reply: FastifyReply) => {
+    await authenticate(request, reply, prisma);
+    const body = request.body as Record<string, unknown> | undefined;
+    if (!body?.title) {
+      return reply.status(400).send({ code: "BAD_REQUEST", message: "Title is required" });
+    }
+    const slug = String(body.slug ?? body.title).toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
+    const entry = await prisma.contentEntry.create({
+      data: {
+        title: String(body.title),
+        slug: `${slug}-${String(Date.now())}`,
+        body: String(body.body ?? ""),
+        excerpt: String(body.excerpt ?? ""),
+        type: String(body.type ?? "page"),
+        status: String(body.status ?? "draft"),
+        metadata: (body.metadata ?? {}) as any,
+      },
+    });
+    return await reply.status(201).send({ data: entry });
+  });
+
+  server.patch("/api/v1/content/:id", async (request: FastifyRequest, reply: FastifyReply) => {
+    await authenticate(request, reply, prisma);
+    const params = request.params as { id: string };
+    const id = decodeURIComponent(params.id);
+    const body = request.body as Record<string, unknown> | undefined;
+    const existing = await prisma.contentEntry.findUnique({ where: { id } });
+    if (!existing) {
+      return reply.status(404).send({ code: "NOT_FOUND", message: "Content not found" });
+    }
+    const entry = await prisma.contentEntry.update({
+      where: { id },
+      data: {
+        title: body?.title !== undefined ? String(body.title) : existing.title,
+        body: body?.body !== undefined ? String(body.body) : existing.body,
+        excerpt: body?.excerpt !== undefined ? String(body.excerpt) : existing.excerpt,
+        status: body?.status !== undefined ? String(body.status) : existing.status,
+        metadata: body?.metadata !== undefined ? (body.metadata as any) : existing.metadata,
+        publishedAt: body?.status === "published" && existing.status !== "published" ? new Date() : existing.publishedAt,
+      },
+    });
+    return await reply.send({ data: entry });
+  });
+
+  server.delete("/api/v1/content/:id", async (request: FastifyRequest, reply: FastifyReply) => {
+    await authenticate(request, reply, prisma);
+    const params = request.params as { id: string };
+    const id = decodeURIComponent(params.id);
+    const existing = await prisma.contentEntry.findUnique({ where: { id } });
+    if (!existing) {
+      return reply.status(404).send({ code: "NOT_FOUND", message: "Content not found" });
+    }
+    await prisma.contentEntry.delete({ where: { id } });
+    return await reply.send({ success: true });
+  });
 }

@@ -8,6 +8,7 @@ import {
   Settings,
   Server,
   HardDrive,
+  FileText,
   Activity,
   LogOut,
   Menu,
@@ -23,6 +24,7 @@ interface DashboardLayoutProps {
 const navItems = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
   { id: "products", label: "Products", icon: Package },
+  { id: "content", label: "Content", icon: FileText },
   { id: "users", label: "Users", icon: Users },
   { id: "plugins", label: "Plugins", icon: Puzzle },
   { id: "themes", label: "Themes", icon: Palette },

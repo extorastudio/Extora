@@ -104,12 +104,6 @@ export async function publishSite(
 
   const pages: PageData[] = [];
 
-  // Fetch published content entries
-  const entries = await prisma.contentEntry.findMany({
-    where: { status: "published" },
-    orderBy: { updatedAt: "desc" },
-  });
-
   // Fetch products for homepage/shop
   const products = await prisma.product.findMany({
     where: { status: "published" },
