@@ -12,6 +12,7 @@ import MonitoringPage from "./pages/Monitoring";
 import BackupsPage from "./pages/Backups";
 import ProductsPage from "./pages/Products";
 import ContentPage from "./pages/Content";
+import MediaPage from "./pages/Media";
 import { Package, Users2, Clock } from "lucide-react";
 
 function DashboardPage() {
@@ -78,6 +79,7 @@ const PAGE_MAP: Record<string, React.ComponentType> = {
   themes: ThemesPage,
   products: ProductsPage,
   content: ContentPage,
+  media: MediaPage,
   services: ServicesPage,
   config: ConfigPage,
   monitoring: MonitoringPage,

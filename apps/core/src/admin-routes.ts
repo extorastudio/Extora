@@ -476,4 +476,52 @@ export function registerAdminRoutes(server: FastifyInstance, prisma: PrismaClien
     await prisma.contentEntry.delete({ where: { id } });
     return await reply.send({ success: true });
   });
+
+  // =========================================================================
+  // Media Library
+  // =========================================================================
+
+  server.get("/api/v1/media", async (request: FastifyRequest, reply: FastifyReply) => {
+    await authenticate(request, reply, prisma);
+    const list = await prisma.media.findMany({
+      orderBy: { createdAt: "desc" },
+      take: 100,
+    });
+    return await reply.send({ data: list });
+  });
+
+  server.post("/api/v1/media", async (request: FastifyRequest, reply: FastifyReply) => {
+    await authenticate(request, reply, prisma);
+    const body = request.body as Record<string, unknown> | undefined;
+    if (!body?.url || !body?.filename) {
+      return reply.status(400).send({ code: "BAD_REQUEST", message: "url and filename required" });
+    }
+    const media = await prisma.media.create({
+      data: {
+        filename: String(body.filename),
+        originalName: String(body.originalName ?? body.filename),
+        mimeType: String(body.mimeType ?? "image/png"),
+        size: Number(body.size ?? 0),
+        width: body.width ? Number(body.width) : null,
+        height: body.height ? Number(body.height) : null,
+        storageBackend: String(body.storageBackend ?? "local"),
+        storagePath: String(body.storagePath ?? body.url),
+        url: String(body.url),
+        thumbnailUrl: body.thumbnailUrl ? String(body.thumbnailUrl) : null,
+        metadata: body.metadata ?? {},
+        uploadedBy: (request as unknown as Record<string, string>).userId ?? null,
+      },
+    });
+    return await reply.status(201).send({ data: media });
+  });
+
+  server.delete("/api/v1/media/:id", async (request: FastifyRequest, reply: FastifyReply) => {
+    await authenticate(request, reply, prisma);
+    const params = request.params as { id: string };
+    const id = decodeURIComponent(params.id);
+    const existing = await prisma.media.findUnique({ where: { id } });
+    if (!existing) return reply.status(404).send({ code: "NOT_FOUND", message: "Media not found" });
+    await prisma.media.delete({ where: { id } });
+    return await reply.send({ success: true });
+  });
 }

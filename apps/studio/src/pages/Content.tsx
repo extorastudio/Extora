@@ -42,7 +42,7 @@ export default function ContentPage() {
 
   useEffect(() => {
     void fetchEntries();
-  }, [filterType, isLoading]); // eslint-disable-line
+  }, [filterType]);
 
   const handleSave = async () => {
     if (!editing?.title?.trim()) return;
