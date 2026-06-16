@@ -348,6 +348,20 @@ model Product {
   dealLabel    String?
   discountType String?
   discountValue Float?
+  mrp           Float?
+  discountPercent Int?
+  emiAvailable  Boolean  @default(false)
+  emiPrice      Float?
+  deliveryInfo  String   @default("")
+  deliveryDate  String   @default("")
+  codAvailable  Boolean  @default(true)
+  returnPolicy  String   @default("7 days returnable")
+  warranty      String   @default("")
+  offers        String[] @default([])
+  highlights    String[] @default([])
+  specs         Json     @default("{}")
+  sellerName    String   @default("Extora Seller")
+  sellerRating  Float    @default(4.0)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
   publishedAt  DateTime?
