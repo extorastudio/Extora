@@ -78,18 +78,19 @@ body{font-family:Arial,Helvetica,sans-serif;color:#0f1111;background:#eaeded;lin
 .pdetail .return{font-size:.85rem;color:#007600}
 
 .products-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:0;background:white}
-.product-card{background:white;border:1px solid #f0f0f0;padding:16px;display:flex;flex-direction:column;transition:box-shadow .15s}
+.product-card{background:white;border:1px solid #f0f0f0;transition:box-shadow .15s}
 .product-card:hover{box-shadow:0 2px 12px rgba(0,0,0,.1)}
 .product-card .img-wrap{height:200px;display:flex;align-items:center;justify-content:center;margin-bottom:8px}
 .product-card .img-wrap img{max-width:100%;max-height:100%;object-fit:contain}
 .product-card .pname{font-size:.9rem;color:#0f1111;margin-bottom:4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.product-card a{text-decoration:none;color:inherit}
+.product-card a{text-decoration:none;color:inherit;display:flex;flex-direction:column;padding:16px;height:100%}
+.product-card a:hover{color:inherit}
 .product-card .stars{color:#febd69;font-size:.8rem}
 .product-card .pr{display:flex;align-items:baseline;gap:6px;margin:6px 0}
 .product-card .pr .p{font-size:1.1rem;font-weight:600;color:#b12704}
 .product-card .pr .mrp{font-size:.8rem;color:#565959;text-decoration:line-through}
 .product-card .badge{display:inline-block;background:#cc0c39;color:white;font-size:.7rem;padding:2px 6px;border-radius:2px;margin-bottom:4px}
-.product-card .stock-ok{color:#007600;font-size:.75rem}
+.product-card .stock-ok{color:#007600;font-size:.75rem;margin-top:auto}
 
 .section-header{display:flex;align-items:baseline;gap:12px;padding:20px 15px 8px}
 .section-header h2{font-size:1.3rem;color:#0f1111}
@@ -133,13 +134,15 @@ function productCard(p: any): string {
   const discount = mrp && mrp > price ? Math.round((1 - price / mrp) * 100) : (p.discountPercent ? Number(p.discountPercent) : 0);
   const rating = Number(p.rating ?? 0);
   return `<div class="product-card">
+<a href="/product-${e(p.slug)}.html">
 <div class="img-wrap">${img ? `<img src="${e(img)}" alt="" loading="lazy">` : "No Image"}</div>
-<a href="/product-${e(p.slug)}.html"><span class="pname">${e(p.name)}</span></a>
+<span class="pname">${e(p.name)}</span>
 ${rating > 0 ? `<span class="stars">${stars(rating)}</span>` : ""}
 <div class="pr"><span class="p">${rupee(price)}</span>${mrp && mrp > price ? `<span class="mrp">${rupee(mrp)}</span>` : ""}</div>
 ${discount > 0 ? `<span class="badge">-${discount}%</span>` : ""}
 ${p.dealType ? `<span class="badge" style="background:#c45500">${e(p.dealLabel ?? p.dealType)}</span>` : ""}
 <span class="stock-ok">In Stock</span>
+</a>
 </div>`;
 }
 

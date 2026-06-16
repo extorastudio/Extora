@@ -1,0 +1,19 @@
+{
+  "name": "@extora/recommendations",
+  "version": "1.0.0",
+  "type": "plugin",
+  "title": "Recommendation Engine",
+  "description": "Amazon-style recommendation engine — Frequently Bought Together, Customers Also Bought, Trending Products, Personalized Recommendations",
+  "author": { "name": "Extora Team", "email": "plugins@extora.dev" },
+  "license": "MIT",
+  "keywords": ["recommendations", "amazon", "fbt", "personalized"],
+  "categories": ["commerce", "ai"],
+  "extora": { "core": ">=0.3.0" },
+  "entry": { "server": "./src/index.ts" },
+  "permissions": ["db:read"],
+  "dependencies": {},
+  "hooks": {
+    "actions": ["product.viewed", "cart.updated"],
+    "filters": ["recommendations.get_fbt", "recommendations.get_also_bought", "recommendations.get_trending", "recommendations.search_suggest"]
+  }
+}
