@@ -6,6 +6,7 @@ import { CoreEventBus } from "./event-bus/bus.js";
 import { CoreHookRegistry } from "./hooks/registry.js";
 import { discoverPlugins } from "./plugin-loader/loader.js";
 import { createPluginSandbox } from "./plugin-loader/sandbox.js";
+import { discoverAndRegisterLocalPlugins, discoverAndRegisterLocalThemes } from "./plugin-installer.js";
 import type { LoadedPlugin } from "@extora/types";
 
 export interface BootstrapContext {
@@ -72,6 +73,14 @@ export async function bootstrap(): Promise<BootstrapContext> {
 
   // 6. Plugin System — discover, load, activate
   logger.info("[6/8] Loading plugins...");
+  const registeredPlugins = await discoverAndRegisterLocalPlugins(prisma, logger);
+  if (registeredPlugins > 0) {
+    logger.info(`       Auto-registered ${String(registeredPlugins)} plugins from filesystem`);
+  }
+  const registeredThemes = await discoverAndRegisterLocalThemes(prisma, logger);
+  if (registeredThemes > 0) {
+    logger.info(`       Auto-registered ${String(registeredThemes)} themes from filesystem`);
+  }
   const loadedPlugins = await discoverPlugins(prisma);
   logger.info(`       Found ${String(loadedPlugins.length)} plugins`);
 

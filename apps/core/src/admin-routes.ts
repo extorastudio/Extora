@@ -1,6 +1,16 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import type { PrismaClient } from "@prisma/client";
 import { authenticate, authorize } from "./authorization/rbac.js";
+import { validateManifest } from "./plugin-loader/manifest.js";
+import {
+  installPlugin,
+  uninstallPlugin,
+  installTheme,
+  uninstallTheme,
+  discoverAndRegisterLocalPlugins,
+  discoverAndRegisterLocalThemes,
+} from "./plugin-installer.js";
+import { publishSite } from "./publishing/engine.js";
 
 export function registerAdminRoutes(server: FastifyInstance, prisma: PrismaClient): void {
   // =========================================================================
@@ -25,6 +35,42 @@ export function registerAdminRoutes(server: FastifyInstance, prisma: PrismaClien
     });
 
     return reply.send({ data: plugins });
+  });
+
+  server.post("/api/v1/plugins/install", async (request: FastifyRequest, reply: FastifyReply) => {
+    await authenticate(request, reply, prisma);
+    await authorize(request, reply, prisma, "plugin", "install");
+
+    const body = request.body as Record<string, unknown> | undefined;
+    if (!body?.manifest) {
+      return reply.status(400).send({ code: "BAD_REQUEST", message: "manifest is required" });
+    }
+
+    try {
+      const manifest = validateManifest(body.manifest);
+      const result = await installPlugin(prisma, server.log, manifest);
+      return await reply.status(result.success ? 201 : 409).send(result);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Invalid manifest";
+      return reply.status(400).send({ code: "INVALID_MANIFEST", message });
+    }
+  });
+
+  server.delete("/api/v1/plugins/:name", async (request: FastifyRequest, reply: FastifyReply) => {
+    await authenticate(request, reply, prisma);
+    await authorize(request, reply, prisma, "plugin", "install");
+
+    const { name } = request.params as { name: string };
+    const result = await uninstallPlugin(prisma, server.log, name);
+    return reply.status(result.success ? 200 : 404).send(result);
+  });
+
+  server.post("/api/v1/plugins/discover", async (request: FastifyRequest, reply: FastifyReply) => {
+    await authenticate(request, reply, prisma);
+    await authorize(request, reply, prisma, "plugin", "install");
+
+    const count = await discoverAndRegisterLocalPlugins(prisma, server.log);
+    return reply.send({ success: true, message: `Registered ${String(count)} plugins from filesystem` });
   });
 
   server.post("/api/v1/plugins/:name/activate", async (request: FastifyRequest, reply: FastifyReply) => {
@@ -125,6 +171,42 @@ export function registerAdminRoutes(server: FastifyInstance, prisma: PrismaClien
     return reply.send({ data: themes });
   });
 
+  server.post("/api/v1/themes/install", async (request: FastifyRequest, reply: FastifyReply) => {
+    await authenticate(request, reply, prisma);
+    await authorize(request, reply, prisma, "theme", "configure");
+
+    const body = request.body as Record<string, unknown> | undefined;
+    if (!body?.manifest) {
+      return reply.status(400).send({ code: "BAD_REQUEST", message: "manifest is required" });
+    }
+
+    try {
+      const manifest = validateManifest(body.manifest);
+      const result = await installTheme(prisma, server.log, manifest);
+      return await reply.status(result.success ? 201 : 409).send(result);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Invalid manifest";
+      return reply.status(400).send({ code: "INVALID_MANIFEST", message });
+    }
+  });
+
+  server.delete("/api/v1/themes/:name", async (request: FastifyRequest, reply: FastifyReply) => {
+    await authenticate(request, reply, prisma);
+    await authorize(request, reply, prisma, "theme", "configure");
+
+    const { name } = request.params as { name: string };
+    const result = await uninstallTheme(prisma, server.log, name);
+    return reply.status(result.success ? 200 : 404).send(result);
+  });
+
+  server.post("/api/v1/themes/discover", async (request: FastifyRequest, reply: FastifyReply) => {
+    await authenticate(request, reply, prisma);
+    await authorize(request, reply, prisma, "theme", "configure");
+
+    const count = await discoverAndRegisterLocalThemes(prisma, server.log);
+    return reply.send({ success: true, message: `Registered ${String(count)} themes from filesystem` });
+  });
+
   server.post("/api/v1/themes/:name/activate", async (request: FastifyRequest, reply: FastifyReply) => {
     await authenticate(request, reply, prisma);
     await authorize(request, reply, prisma, "theme", "configure");
@@ -171,5 +253,22 @@ export function registerAdminRoutes(server: FastifyInstance, prisma: PrismaClien
     result.STORAGE_BACKEND = process.env.STORAGE_BACKEND ?? "local";
 
     return reply.send(result);
+  });
+
+  // =========================================================================
+  // Publishing Endpoint
+  // =========================================================================
+
+  server.post("/api/v1/site/publish", async (request: FastifyRequest, reply: FastifyReply) => {
+    await authenticate(request, reply, prisma);
+    await authorize(request, reply, prisma, "site", "publish");
+
+    try {
+      const result = await publishSite(prisma, server.log);
+      return await reply.send({ success: true, site: result });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Publish failed";
+      return reply.status(500).send({ code: "PUBLISH_FAILED", message });
+    }
   });
 }

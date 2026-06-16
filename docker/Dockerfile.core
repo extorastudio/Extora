@@ -26,6 +26,10 @@ COPY apps/core/dist apps/core/dist
 COPY apps/core/prisma apps/core/prisma
 COPY apps/core/prisma/seed.ts apps/core/prisma/seed.ts
 
+# Copy official plugins and themes for auto-discovery
+COPY plugins plugins
+COPY themes themes
+
 # Copy entrypoint
 COPY docker/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
