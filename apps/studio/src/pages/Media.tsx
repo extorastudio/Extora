@@ -264,10 +264,7 @@ export default function MediaPage() {
                   {ftype === "image" ? (
                     <img src={item.url} alt={item.filename} className="w-full h-full object-cover rounded" loading="lazy" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
                   ) : ftype === "video" ? (
-                    <div className="flex flex-col items-center gap-1">
-                      <Film className="h-8 w-8 text-purple-400" />
-                      <span className="text-[10px] text-purple-400 font-medium">VIDEO</span>
-                    </div>
+                    <video src={item.url} className="w-full h-full object-cover rounded" preload="metadata" muted />
                   ) : ftype === "audio" ? (
                     <div className="flex flex-col items-center gap-1">
                       <Music className="h-8 w-8 text-yellow-400" />
