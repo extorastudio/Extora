@@ -102,45 +102,97 @@ export async function publishSite(
     await mkdir(outputDir, { recursive: true });
   }
 
-  const pages: PageData[] = [
-    {
+  const pages: PageData[] = [];
+
+  // Fetch published content entries
+  const entries = await prisma.contentEntry.findMany({
+    where: { status: "published" },
+    orderBy: { updatedAt: "desc" },
+  });
+
+  // Fetch products for homepage/shop
+  const products = await prisma.product.findMany({
+    where: { status: "published" },
+    orderBy: { createdAt: "desc" },
+    take: 12,
+  });
+
+  // Homepage — shows products if available
+  if (products.length > 0) {
+    const productCards = products
+      .map((p) => {
+        const imgTag = Array.isArray(p.images) && (p.images as string[]).length > 0
+          ? `<img src="${escapeHtml(String((p.images as string[])[0]))}" alt="${escapeHtml(p.name)}" class="product-img" loading="lazy">`
+          : `<div class="product-img" style="display:flex;align-items:center;justify-content:center;color:#999;background:#f7f7f7">No Image</div>`;
+        return `<div class="product-card">
+${imgTag}
+<a href="/product-${escapeHtml(p.slug)}.html" style="text-decoration:none;color:inherit"><span class="product-name">${escapeHtml(p.name)}</span></a>
+<span class="product-rating">★ ${String(p.rating)}</span>
+<span class="product-reviews">${String(p.reviews)} ratings</span>
+<div class="price-row"><span class="price">$${p.price.toFixed(2)}</span>${p.comparePrice ? `<span class="compare-price">$${p.comparePrice.toFixed(2)}</span>` : ""}</div>
+${p.inStock ? `<p style="color:#007600;font-size:0.8rem;margin-top:4px">In Stock</p>` : `<p style="color:#cc0c39;font-size:0.8rem;margin-top:4px">Out of Stock</p>`}
+${p.inStock ? `<button class="btn-add">Add to Cart</button>` : ""}
+</div>`;
+      })
+      .join("\n");
+
+    pages.push({
+      slug: "index",
+      title: `${siteName} — Shop`,
+      description: `Shop products at ${siteName}`,
+      tagline: "Built with Extora — the plugin ecosystem platform",
+      content: `<div class="hero-banner" style="background:linear-gradient(135deg,#232f3e,#131921);padding:40px 0 60px;text-align:center;color:white">
+<h1 style="font-size:2.5rem;margin-bottom:8px">${escapeHtml(siteName)}</h1>
+<p style="font-size:1.1rem;opacity:0.9;max-width:600px;margin:0 auto">Discover amazing products at great prices</p>
+</div>
+<div class="section-header"><h2>Featured Products</h2><a href="/products.html">See all</a></div>
+<div class="container"><div class="products-grid">${productCards}</div></div>`,
+    });
+
+    // Product detail pages
+    for (const product of products) {
+      pages.push({
+        slug: `product-${product.slug}`,
+        title: product.name,
+        description: product.description.slice(0, 160),
+        content: `<div class="container">
+<div class="product-detail" style="display:grid;grid-template-columns:1fr 1fr;gap:32px;margin:20px auto;max-width:1200px;background:white;border-radius:4px;padding:24px">
+<div class="product-gallery">${Array.isArray(product.images) && (product.images as string[]).length > 0 ? (product.images as string[]).map((img: string) => `<img src="${escapeHtml(img)}" alt="${escapeHtml(product.name)}" style="width:100%;max-height:400px;object-fit:contain;background:#f7f7f7;border-radius:4px" loading="lazy">`).join("\n") : `<div style="width:100%;height:400px;background:#f7f7f7;display:flex;align-items:center;justify-content:center;color:#999">No Image</div>`}</div>
+<div>
+<h1 style="font-size:1.5rem;margin-bottom:8px">${escapeHtml(product.name)}</h1>
+<span style="color:#febd69;font-size:1.1rem">★ ${String(product.rating)}</span>
+<span style="color:#007185;margin-left:8px">${String(product.reviews)} ratings</span>
+<div style="margin:12px 0"><span style="font-size:1.8rem;color:#b12704;font-weight:600">$${product.price.toFixed(2)}</span>${product.comparePrice ? ` <span style="text-decoration:line-through;color:#565959">$${product.comparePrice.toFixed(2)}</span>` : ""}</div>
+<p style="color:#0f1111;line-height:1.6;margin:16px 0">${escapeHtml(product.description)}</p>
+<p style="color:#565959;font-size:0.9rem">Category: <strong>${escapeHtml(product.category)}</strong></p>
+<p style="color:#565959;font-size:0.9rem">SKU: ${escapeHtml(product.sku)}</p>
+${product.inStock ? `<button style="margin-top:16px;padding:12px 32px;background:#ffd814;border:1px solid #fcd200;border-radius:20px;font-size:1rem;font-weight:500;cursor:pointer">Add to Cart</button>` : `<p style="margin-top:12px;color:#cc0c39;font-weight:600">Currently unavailable</p>`}
+</div>
+</div></div>`,
+      });
+    }
+  } else {
+    // No products — show default homepage
+    pages.push({
       slug: "index",
       title: `Welcome to ${siteName}`,
       description: `Welcome to ${siteName} — powered by Extora`,
       tagline: "Built with Extora — the plugin ecosystem platform",
       content: `<div class="hero">
 <h1>Welcome to ${escapeHtml(siteName)}</h1>
-<p>Your website is live! Add content via the CMS plugin to customize this page.</p>
+<p>Your website is live! Add products and content via the admin panel.</p>
 <div style="margin-top:32px">
-<a href="/api/v1/system/health" class="btn">API Health</a>
+<a href="/admin-panel/" class="btn">Go to Admin Panel</a>
 </div>
 </div>
 <div class="grid2">
-<div class="card"><h2>Plugins</h2><p>6 official plugins: Auth, CMS, Commerce, Forms, SEO, Analytics</p></div>
-<div class="card"><h2>Themes</h2><p>2 official themes: Admin, Default</p></div>
-<div class="card"><h2>CMS</h2><p>Content types, entries, media, taxonomies</p></div>
-<div class="card"><h2>Commerce</h2><p>Products, orders, cart, checkout</p></div>
+<div class="card"><h2>Products</h2><p>Add products from the admin panel to populate your store.</p></div>
+<div class="card"><h2>Content</h2><p>Create pages and blog posts using the CMS.</p></div>
+<div class="card"><h2>Plugins</h2><p>6 official plugins ready to extend your site.</p></div>
+<div class="card"><h2>Themes</h2><p>Customize your site look with themes.</p></div>
 </div>`,
-    },
-    {
-      slug: "about",
-      title: "About",
-      description: "About Extora Studio",
-      content: `<div class="container"><h1>About</h1><p>This website is powered by <strong>Extora Studio</strong>, the TypeScript-first plugin ecosystem platform.</p><p>Extora is the operating system for web software — build anything with plugins.</p><div style="margin-top:24px"><a href="https://github.com/extorastudio/Extora" class="btn">View on GitHub</a></div></div>`,
-    },
-    {
-      slug: "contact",
-      title: "Contact",
-      description: "Get in touch",
-      content: `<div class="container"><h1>Contact</h1><p>Get in touch with us.</p><p>Email: hello@extora.dev</p></div>`,
-    },
-    {
-      slug: "blog",
-      title: "Blog",
-      description: "Extora Blog",
-      content: `<div class="container"><h1>Blog</h1><div class="grid2"><div class="card"><h2>Getting Started with Extora</h2><p>Learn how to install and configure your Extora site.</p><p><em>Coming soon</em></p></div><div class="card"><h2>Building Extora Plugins</h2><p>A guide to creating your first Extora plugin.</p><p><em>Coming soon</em></p></div><div class="card"><h2>Theme Development</h2><p>How to build and publish Extora themes.</p><p><em>Coming soon</em></p></div></div></div>`,
-    },
-  ];
+    });
+  }
 
   let totalSize = 0;
 

@@ -12,6 +12,7 @@ import {
   LogOut,
   Menu,
   X,
+  Package,
 } from "lucide-react";
 
 interface DashboardLayoutProps {
@@ -21,6 +22,7 @@ interface DashboardLayoutProps {
 
 const navItems = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { id: "products", label: "Products", icon: Package },
   { id: "users", label: "Users", icon: Users },
   { id: "plugins", label: "Plugins", icon: Puzzle },
   { id: "themes", label: "Themes", icon: Palette },

@@ -281,4 +281,73 @@ export function registerAdminRoutes(server: FastifyInstance, prisma: PrismaClien
       return reply.status(500).send({ code: "PUBLISH_FAILED", message });
     }
   });
+
+  // =========================================================================
+  // Commerce — Products (Prisma-backed)
+  // =========================================================================
+
+  server.get("/api/v1/commerce/products", async (request: FastifyRequest, reply: FastifyReply) => {
+    await authenticate(request, reply, prisma);
+    const list = await prisma.product.findMany({
+      orderBy: { createdAt: "desc" },
+    });
+    return await reply.send({ data: list });
+  });
+
+  server.post("/api/v1/commerce/products", async (request: FastifyRequest, reply: FastifyReply) => {
+    await authenticate(request, reply, prisma);
+    const body = request.body as Record<string, unknown> | undefined;
+    if (!body?.name) {
+      return reply.status(400).send({ code: "BAD_REQUEST", message: "Name is required" });
+    }
+    const rawSlug = String(body.slug ?? body.name).toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
+    const slug = `${rawSlug}-${String(Date.now())}`;
+    const product = await prisma.product.create({
+      data: {
+        name: String(body.name),
+        slug,
+        price: Number(body.price ?? 0),
+        comparePrice: body.comparePrice ? Number(body.comparePrice) : null,
+        category: String(body.category ?? "General"),
+        description: String(body.description ?? ""),
+        images: body.images ?? [],
+        rating: Number(body.rating ?? 0),
+        reviews: Number(body.reviews ?? 0),
+        inStock: Boolean(body.inStock ?? true),
+        sku: String(body.sku ?? ""),
+        tags: Array.isArray(body.tags) ? body.tags.map(String) : [],
+        status: String(body.status ?? "published"),
+      },
+    });
+    return await reply.status(201).send({ data: product });
+  });
+
+  server.delete("/api/v1/commerce/products/:id", async (request: FastifyRequest, reply: FastifyReply) => {
+    await authenticate(request, reply, prisma);
+    const params = request.params as { id: string };
+    const id = decodeURIComponent(params.id);
+    const existing = await prisma.product.findUnique({ where: { id } });
+    if (!existing) {
+      return reply.status(404).send({ code: "NOT_FOUND", message: "Product not found" });
+    }
+    await prisma.product.delete({ where: { id } });
+    return await reply.send({ success: true });
+  });
+
+  // =========================================================================
+  // Commerce — Orders
+  // =========================================================================
+
+  server.get("/api/v1/commerce/orders", async (request: FastifyRequest, reply: FastifyReply) => {
+    await authenticate(request, reply, prisma);
+    const list = await prisma.auditLog.findMany({
+      where: { action: "site.publish" },
+      orderBy: { createdAt: "desc" },
+      take: 20,
+      select: { id: true, action: true, resource: true, outcome: true, details: true, createdAt: true },
+    });
+    return await reply.send({
+      data: list.map((r) => ({ ...r, createdAt: r.createdAt.toISOString() })),
+    });
+  });
 }

@@ -297,3 +297,45 @@ model RateLimit {
   @@index([key])
   @@index([expiresAt])
 }
+
+model Product {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  price       Float    @default(0)
+  comparePrice Float?
+  category    String   @default("General")
+  description String   @default("")
+  images      Json     @default("[]")
+  rating      Float    @default(0)
+  reviews     Int      @default(0)
+  inStock     Boolean  @default(true)
+  sku         String   @default("")
+  tags        String[] @default([])
+  status      String   @default("published")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([category])
+  @@index([status])
+  @@index([slug])
+}
+
+model ContentEntry {
+  id        String   @id @default(cuid())
+  title     String
+  slug      String   @unique
+  body      String   @default("")
+  excerpt   String   @default("")
+  type      String   @default("page")
+  status    String   @default("draft")
+  authorId  String?
+  metadata  Json     @default("{}")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  publishedAt DateTime?
+
+  @@index([type])
+  @@index([status])
+  @@index([slug])
+}
