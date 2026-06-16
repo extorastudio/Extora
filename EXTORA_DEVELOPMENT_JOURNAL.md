@@ -2382,3 +2382,95 @@ cd extora-v0.1.0
 
 **600 tests pass. 162 commits, 286 files.**
 
+
+
+### Phase 97: WordPress-Like Routing Architecture
+**Date:** June 16, 2026 | **Commits:** `2cf8d4a` → `adcaf7a`
+**Duration:** ~90 minutes
+
+Split public site from admin panel — nginx serves published HTML at root, Studio at /admin-panel.
+
+**Files modified:**
+- `docker/nginx.conf` — Published site at /, Studio at /admin-panel, API at /api/
+- `apps/studio/vite.config.ts` — `base: "/admin-panel/"`
+- `docker/docker-compose.full.yml` — published_data shared volume
+
+**Verification:** Published site 200 at root, Studio 200 at /admin-panel, 7 containers healthy.
+
+
+### Phase 98: WordPress-Level Product Management + Taxonomies
+**Date:** June 16, 2026 | **Commits:** `2fcffa9` → `d7f15cb`
+**Duration:** ~180 minutes
+
+**Product Editor — 8 tabs:** General, Pricing, Inventory, Shipping, Media, Linked, Deals, Advanced
+
+**Product Sub-Tabs:** All Products | Categories | Brands | Tags | Attributes | Reviews
+Each with inline CRUD via generic taxonomyCrud API factory.
+
+**Prisma models:** ProductCategory, ProductBrand, ProductTag, ProductAttribute, ProductReview, ProductBundle, SizeGuide
+
+**Product states:** Draft → Pending → Published → Scheduled
+
+**Files:** `apps/core/prisma/schema.prisma`, `apps/core/src/admin-routes.ts`, `apps/studio/src/pages/Products.tsx` (700+ lines)
+
+
+### Phase 99: Content Management + Media Library with Drag-Drop Upload
+**Date:** June 16, 2026 | **Commits:** `2817e7e` → `3adab12`
+**Duration:** ~90 minutes
+
+**ContentEntry CRUD API** with publish/draft toggle, HTML editor.
+**Media Library** with grid view, detail modal, file type badges (image/video/pdf/doc/etc.).
+
+**Security fix — MinIO credentials not exposed:** Port 9000 removed. Files served through nginx /storage/ proxy.
+
+**File upload:** @fastify/multipart, 500MB limit, drag-drop zone, progress tracking.
+
+**413 error fix:** nginx client_max_body_size increased to 500m.
+
+**Files:** `apps/core/src/server.ts`, `apps/core/src/admin-routes.ts`, `apps/studio/src/pages/Media.tsx`, `docker/nginx.conf`
+
+
+### Phase 100: Amazon.in Quality Publishing Engine
+**Date:** June 16, 2026 | **Commits:** `9e924de` → `e22bf99`
+**Duration:** ~120 minutes
+
+**21 Amazon sections per product page:** M.R.P with strikethrough, discount%, ₹ pricing (Indian format), EMI calculator, offers, highlights (2-col), FREE delivery, COD, qty selector, Add to Cart + Buy Now buttons, seller info, warranty, returns, description, specs table, FBT, Similar Products.
+
+**14 new Product fields:** mrp, discountPercent, emiAvailable, emiPrice, deliveryInfo, deliveryDate, codAvailable, returnPolicy, warranty, offers[], highlights[], specs{}, sellerName, sellerRating
+
+**Full card clickable** — image, name, price, badges all wrapped in `<a>` tag.
+
+**Recommendation Engine Plugin:** `plugins/recommendations/` with FBT, Also Bought, Trending, Personalized, Search Autocomplete algorithms.
+
+**Files:** `apps/core/src/publishing/engine.ts` (260 lines), `plugins/recommendations/`
+
+
+### Phase 101: Theme Settings Premium UI + Skeleton Loaders
+**Date:** June 16, 2026 | **Commits:** `27c4d8b` → `753a001` → `8a12509`
+**Duration:** ~60 minutes
+
+**7-tab premium Theme Settings:** Brand, Colors (live preview), Typography (live preview), Header & Footer, Products, Custom Code (GitHub-dark editors), Tools (Import/Export/Reset).
+
+**Skeleton loaders** on all pages — CardSkeleton, TableSkeleton, GridSkeleton, etc.
+
+**Bug fixes:** Content infinite loading (removed isLoading from deps). Publish always "failed" (missing catch block).
+
+**Files:** `apps/studio/src/pages/ThemeSettings.tsx`, `apps/studio/src/components/ui/Skeleton.tsx`, `apps/studio/src/components/layout/DashboardLayout.tsx`
+
+
+### Phase 102: Docker Full Stack — All Services Connected
+**Date:** June 16, 2026 | **Commits:** Various throughout the session
+**Duration:** Included in above phases
+
+**7 Docker containers, all healthy:** nginx, core, postgres, redis, minio, opensearch, mailhog
+
+**5 services connected:** database, redis, storage (MinIO/S3 via nginx proxy), opensearch, email (MailHog)
+
+**Fastify v5 fix:** `onRequest` hooks MUST be async even without await — sync hooks silently block all HTTP. Fixed with `async (request) => { await Promise.resolve(); ... }`.
+
+**Plugins auto-registered on startup:** 5 of 6 official plugins discovered automatically (auth, cms, commerce, forms, seo).
+
+**Test counts:** 716+ tests across 120+ test files.
+**Commits:** 178+ | **Files:** 340+
+
+
