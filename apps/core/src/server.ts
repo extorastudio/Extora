@@ -1,7 +1,9 @@
 import crypto from "node:crypto";
+import net from "node:net";
 import Fastify from "fastify";
 import cors from "@fastify/cors";
 import websocket from "@fastify/websocket";
+import { S3Client, ListBucketsCommand } from "@aws-sdk/client-s3";
 import type { FastifyInstance, FastifyRequest } from "fastify";
 import type { BootstrapContext } from "./bootstrap.js";
 import type { ApiError } from "@extora/types";
@@ -9,6 +11,33 @@ import { registerAuthRoutes } from "./auth/routes.js";
 import { registerAdminRoutes } from "./admin-routes.js";
 import { registerGraphQLEndpoint, GraphQLRegistry } from "./graphql.js";
 import { registerWebSocketEndpoint } from "./websocket.js";
+
+function checkTcp(host: string, port: number, timeoutMs: number): Promise<boolean> {
+  return new Promise((resolve) => {
+    const socket = new net.Socket();
+    const timer = setTimeout(() => { socket.destroy(); resolve(false); }, timeoutMs);
+    socket.connect(port, host, () => { clearTimeout(timer); socket.destroy(); resolve(true); });
+    socket.on("error", () => { clearTimeout(timer); resolve(false); });
+  });
+}
+
+let s3Client: S3Client | null = null;
+
+function getS3Client(): S3Client | null {
+  if (s3Client) return s3Client;
+  const endpoint = process.env.S3_ENDPOINT;
+  if (!endpoint) return null;
+  s3Client = new S3Client({
+    endpoint,
+    region: process.env.S3_REGION ?? "us-east-1",
+    credentials: {
+      accessKeyId: process.env.S3_ACCESS_KEY ?? "minioadmin",
+      secretAccessKey: process.env.S3_SECRET_KEY ?? "minioadmin",
+    },
+    forcePathStyle: process.env.S3_FORCE_PATH_STYLE === "true",
+  });
+  return s3Client;
+}
 
 export async function createServer(ctx: BootstrapContext): Promise<FastifyInstance> {
   const server = Fastify({
@@ -87,6 +116,54 @@ export async function createServer(ctx: BootstrapContext): Promise<FastifyInstan
       services.redis = { status: "connected", latencyMs: Date.now() - redisStart };
     } catch {
       services.redis = { status: "disconnected" };
+    }
+
+    // Check S3 / MinIO storage
+    const storeBackend = process.env.STORAGE_BACKEND ?? "local";
+    if (storeBackend === "s3") {
+      const s3Start = Date.now();
+      try {
+        const client = getS3Client();
+        if (client) {
+          await client.send(new ListBucketsCommand({}));
+          services.storage = { status: "connected", latencyMs: Date.now() - s3Start };
+        } else {
+          services.storage = { status: "disconnected" };
+        }
+      } catch {
+        services.storage = { status: "disconnected" };
+      }
+    } else {
+      services.storage = { status: "connected" };
+    }
+
+    // Check OpenSearch
+    const osUrl = process.env.OPENSEARCH_URL;
+    if (osUrl) {
+      const osStart = Date.now();
+      try {
+        const res = await fetch(`${osUrl}/_cluster/health`, { signal: AbortSignal.timeout(3000) });
+        services.opensearch = { status: res.ok ? "connected" : "disconnected", latencyMs: Date.now() - osStart };
+      } catch {
+        services.opensearch = { status: "disconnected" };
+      }
+    } else {
+      services.opensearch = { status: "disconnected" };
+    }
+
+    // Check SMTP
+    const smtpHost = process.env.SMTP_HOST;
+    const smtpPort = parseInt(process.env.SMTP_PORT ?? "25", 10);
+    if (smtpHost) {
+      const smtpStart = Date.now();
+      try {
+        const ok = await checkTcp(smtpHost, smtpPort, 3000);
+        services.email = { status: ok ? "connected" : "disconnected", latencyMs: Date.now() - smtpStart };
+      } catch {
+        services.email = { status: "disconnected" };
+      }
+    } else {
+      services.email = { status: "disconnected" };
     }
 
     const hasAllServices = Object.values(services).every((s) => s.status === "connected");
