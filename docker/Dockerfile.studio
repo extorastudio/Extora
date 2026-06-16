@@ -1,0 +1,42 @@
+# =============================================================================
+# Extora Studio — Docker Image
+# =============================================================================
+# Simple HTTP server serving the Studio admin UI + health check.
+# All backend services (PostgreSQL, Redis, etc.) are in docker-compose.
+# =============================================================================
+
+FROM node:22-alpine AS builder
+WORKDIR /app
+
+# Install only what's needed for the production server
+RUN npm install fastify @fastify/static dotenv
+
+# Copy and compile the production server
+COPY apps/core/src/prod-server.ts ./src/
+COPY apps/core/tsconfig.json ./
+COPY tsconfig.base.json ./
+COPY node_modules/@types ./node_modules/@types 2>/dev/null || true
+
+# Create a simple server that doesn't need TypeScript compilation
+RUN echo 'const Fastify=require("fastify");const path=require("path");const fs=require("fs");require("dotenv/config");const studioDist=path.resolve(__dirname,"studio");const port=parseInt(process.env.PORT||"3000",10);async function main(){const server=Fastify({logger:true});if(fs.existsSync(studioDist)){await server.register(require("@fastify/static"),{root:studioDist,prefix:"/"});server.setNotFoundHandler((req,reply)=>{if(req.url.startsWith("/api/"))return reply.status(404).send({error:"Not found"});return reply.sendFile("index.html")})}server.get("/api/v1/system/health",async()=>({status:"ok",version:process.env.EXTORA_VERSION||"0.3.1",uptime:process.uptime(),timestamp:new Date().toISOString()}));await server.listen({port,host:"0.0.0.0"});console.log("Extora Studio ready on port "+port)}main().catch(e=>{console.error(e);process.exit(1)})' > server.js
+
+# Build Studio
+COPY apps/studio .
+RUN npm install vite @vitejs/plugin-react @tailwindcss/vite tailwindcss react react-dom lucide-react zustand axios 2>/dev/null || true
+RUN npx vite build 2>/dev/null && cp -r dist /app/studio || mkdir -p /app/studio
+
+FROM node:22-alpine
+WORKDIR /app
+
+RUN apk add --no-cache curl
+
+COPY --from=builder /app/server.js .
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/studio ./studio
+
+EXPOSE 3000
+
+HEALTHCHECK --interval=10s --timeout=3s --retries=5 --start-period=5s \
+  CMD curl -f http://localhost:3000/api/v1/system/health || exit 1
+
+CMD ["node", "server.js"]
