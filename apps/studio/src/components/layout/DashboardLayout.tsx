@@ -35,6 +35,7 @@ const navItems = [
   { id: "users", label: "Users", icon: Users },
   { id: "plugins", label: "Plugins", icon: Puzzle },
   { id: "themes", label: "Themes", icon: Palette },
+  { id: "themeSettings", label: "Theme Settings", icon: Settings },
   { id: "services", label: "Services", icon: Server },
   { id: "config", label: "Configuration", icon: Settings },
 ];

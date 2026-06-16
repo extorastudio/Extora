@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import apiClient from "../api/client";
 import {
   Package, Plus, Save, Trash2, RefreshCw, Send, Image, Settings,
-  Truck, Layers, Link2, Tag, DollarSign, Box
+  Truck, Layers, Link2, Tag, DollarSign, Box, FolderTree,
+  Tags, Shield, Grid3X3, MessageSquare
 } from "lucide-react";
 
 interface ProductData {
@@ -74,6 +75,49 @@ export default function ProductsPage() {
   const [showForm, setShowForm] = useState(false);
   const [activeTab, setActiveTab] = useState("general");
   const [filterStatus, setFilterStatus] = useState("");
+  const [subTab, setSubTab] = useState("products");
+  const [taxonomies, setTaxonomies] = useState<{ id: string; name: string; slug: string; description: string }[]>([]);
+  const [taxLoading, setTaxLoading] = useState(false);
+  const [taxEdit, setTaxEdit] = useState<{ id?: string; name: string; description: string } | null>(null);
+  const [taxShowForm, setTaxShowForm] = useState(false);
+
+  const SUB_TABS = [
+    { id: "products", icon: Package, label: "All Products" },
+    { id: "categories", icon: FolderTree, label: "Categories" },
+    { id: "brands", icon: Shield, label: "Brands" },
+    { id: "tags", icon: Tags, label: "Tags" },
+    { id: "attributes", icon: Grid3X3, label: "Attributes" },
+    { id: "reviews", icon: MessageSquare, label: "Reviews" },
+  ];
+
+  const fetchTaxonomies = async (type: string) => {
+    setTaxLoading(true);
+    try {
+      const { data } = await apiClient.get(`/commerce/${type}`);
+      setTaxonomies(Array.isArray(data) ? data : data.data ?? []);
+    } finally { setTaxLoading(false); }
+  };
+
+  useEffect(() => {
+    if (subTab !== "products") void fetchTaxonomies(subTab);
+  }, [subTab]);
+
+  const handleTaxSave = async () => {
+    if (!taxEdit?.name.trim()) return;
+    try {
+      if (taxEdit.id) {
+        await apiClient.patch(`/commerce/${subTab}/${encodeURIComponent(taxEdit.id)}`, taxEdit);
+      } else {
+        await apiClient.post(`/commerce/${subTab}`, taxEdit);
+      }
+      setTaxShowForm(false); setTaxEdit(null); void fetchTaxonomies(subTab);
+    } catch (err: unknown) { console.error("Save failed", err); }
+  };
+
+  const handleTaxDelete = async (id: string) => {
+    try { await apiClient.delete(`/commerce/${subTab}/${encodeURIComponent(id)}`); void fetchTaxonomies(subTab); }
+    catch (err: unknown) { console.error("Delete failed", err); }
+  };
 
   const fetchProducts = async () => {
     setIsLoading(true);
@@ -226,8 +270,100 @@ export default function ProductsPage() {
         </div>
       </div>
 
-      {/* Product Form with Tabs */}
-      {showForm && editing && (
+      {/* Sub-Tab Navigation */}
+      <div className="mb-6 flex border-b border-gray-700 overflow-x-auto">
+        {SUB_TABS.map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => { setSubTab(tab.id); setShowForm(false); }}
+            className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
+              subTab === tab.id ? "border-blue-500 text-blue-400" : "border-transparent text-gray-400 hover:text-gray-200"
+            }`}
+          >
+            <tab.icon className="h-4 w-4" /> {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Taxonomy Management (Categories, Brands, Tags, Attributes, Reviews) */}
+      {subTab !== "products" && (
+        <div>
+          <div className="mb-4 flex items-center justify-between">
+            <h3 className="text-lg font-semibold text-white capitalize">{subTab}</h3>
+            <button
+              onClick={() => { setTaxEdit({ name: "", description: "" }); setTaxShowForm(true); }}
+              className="flex items-center gap-2 rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700"
+            >
+              <Plus className="h-4 w-4" /> Add {subTab === "categories" ? "Category" : subTab === "brands" ? "Brand" : subTab === "tags" ? "Tag" : subTab === "attributes" ? "Attribute" : ""}
+            </button>
+          </div>
+
+          {taxShowForm && taxEdit && (
+            <div className="mb-4 rounded-xl border border-gray-700 bg-gray-900 p-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-gray-400">Name *</label>
+                  <input
+                    type="text" value={taxEdit.name}
+                    onChange={(e) => { setTaxEdit({ ...taxEdit, name: e.target.value }); }}
+                    className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white"
+                    placeholder={subTab === "categories" ? "Electronics" : subTab === "brands" ? "Nike" : subTab === "tags" ? "Best Seller" : "Color"}
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-gray-400">Description</label>
+                  <input
+                    type="text" value={taxEdit.description}
+                    onChange={(e) => { setTaxEdit({ ...taxEdit, description: e.target.value }); }}
+                    className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white"
+                    placeholder="Optional description"
+                  />
+                </div>
+              </div>
+              <div className="mt-3 flex gap-2">
+                <button onClick={() => void handleTaxSave()} className="flex items-center gap-1 rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700"><Save className="h-3.5 w-3.5" /> Save</button>
+                <button onClick={() => { setTaxShowForm(false); setTaxEdit(null); }} className="rounded-lg border border-gray-700 px-3 py-1.5 text-sm text-gray-400 hover:bg-gray-800">Cancel</button>
+              </div>
+            </div>
+          )}
+
+          {taxLoading ? (
+            <div className="py-12 text-center text-gray-400">Loading...</div>
+          ) : taxonomies.length === 0 ? (
+            <div className="rounded-xl border border-gray-800 bg-gray-900 py-16 text-center">
+              <Package className="mx-auto mb-3 h-10 w-10 text-gray-600" />
+              <p className="text-gray-400">No {subTab} yet</p>
+            </div>
+          ) : (
+            <div className="overflow-hidden rounded-xl border border-gray-800">
+              <table className="w-full">
+                <thead><tr className="border-b border-gray-800 bg-gray-900/50">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">Name</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">Slug</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">Description</th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-400 uppercase">Actions</th>
+                </tr></thead>
+                <tbody className="divide-y divide-gray-800">
+                  {taxonomies.map((item) => (
+                    <tr key={item.id} className="hover:bg-gray-900/30">
+                      <td className="px-4 py-3 text-sm font-medium text-white">{item.name}</td>
+                      <td className="px-4 py-3 text-sm text-gray-400">{item.slug}</td>
+                      <td className="px-4 py-3 text-sm text-gray-400 truncate max-w-[200px]">{item.description || "—"}</td>
+                      <td className="px-4 py-3 text-right">
+                        <button onClick={() => { setTaxEdit({ id: item.id, name: item.name, description: item.description }); setTaxShowForm(true); }} className="rounded p-1.5 text-gray-500 hover:bg-gray-800 hover:text-blue-400"><Settings className="h-4 w-4" /></button>
+                        <button onClick={() => void handleTaxDelete(item.id)} className="rounded p-1.5 text-gray-500 hover:bg-gray-800 hover:text-red-400"><Trash2 className="h-4 w-4" /></button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Product Form (only when products sub-tab) */}
+      {subTab === "products" && showForm && editing && (
         <div className="mb-6 rounded-xl border border-gray-700 bg-gray-900">
           {/* Tab Bar */}
           <div className="flex border-b border-gray-700 overflow-x-auto">
@@ -495,7 +631,7 @@ export default function ProductsPage() {
       )}
 
       {/* Product List Table */}
-      {!showForm && (
+      {subTab === "products" && !showForm && (
         <>
           <div className="flex items-center gap-2 mb-3 text-xs text-gray-500">
             {filterStatus ? (

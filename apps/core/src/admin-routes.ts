@@ -524,4 +524,109 @@ export function registerAdminRoutes(server: FastifyInstance, prisma: PrismaClien
     await prisma.media.delete({ where: { id } });
     return await reply.send({ success: true });
   });
+
+  // =========================================================================
+  // Product Taxonomies — Categories, Brands, Tags, Attributes
+  // =========================================================================
+
+  const taxonomyCrud = (model: string) => ({
+    list: async (_req: FastifyRequest, reply: FastifyReply) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const list = await (prisma as any)[model].findMany({ orderBy: { name: "asc" } });
+      return await reply.send({ data: list });
+    },
+    create: async (request: FastifyRequest, reply: FastifyReply) => {
+      const body = request.body as Record<string, unknown> | undefined;
+      if (!body?.name) return reply.status(400).send({ code: "BAD_REQUEST", message: "Name required" });
+      const slug = String(body.slug ?? String(body.name)).toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const data: Record<string, unknown> = { name: String(body.name), slug, description: String(body.description ?? "") };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const item = await (prisma as any)[model].create({ data });
+      return await reply.status(201).send({ data: item });
+    },
+    update: async (request: FastifyRequest, reply: FastifyReply) => {
+      const params = request.params as { id: string };
+      const id = decodeURIComponent(params.id);
+      const body = request.body as Record<string, unknown> | undefined;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const existing = await (prisma as any)[model].findUnique({ where: { id } });
+      if (!existing) return reply.status(404).send({ code: "NOT_FOUND", message: "Not found" });
+      const updateData: Record<string, unknown> = {};
+      if (body?.name !== undefined) { updateData.name = String(body.name); updateData.slug = String(body.slug ?? String(body.name)).toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, ""); }
+      if (body?.description !== undefined) updateData.description = String(body.description);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const item = await (prisma as any)[model].update({ where: { id }, data: updateData as any });
+      return await reply.send({ data: item });
+    },
+    delete: async (request: FastifyRequest, reply: FastifyReply) => {
+      const params = request.params as { id: string };
+      const id = decodeURIComponent(params.id);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (prisma as any)[model].delete({ where: { id } });
+      return await reply.send({ success: true });
+    },
+  });
+
+  // Register taxonomy routes for each model
+  for (const [model, prefix] of [["productCategory", "categories"], ["productBrand", "brands"], ["productTag", "tags"], ["productAttribute", "attributes"]] as const) {
+    const tc = taxonomyCrud(model);
+    server.get(`/api/v1/commerce/${prefix}`, async (request, reply) => { await authenticate(request, reply, prisma); await tc.list(request, reply); });
+    server.post(`/api/v1/commerce/${prefix}`, async (request, reply) => { await authenticate(request, reply, prisma); await tc.create(request, reply); });
+    server.patch(`/api/v1/commerce/${prefix}/:id`, async (request, reply) => { await authenticate(request, reply, prisma); await tc.update(request, reply); });
+    server.delete(`/api/v1/commerce/${prefix}/:id`, async (request, reply) => { await authenticate(request, reply, prisma); await tc.delete(request, reply); });
+  }
+
+  // Reviews
+  server.get("/api/v1/commerce/reviews", async (request: FastifyRequest, reply: FastifyReply) => {
+    await authenticate(request, reply, prisma);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const list = await (prisma as any).productReview.findMany({ orderBy: { createdAt: "desc" }, take: 50 });
+    return await reply.send({ data: list });
+  });
+  server.patch("/api/v1/commerce/reviews/:id", async (request: FastifyRequest, reply: FastifyReply) => {
+    await authenticate(request, reply, prisma);
+    const params = request.params as { id: string };
+    const id = decodeURIComponent(params.id);
+    const body = request.body as Record<string, unknown> | undefined;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const review = await (prisma as any).productReview.update({ where: { id }, data: { status: body?.status ?? "approved" } });
+    return await reply.send({ data: review });
+  });
+
+  // =========================================================================
+  // Theme Settings
+  // =========================================================================
+
+  server.get("/api/v1/theme/settings", async (request: FastifyRequest, reply: FastifyReply) => {
+    await authenticate(request, reply, prisma);
+    const theme = (request.query as Record<string, string> | undefined)?.theme ?? "default";
+    const items = await (prisma as any).themeSetting.findMany({ where: { themeName: theme } });
+    const settings: Record<string, unknown> = {};
+    for (const item of items) { settings[item.key] = item.value; }
+    return await reply.send({ data: settings });
+  });
+
+  server.post("/api/v1/theme/settings", async (request: FastifyRequest, reply: FastifyReply) => {
+    await authenticate(request, reply, prisma);
+    const body = request.body as Record<string, unknown> | undefined;
+    const theme = (body?.theme as string) ?? "default";
+    const updates = (body?.settings as Record<string, unknown>) ?? {};
+    for (const [key, value] of Object.entries(updates)) {
+      await (prisma as any).themeSetting.upsert({
+        where: { themeName_key: { themeName: theme, key } },
+        create: { themeName: theme, key, value: value as Record<string, unknown> },
+        update: { value: value as Record<string, unknown> },
+      });
+    }
+    return await reply.send({ success: true });
+  });
+
+  server.post("/api/v1/theme/reset", async (request: FastifyRequest, reply: FastifyReply) => {
+    await authenticate(request, reply, prisma);
+    const body = request.body as Record<string, unknown> | undefined;
+    const theme = (body?.theme as string) ?? "default";
+    await (prisma as any).themeSetting.deleteMany({ where: { themeName: theme } });
+    return await reply.send({ success: true });
+  });
 }

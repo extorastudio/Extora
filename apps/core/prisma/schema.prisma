@@ -414,3 +414,108 @@ model ContentEntry {
   @@index([status])
   @@index([slug])
 }
+
+model ProductCategory {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  slug        String   @unique
+  description String   @default("")
+  image       String?
+  parentId    String?
+  sortOrder   Int      @default(0)
+  productCount Int     @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  parent      ProductCategory? @relation("CategoryParent", fields: [parentId], references: [id])
+  children    ProductCategory[] @relation("CategoryParent")
+
+  @@index([slug])
+  @@index([parentId])
+}
+
+model ProductBrand {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  slug        String   @unique
+  description String   @default("")
+  logo        String?
+  website     String?
+  productCount Int     @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([slug])
+}
+
+model ProductTag {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  slug        String   @unique
+  description String   @default("")
+  productCount Int     @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([slug])
+}
+
+model ProductAttribute {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  slug        String   @unique
+  description String   @default("")
+  type        String   @default("select")
+  options     Json     @default("[]")
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model ProductReview {
+  id        String   @id @default(cuid())
+  productId String
+  rating    Int      @default(5)
+  title     String   @default("")
+  content   String   @default("")
+  author    String   @default("Anonymous")
+  email     String   @default("")
+  status    String   @default("pending")
+  verified  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([productId])
+  @@index([status])
+}
+
+model ProductBundle {
+  id         String   @id @default(cuid())
+  name       String
+  productIds String[] @default([])
+  discount   Float    @default(0)
+  type       String   @default("bundle")
+  createdAt  DateTime @default(now())
+
+  @@index([type])
+}
+
+model SizeGuide {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  content   Json     @default("{}")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ThemeSetting {
+  id        String   @id @default(cuid())
+  themeName String   @default("default")
+  key       String
+  value     Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([themeName, key])
+  @@index([themeName])
+}
