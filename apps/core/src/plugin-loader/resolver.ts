@@ -96,10 +96,11 @@ export function resolveDependencies(
 
 
 
-  const resolved: ResolvedPlugin[] = order.map((name, index) => ({
-    manifest: pluginMap.get(name)!,
-    loadOrder: index,
-  }));
+  const resolved: ResolvedPlugin[] = order.map((name, index) => {
+    const manifest = pluginMap.get(name);
+    if (!manifest) throw new Error(`Plugin "${name}" in dependency order but not found`);
+    return { manifest, loadOrder: index };
+  });
 
   const loaded = resolved.map((r) => ({
     manifest: r.manifest,

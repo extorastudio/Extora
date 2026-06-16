@@ -2,7 +2,7 @@ import crypto from "node:crypto";
 import Fastify from "fastify";
 import cors from "@fastify/cors";
 import websocket from "@fastify/websocket";
-import type { FastifyInstance } from "fastify";
+import type { FastifyInstance, FastifyRequest } from "fastify";
 import type { BootstrapContext } from "./bootstrap.js";
 import type { ApiError } from "@extora/types";
 import { registerAuthRoutes } from "./auth/routes.js";
@@ -27,8 +27,9 @@ export async function createServer(ctx: BootstrapContext): Promise<FastifyInstan
 
   await server.register(websocket);
 
-  // Request logging
-  server.addHook("onRequest", async (request: any) => {
+  // Request logging (async required by Fastify v5)
+  server.addHook("onRequest", async (request: FastifyRequest) => {
+    await Promise.resolve();
     ctx.logger.debug(`${request.method} ${request.url}`, {
       method: request.method,
       url: request.url,

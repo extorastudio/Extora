@@ -72,7 +72,7 @@ export default function DashboardLayout({ children, currentPage }: DashboardLayo
             return (
               <a
                 key={item.id}
-                href={`/${item.id === "dashboard" ? "" : item.id}`}
+                href={item.id === "dashboard" ? "#/" : `#/${item.id}`}
                 className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
                   isActive
                     ? "bg-blue-600/20 text-blue-400"
@@ -94,7 +94,7 @@ export default function DashboardLayout({ children, currentPage }: DashboardLayo
             return (
               <a
                 key={item.id}
-                href={`/${item.id}`}
+                href={`#/${item.id}`}
                 className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
                   isActive
                     ? "bg-blue-600/20 text-blue-400"
