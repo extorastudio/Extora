@@ -56,7 +56,7 @@ export async function createServer(ctx: BootstrapContext): Promise<FastifyInstan
   });
 
   await server.register(websocket);
-  await server.register(multipart, { limits: { fileSize: 50 * 1024 * 1024 } });
+  await server.register(multipart, { limits: { fileSize: 500 * 1024 * 1024, files: 10 } });
 
   // Request logging (async required by Fastify v5)
   server.addHook("onRequest", async (request: FastifyRequest) => {

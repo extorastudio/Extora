@@ -133,7 +133,7 @@ export default function MediaPage() {
                 <Upload className="mx-auto h-12 w-12 text-gray-500 mb-3" />
                 <p className="text-sm text-gray-400">Drop files here or click to browse</p>
                 <p className="text-xs text-gray-500 mt-1">Images, videos, documents up to 50 MB</p>
-                <input ref={fileInputRef} type="file" multiple accept="image/*,video/*" className="hidden" onChange={(e) => { handleFileSelect(e.target.files); }} />
+                <input ref={fileInputRef} type="file" multiple accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.zip" className="hidden" onChange={(e) => { handleFileSelect(e.target.files); }} />
               </div>
               {uploadFiles.length > 0 && (
                 <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-3 max-h-64 overflow-y-auto">
