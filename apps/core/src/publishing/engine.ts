@@ -123,9 +123,9 @@ ${imgTag}
 <a href="/product-${escapeHtml(p.slug)}.html" style="text-decoration:none;color:inherit"><span class="product-name">${escapeHtml(p.name)}</span></a>
 <span class="product-rating">★ ${String(p.rating)}</span>
 <span class="product-reviews">${String(p.reviews)} ratings</span>
-<div class="price-row"><span class="price">$${p.price.toFixed(2)}</span>${p.comparePrice ? `<span class="compare-price">$${p.comparePrice.toFixed(2)}</span>` : ""}</div>
-${p.inStock ? `<p style="color:#007600;font-size:0.8rem;margin-top:4px">In Stock</p>` : `<p style="color:#cc0c39;font-size:0.8rem;margin-top:4px">Out of Stock</p>`}
-${p.inStock ? `<button class="btn-add">Add to Cart</button>` : ""}
+<div class="price-row"><span class="price">$${p.price.toFixed(2)}</span>${(p as any).salePrice ? `<span class="compare-price">$${(p as any).salePrice.toFixed(2)}</span>` : ""}</div>
+${(p as any).stockStatus === "instock" ? `<p style="color:#007600;font-size:0.8rem;margin-top:4px">In Stock</p>` : `<p style="color:#cc0c39;font-size:0.8rem;margin-top:4px">Out of Stock</p>`}
+${(p as any).stockStatus === "instock" ? `<button class="btn-add">Add to Cart</button>` : ""}
 </div>`;
       })
       .join("\n");
@@ -156,11 +156,11 @@ ${p.inStock ? `<button class="btn-add">Add to Cart</button>` : ""}
 <h1 style="font-size:1.5rem;margin-bottom:8px">${escapeHtml(product.name)}</h1>
 <span style="color:#febd69;font-size:1.1rem">★ ${String(product.rating)}</span>
 <span style="color:#007185;margin-left:8px">${String(product.reviews)} ratings</span>
-<div style="margin:12px 0"><span style="font-size:1.8rem;color:#b12704;font-weight:600">$${product.price.toFixed(2)}</span>${product.comparePrice ? ` <span style="text-decoration:line-through;color:#565959">$${product.comparePrice.toFixed(2)}</span>` : ""}</div>
+<div style="margin:12px 0"><span style="font-size:1.8rem;color:#b12704;font-weight:600">$${product.price.toFixed(2)}</span>${(product as any).salePrice ? ` <span style="text-decoration:line-through;color:#565959">$${(product as any).salePrice.toFixed(2)}</span>` : ""}</div>
 <p style="color:#0f1111;line-height:1.6;margin:16px 0">${escapeHtml(product.description)}</p>
 <p style="color:#565959;font-size:0.9rem">Category: <strong>${escapeHtml(product.category)}</strong></p>
 <p style="color:#565959;font-size:0.9rem">SKU: ${escapeHtml(product.sku)}</p>
-${product.inStock ? `<button style="margin-top:16px;padding:12px 32px;background:#ffd814;border:1px solid #fcd200;border-radius:20px;font-size:1rem;font-weight:500;cursor:pointer">Add to Cart</button>` : `<p style="margin-top:12px;color:#cc0c39;font-weight:600">Currently unavailable</p>`}
+${(product as any).stockStatus === "instock" ? `<button style="margin-top:16px;padding:12px 32px;background:#ffd814;border:1px solid #fcd200;border-radius:20px;font-size:1rem;font-weight:500;cursor:pointer">Add to Cart</button>` : `<p style="margin-top:12px;color:#cc0c39;font-weight:600">Currently unavailable</p>`}
 </div>
 </div></div>`,
       });

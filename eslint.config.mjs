@@ -28,7 +28,7 @@ export default tseslint.config(
     },
   },
   {
-    files: ["**/*.test.ts", "**/*.spec.ts", "packages/sdk/src/**/*.ts", "apps/cli/src/**/*.ts", "apps/registry/src/**/*.ts", "apps/studio/src/**/*.ts", "apps/core/src/graphql.ts", "apps/core/src/prod-server.ts", "apps/core/src/admin-routes.ts", "apps/core/src/plugin-installer.ts", "apps/core/src/publishing/engine.ts", "plugins/**/src/**/*.ts"],
+    files: ["**/*.test.ts", "**/*.spec.ts", "packages/sdk/src/**/*.ts", "apps/cli/src/**/*.ts", "apps/registry/src/**/*.ts", "apps/studio/src/**/*.ts", "apps/studio/src/**/*.tsx", "apps/core/src/graphql.ts", "apps/core/src/prod-server.ts", "apps/core/src/admin-routes.ts", "apps/core/src/plugin-installer.ts", "apps/core/src/publishing/engine.ts", "plugins/**/src/**/*.ts"],
     rules: {
       "@typescript-eslint/require-await": "off",
       "@typescript-eslint/no-empty-function": "off",

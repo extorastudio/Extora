@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useAuthStore } from "../../stores/auth-store";
+import apiClient from "../../api/client";
 import {
   LayoutDashboard,
   Users,
@@ -14,6 +15,10 @@ import {
   Menu,
   X,
   Package,
+  Globe,
+  CheckCircle,
+  AlertCircle,
+  Loader2,
 } from "lucide-react";
 
 interface DashboardLayoutProps {
@@ -39,7 +44,23 @@ const bottomNavItems = [
 
 export default function DashboardLayout({ children, currentPage }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [publishing, setPublishing] = useState(false);
+  const [publishMsg, setPublishMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const { user, logout } = useAuthStore();
+
+  const handlePublish = async () => {
+    setPublishing(true);
+    setPublishMsg(null);
+    try {
+      const { data } = await apiClient.post("/site/publish");
+      const site = (data as { site?: { pages: number; sizeKB: number } }).site;
+      setPublishMsg({ ok: true, text: `Published! ${String(site?.pages ?? 0)} pages, ${String(site?.sizeKB ?? 0)} KB` });
+      setPublishMsg({ ok: false, text: "Publish failed" });
+    } finally {
+      setPublishing(false);
+      setTimeout(() => { setPublishMsg(null); }, 5000);
+    }
+  };
 
   return (
     <div className="flex h-screen bg-gray-950">
@@ -146,6 +167,36 @@ export default function DashboardLayout({ children, currentPage }: DashboardLayo
           <span className="text-lg font-semibold text-white">
             {navItems.find((n) => n.id === currentPage)?.label ?? "Dashboard"}
           </span>
+
+          {/* Spacer */}
+          <div className="flex-1" />
+
+          {/* Publish notification */}
+          {publishMsg && (
+            <div className={`flex items-center gap-1 rounded-full px-3 py-1 text-xs ${publishMsg.ok ? "bg-green-900/40 text-green-400" : "bg-red-900/40 text-red-400"}`}>
+              {publishMsg.ok ? <CheckCircle className="h-3 w-3" /> : <AlertCircle className="h-3 w-3" />}
+              {publishMsg.text}
+            </div>
+          )}
+
+          {/* Global Publish Button */}
+          <button
+            onClick={() => void handlePublish()}
+            disabled={publishing}
+            className="flex items-center gap-2 rounded-lg bg-green-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {publishing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Globe className="h-3.5 w-3.5" />}
+            {publishing ? "Publishing..." : "Publish Site"}
+          </button>
+
+          <a
+            href="/"
+            target="_blank"
+            className="flex items-center gap-1 rounded-lg border border-gray-700 px-3 py-1.5 text-xs text-gray-400 hover:bg-gray-800 hover:text-white"
+            rel="noreferrer"
+          >
+            <Globe className="h-3 w-3" /> View Site
+          </a>
         </header>
 
         {/* Page content */}

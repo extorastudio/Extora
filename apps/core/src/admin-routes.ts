@@ -288,7 +288,8 @@ export function registerAdminRoutes(server: FastifyInstance, prisma: PrismaClien
 
   server.get("/api/v1/commerce/products", async (request: FastifyRequest, reply: FastifyReply) => {
     await authenticate(request, reply, prisma);
-    const list = await prisma.product.findMany({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const list = await (prisma as any).product.findMany({
       orderBy: { createdAt: "desc" },
     });
     return await reply.send({ data: list });
@@ -300,26 +301,80 @@ export function registerAdminRoutes(server: FastifyInstance, prisma: PrismaClien
     if (!body?.name) {
       return reply.status(400).send({ code: "BAD_REQUEST", message: "Name is required" });
     }
-    const rawSlug = String(body.slug ?? body.name).toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
-    const slug = `${rawSlug}-${String(Date.now())}`;
-    const product = await prisma.product.create({
+    const slug = String(body.slug ?? String(body.name)).toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const product = await (prisma as any).product.create({
       data: {
         name: String(body.name),
-        slug,
-        price: Number(body.price ?? 0),
-        comparePrice: body.comparePrice ? Number(body.comparePrice) : null,
-        category: String(body.category ?? "General"),
+        slug: `${slug}-${String(Date.now())}`,
+        type: String(body.type ?? "simple"),
+        status: String(body.status ?? "draft"),
+        featured: Boolean(body.featured ?? false),
         description: String(body.description ?? ""),
-        images: body.images ?? [],
-        rating: Number(body.rating ?? 0),
-        reviews: Number(body.reviews ?? 0),
-        inStock: Boolean(body.inStock ?? true),
+        shortDesc: String(body.shortDesc ?? ""),
         sku: String(body.sku ?? ""),
+        price: Number(body.price ?? body.regularPrice ?? 0),
+        regularPrice: Number(body.regularPrice ?? body.price ?? 0),
+        salePrice: body.salePrice ? Number(body.salePrice) : null,
+        costPrice: body.costPrice ? Number(body.costPrice) : null,
+        taxStatus: String(body.taxStatus ?? "taxable"),
+        taxClass: String(body.taxClass ?? "standard"),
+        weight: body.weight ? Number(body.weight) : null,
+        length: body.length ? Number(body.length) : null,
+        width: body.width ? Number(body.width) : null,
+        height: body.height ? Number(body.height) : null,
+        shippingClass: String(body.shippingClass ?? ""),
+        manageStock: Boolean(body.manageStock ?? false),
+        stockQty: Number(body.stockQty ?? 0),
+        stockStatus: String(body.stockStatus ?? "instock"),
+        lowStockQty: Number(body.lowStockQty ?? 0),
+        soldIndividually: Boolean(body.soldIndividually ?? false),
+        backorders: String(body.backorders ?? "no"),
+        minQty: Number(body.minQty ?? 1),
+        maxQty: body.maxQty ? Number(body.maxQty) : null,
+        category: String(body.category ?? "General"),
+        categories: Array.isArray(body.categories) ? body.categories.map(String) : [String(body.category ?? "General")],
         tags: Array.isArray(body.tags) ? body.tags.map(String) : [],
-        status: String(body.status ?? "published"),
+        brand: String(body.brand ?? ""),
+        images: body.images ?? [],
+        videoUrl: body.videoUrl ? String(body.videoUrl) : null,
+        downloadUrl: body.downloadUrl ? String(body.downloadUrl) : null,
+        downloadLimit: body.downloadLimit ? Number(body.downloadLimit) : null,
+        downloadExpiry: body.downloadExpiry ? Number(body.downloadExpiry) : null,
+        metaData: body.metaData ?? {},
+        upSellIds: Array.isArray(body.upSellIds) ? body.upSellIds.map(String) : [],
+        crossSellIds: Array.isArray(body.crossSellIds) ? body.crossSellIds.map(String) : [],
+        relatedIds: Array.isArray(body.relatedIds) ? body.relatedIds.map(String) : [],
+        comboItems: body.comboItems ?? [],
+        dealType: body.dealType ? String(body.dealType) : null,
+        dealValue: body.dealValue ? Number(body.dealValue) : null,
+        dealLabel: body.dealLabel ? String(body.dealLabel) : null,
+        discountType: body.discountType ? String(body.discountType) : null,
+        discountValue: body.discountValue ? Number(body.discountValue) : null,
+        publishedAt: body.status === "published" ? new Date() : null,
+        scheduledAt: body.scheduledAt ? new Date(String(body.scheduledAt)) : null,
       },
     });
     return await reply.status(201).send({ data: product });
+  });
+
+  server.patch("/api/v1/commerce/products/:id", async (request: FastifyRequest, reply: FastifyReply) => {
+    await authenticate(request, reply, prisma);
+    const params = request.params as { id: string };
+    const id = decodeURIComponent(params.id);
+    const body = request.body as Record<string, unknown> | undefined;
+    const existing = await prisma.product.findUnique({ where: { id } });
+    if (!existing) return reply.status(404).send({ code: "NOT_FOUND", message: "Product not found" });
+    const updateData: Record<string, unknown> = {};
+    const fields = ["name","status","featured","description","shortDesc","sku","price","regularPrice","salePrice","costPrice","taxStatus","taxClass","weight","length","width","height","shippingClass","manageStock","stockQty","stockStatus","lowStockQty","soldIndividually","backorders","minQty","maxQty","category","categories","tags","brand","images","videoUrl","downloadUrl","downloadLimit","downloadExpiry","metaData","upSellIds","crossSellIds","relatedIds","comboItems","dealType","dealValue","dealLabel","discountType","discountValue"];
+    for (const f of fields) { if (body?.[f] !== undefined) updateData[f] = body[f]; }
+    if (body?.status === "published" && existing.status !== "published") {
+      updateData.publishedAt = new Date();
+    }
+    if (body?.scheduledAt) updateData.scheduledAt = new Date(String(body.scheduledAt));
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const product = await prisma.product.update({ where: { id }, data: updateData as any });
+    return await reply.send({ data: product });
   });
 
   server.delete("/api/v1/commerce/products/:id", async (request: FastifyRequest, reply: FastifyReply) => {

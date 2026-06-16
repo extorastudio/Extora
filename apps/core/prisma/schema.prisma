@@ -299,26 +299,101 @@ model RateLimit {
 }
 
 model Product {
-  id          String   @id @default(cuid())
-  name        String
-  slug        String   @unique
-  price       Float    @default(0)
-  comparePrice Float?
-  category    String   @default("General")
-  description String   @default("")
-  images      Json     @default("[]")
-  rating      Float    @default(0)
-  reviews     Int      @default(0)
-  inStock     Boolean  @default(true)
-  sku         String   @default("")
-  tags        String[] @default([])
-  status      String   @default("published")
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id           String   @id @default(cuid())
+  name         String
+  slug         String   @unique
+  type         String   @default("simple")
+  status       String   @default("draft")
+  featured     Boolean  @default(false)
+  description  String   @default("")
+  shortDesc    String   @default("")
+  sku          String   @default("")
+  price        Float    @default(0)
+  regularPrice Float    @default(0)
+  salePrice    Float?
+  costPrice    Float?
+  taxStatus    String   @default("taxable")
+  taxClass     String   @default("standard")
+  weight       Float?
+  length       Float?
+  width        Float?
+  height       Float?
+  shippingClass String  @default("")
+  manageStock  Boolean  @default(false)
+  stockQty     Int      @default(0)
+  stockStatus  String   @default("instock")
+  lowStockQty  Int      @default(0)
+  soldIndividually Boolean @default(false)
+  backorders   String   @default("no")
+  minQty       Int      @default(1)
+  maxQty       Int?
+  category     String   @default("General")
+  categories   String[] @default([])
+  tags         String[] @default([])
+  brand        String   @default("")
+  images       Json     @default("[]")
+  videoUrl     String?
+  downloadUrl  String?
+  downloadLimit Int?
+  downloadExpiry Int?
+  rating       Float    @default(0)
+  reviews      Int      @default(0)
+  metaData     Json     @default("{}")
+  upSellIds    String[] @default([])
+  crossSellIds String[] @default([])
+  relatedIds   String[] @default([])
+  comboItems   Json     @default("[]")
+  dealType     String?
+  dealValue    Float?
+  dealLabel    String?
+  discountType String?
+  discountValue Float?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  publishedAt  DateTime?
+  scheduledAt  DateTime?
+
+  variants     ProductVariant[]
+  metaEntries  ProductMeta[]
 
   @@index([category])
   @@index([status])
   @@index([slug])
+  @@index([type])
+}
+
+model ProductVariant {
+  id           String   @id @default(cuid())
+  productId    String
+  product      Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  name         String
+  sku          String   @default("")
+  price        Float?
+  regularPrice Float?
+  salePrice    Float?
+  stockQty     Int      @default(0)
+  manageStock  Boolean  @default(false)
+  stockStatus  String   @default("instock")
+  weight       Float?
+  length       Float?
+  width        Float?
+  height       Float?
+  imageUrl     String?
+  attributes   Json     @default("{}")
+  sortOrder    Int      @default(0)
+
+  @@index([productId])
+}
+
+model ProductMeta {
+  id        String   @id @default(cuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  key       String
+  value     Json
+
+  @@unique([productId, key])
+  @@index([productId])
 }
 
 model ContentEntry {

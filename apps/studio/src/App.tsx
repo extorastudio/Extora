@@ -12,80 +12,60 @@ import MonitoringPage from "./pages/Monitoring";
 import BackupsPage from "./pages/Backups";
 import ProductsPage from "./pages/Products";
 import ContentPage from "./pages/Content";
-import { Globe, CheckCircle, AlertCircle } from "lucide-react";
+import { Package, Users2, Clock } from "lucide-react";
 
 function DashboardPage() {
-  const [publishing, setPublishing] = useState(false);
-  const [publishResult, setPublishResult] = useState<{ success: boolean; site?: { pages: number; sizeKB: number; url: string } } | null>(null);
-  const [uptime, setUptime] = useState<string>("—");
+  const [stats, setStats] = useState({ plugins: 0, products: 0, uptime: "—" });
 
   useEffect(() => {
-    const fetchUptime = async () => {
+    const fetchStats = async () => {
       try {
-        const { data } = await apiClient.get("/system/health");
-        const u = Math.floor(Number(data.uptime ?? 0));
+        const [healthRes, pluginsRes, productsRes] = await Promise.all([
+          apiClient.get("/system/health"),
+          apiClient.get("/plugins"),
+          apiClient.get("/commerce/products"),
+        ]);
+        const u = (healthRes.data as Record<string, unknown>).uptime as number;
         const h = Math.floor(u / 3600);
         const m = Math.floor((u % 3600) / 60);
         const s = u % 60;
-        setUptime(h > 0 ? `${String(h)}h ${String(m)}m` : `${String(m)}m ${String(s)}s`);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const pData = (pluginsRes.data as Record<string, any>).data ?? pluginsRes.data;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const prData = (productsRes.data as Record<string, any>).data ?? productsRes.data;
+        setStats({
+          plugins: Array.isArray(pData) ? pData.length : 0,
+          products: Array.isArray(prData) ? prData.length : 0,
+          uptime: h > 0 ? `${String(h)}h ${String(m)}m` : `${String(m)}m ${String(s)}s`,
+        });
       } catch { /* ignore */ }
     };
-    void fetchUptime();
+    void fetchStats();
   }, []);
-
-  const handlePublish = async () => {
-    setPublishing(true);
-    setPublishResult(null);
-    try {
-      const { data } = await apiClient.post("/site/publish");
-      setPublishResult(data as { success: boolean; site?: { pages: number; sizeKB: number; url: string } });
-    } catch (err: unknown) {
-      const axiosErr = err as { response?: { data?: { message?: string } } };
-      setPublishResult({ success: false });
-      console.error(axiosErr.response?.data?.message ?? "Publish failed");
-    } finally {
-      setPublishing(false);
-    }
-  };
 
   return (
     <div>
-      <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-white">Dashboard</h2>
-        <button
-          onClick={() => void handlePublish()}
-          disabled={publishing}
-          className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
-        >
-          <Globe className="h-4 w-4" />
-          {publishing ? "Publishing..." : "Publish Site"}
-        </button>
-      </div>
-
-      {publishResult && (
-        <div className={`mb-4 flex items-center gap-2 rounded-lg border p-3 text-sm ${publishResult.success ? "border-green-800 bg-green-900/30 text-green-300" : "border-red-800 bg-red-900/30 text-red-300"}`}>
-          {publishResult.success ? <CheckCircle className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
-          {publishResult.success && publishResult.site
-            ? `Site published: ${String(publishResult.site.pages)} pages, ${String(publishResult.site.sizeKB)} KB → ${publishResult.site.url}`
-            : "Publish failed. Check server logs."}
-        </div>
-      )}
-
+      <h2 className="mb-4 text-2xl font-bold text-white">Dashboard</h2>
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <StatCard title="Plugins" value="6" subtitle="Official" />
-        <StatCard title="Users" value="1" subtitle="Admin" />
-        <StatCard title="Storage" value="MinIO/S3" subtitle="Connected" />
-        <StatCard title="Uptime" value={uptime} subtitle="Server" />
+        <StatCard title="Plugins" value={String(stats.plugins)} subtitle="Installed" icon={Package} />
+        <StatCard title="Products" value={String(stats.products)} subtitle="In Store" icon={Package} />
+        <StatCard title="Users" value="1" subtitle="Admin" icon={Users2} />
+        <StatCard title="Uptime" value={stats.uptime} subtitle="Server" icon={Clock} />
       </div>
     </div>
   );
 }
 
-function StatCard({ title, value, subtitle }: { title: string; value: string; subtitle: string }) {
+function StatCard({ title, value, subtitle, icon: Icon }: { title: string; value: string; subtitle: string; icon: React.ComponentType<{ className?: string }> }) {
   return (
     <div className="rounded-xl border border-gray-800 bg-gray-900 p-5">
-      <p className="text-sm text-gray-400">{title}</p>
-      <p className="mt-1 text-2xl font-bold text-white">{value}</p>
+      <div className="flex items-center gap-3 mb-3">
+        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-600/20">
+          <Icon className="h-5 w-5 text-blue-400" />
+        </div>
+        <p className="text-sm text-gray-400">{title}</p>
+      </div>
+      <p className="text-2xl font-bold text-white">{value}</p>
       <p className="text-xs text-gray-500">{subtitle}</p>
     </div>
   );
