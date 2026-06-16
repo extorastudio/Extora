@@ -28,7 +28,7 @@ export async function createServer(ctx: BootstrapContext): Promise<FastifyInstan
   await server.register(websocket);
 
   // Request logging
-  server.addHook("onRequest", (request) => {
+  server.addHook("onRequest", async (request: any) => {
     ctx.logger.debug(`${request.method} ${request.url}`, {
       method: request.method,
       url: request.url,
