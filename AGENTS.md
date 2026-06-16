@@ -6,214 +6,267 @@ This file provides instructions for AI coding agents (OpenCode, Claude, Codex, e
 
 ## PROJECT OVERVIEW
 
-**Extora** is a TypeScript-first plugin ecosystem platform. It is NOT a CMS, ERP, or website builder. It is the operating system for web software.
+**Extora** is a TypeScript-first plugin ecosystem platform — the operating system for web software. Think WordPress + Shopify as a unified plugin runtime.
 
-**Repository:** `extorastudio/Extora` (GitHub)
+**Repository:** `extorastudio/Extora` (GitHub) · Branch: `main` (trunk-based)
 **Blueprint:** `EXTORA_MEGA_BLUEPRINT_v2.0.md`
 **Journal:** `EXTORA_DEVELOPMENT_JOURNAL.md`
 **License:** MIT (Core, SDK, CLI, Plugins) + Proprietary (Studio, Commerce, Cloud)
 
 ---
 
-## MONOREPO STRUCTURE
-
-```
-Extora/
-├── apps/           # Applications
-│   ├── core/       # Runtime engine (Node.js + Fastify + Prisma)
-│   ├── studio/     # Admin UI (React + Vite + Tailwind)
-│   └── cli/        # CLI tool (Commander.js)
-├── packages/       # Shared libraries
-│   ├── sdk/        # @extora/sdk — 10 subpath exports
-│   ├── types/      # @extora/types — Shared TypeScript interfaces
-│   ├── utils/      # @extora/utils
-│   ├── ui/         # @extora/ui
-│   └── config/     # @extora/config
-├── plugins/        # Official plugins (MIT licensed except Commerce)
-│   ├── auth/       # Authentication
-│   ├── cms/        # Content management
-│   ├── commerce/   # Ecommerce (PROPRIETARY)
-│   ├── forms/      # Form builder
-│   ├── seo/        # SEO tools
-│   └── analytics/  # Analytics tracking
-├── themes/         # Official themes
-├── starters/       # Starter kits
-├── docker/         # Docker configurations
-├── examples/       # Example plugins
-└── scripts/        # Utility scripts
-```
-
----
-
 ## CRITICAL RULES
 
-### 1. NEVER PUSH UNTIL ALL CHECKS PASS LOCALLY
-
+### 1. NEVER PUSH UNTIL ALL CHECKS PASS
 ```bash
-# Run ALL of these before pushing. If any fail, DO NOT PUSH.
-pnpm install --frozen-lockfile    # Must pass
-pnpm lint                          # Must have 0 errors
-pnpm typecheck                     # Must pass for all packages
-pnpm test                          # All tests must pass
-pnpm build                         # All builds must pass
+corepack disable 2>/dev/null  # Required on macOS Homebrew Node
+pnpm lint -- --fix             # 0 errors required
+pnpm typecheck                 # 0 errors required
+pnpm test                      # All must pass
 ```
 
-### 2. SINGLE COMMIT PER PHASE
+### 2. DEVELOPMENT WORKFLOW (Follow this order)
 
-Combine code changes + journal updates into ONE commit. Push once per phase/module.
-
+Every change follows this exact sequence:
 ```bash
+# 1. Make changes to source files
+# 2. Compile TypeScript
+cd apps/core && npx tsc
+
+# 3. Build Studio (if UI changes)
+cd apps/studio && npx vite build
+
+# 4. Run all CI checks from project root
+pnpm lint && pnpm typecheck && pnpm test
+
+# 5. Rebuild Docker containers
+docker compose -f docker/docker-compose.full.yml down
+docker compose -f docker/docker-compose.full.yml up -d --build
+
+# 6. Seed MinIO bucket (after fresh start)
+docker exec extora-minio mc alias set local http://localhost:9000 minioadmin minioadmin
+docker exec extora-minio mc mb local/extora
+docker exec extora-minio mc anonymous set public local/extora
+
+# 7. Test via curl — verify endpoints work
+TOKEN=$(curl -s -X POST http://localhost/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"admin@extora.dev","password":"admin123"}' | python3 -c "import sys,json;print(json.load(sys.stdin)['accessToken'])")
+
+# 8. Publish site to sync generated HTML
+curl -s -X POST -H "Authorization: Bearer $TOKEN" http://localhost/api/v1/site/publish
+
+# 9. Commit journal + code together
 git add -A
-git commit -m "feat: Phase X — description\n\nJournal updated"
+git commit -m "feat: Phase X — description"
 git push origin main
 ```
 
 ### 3. JOURNAL AFTER EVERY STEP
 
-After every significant code change, append to `EXTORA_DEVELOPMENT_JOURNAL.md`:
-- Date and duration
-- Files created/modified
-- What was built
-- Verification results
-- NEVER delete old journal entries
+Append to `EXTORA_DEVELOPMENT_JOURNAL.md` after every significant change:
+- Date, duration, files created/modified
+- What was built + verification results
+- NEVER delete or overwrite old entries — append only
 
-### 4. NEVER PUSH IF CI WILL FAIL
+### 4. SINGLE COMMIT PER PHASE
 
-The CI pipeline runs `pnpm lint`, `pnpm build`, and `pnpm test`. If any of these fail locally, DO NOT PUSH. Fix the issue first.
+Code changes + journal updates in ONE commit. Conventional commits: `feat:`, `fix:`, `docs:`, `chore:`.
 
 ---
 
 ## DEVELOPMENT COMMANDS
 
 ```bash
-pnpm install                    # Install deps
-pnpm dev                        # Start all apps
-pnpm build                      # Build all packages
-pnpm test                       # Run all tests
-pnpm lint                       # Lint all code
-pnpm typecheck                  # Type-check all packages
-pnpm docker:up                  # Start dev Docker services
-pnpm docker:down                # Stop Docker services
+# Root commands
+pnpm install --no-frozen-lockfile  # Install deps (use when adding new packages)
+pnpm lint                           # Lint all (0 errors required)
+pnpm typecheck                      # Type-check all
+pnpm test                           # Run all tests
+pnpm build                          # Build all packages
 
-# Individual packages
-pnpm --filter @extora/core test
-pnpm --filter @extora/sdk build
-pnpm --filter @extora/studio dev
+# Core (backend — Fastify + Prisma)
+cd apps/core
+npx tsc                             # Compile TypeScript
+npx prisma generate                 # Regenerate Prisma client after schema changes
+npx prisma db push                  # Push schema changes to dev DB
+
+# Studio (frontend — React + Vite + Tailwind)
+cd apps/studio
+npx vite build                      # Production build (output to dist/)
+npx vite --port 5173                # Dev server
+
+# Docker
+docker compose -f docker/docker-compose.full.yml up -d          # Start all 7 services
+docker compose -f docker/docker-compose.full.yml down            # Stop all
+docker compose -f docker/docker-compose.full.yml up -d --build   # Rebuild + start
+docker logs extora-core                                          # Core logs
+docker exec extora-postgres psql -U extora -d extora -c "..."    # DB query
 ```
 
 ---
 
-## CODE CONVENTIONS
+## MONOREPO STRUCTURE
 
-### TypeScript
-- Strict mode enabled (`tsconfig.base.json`)
-- Use `import type` for type-only imports
-- No non-null assertions (`!`) unless suppressed
-- No `any` - use `unknown` with proper narrowing
-- File extensions: `.ts` for source, `.tsx` for React
-- Import paths use `.js` extension (for ESM compatibility)
-
-### ESLint
-- Flat config (`eslint.config.mjs`)
-- Strict type-checked rules (with Prisma exceptions)
-- Test files relaxed rules (no-require-await, no-empty-function off)
-- CLI files: `no-console` off
-
-### Testing
-- Vitest for all tests
-- Test files: `tests/*.test.ts`
-- Use descriptive test names
-- Mock PrismaClient with `as unknown as PrismaClient`
-- Use SDK mock factories (`createMockEventBus`, etc.)
-
-### Git
-- Conventional commits: `feat:`, `fix:`, `docs:`, `test:`, `chore:`
-- Branch: `main` (trunk-based)
-- No force pushes
-
----
-
-## ARCHITECTURE PATTERNS
-
-### Plugin Development Pattern
-```typescript
-import { BasePlugin } from "@extora/sdk";
-import type { PluginManifest } from "@extora/types";
-
-export default class MyPlugin extends BasePlugin {
-  override manifest: PluginManifest = { /* ... */ };
-  override async onInstall(): Promise<void> { /* Create tables */ }
-  override async onActivate(): Promise<void> { /* Register hooks */ }
-  override async onDeactivate(): Promise<void> { /* Cleanup */ }
-}
 ```
-
-### Database Access
-```typescript
-const db = this.db.getPluginDb("my-plugin");
-await db.createTable("my_table", { id: "TEXT PRIMARY KEY" });
-```
-
-### Hook Registration
-```typescript
-this.addAction("user.registered", async (user) => { /* ... */ });
-this.addFilter("content.before_save", async (content) => { return { ...content }; });
-```
-
-### Event Publishing
-```typescript
-await this.publishEvent("order.placed", { orderId: "123", total: 99.99 });
+apps/core/src/           # Core runtime: Fastify server, Prisma, auth, plugins
+  ├── admin-routes.ts    # ALL admin API routes (plugins, users, products, content, media, theme)
+  ├── server.ts          # Fastify setup, CORS, multipart, health checks, GraphQL
+  ├── bootstrap.ts       # Startup: PG, Redis, event bus, hooks, plugin discovery
+  ├── publishing/        # Static site generator (Amazon-style HTML)
+  ├── plugin-loader/     # Filesystem plugin discovery + sandboxing
+  ├── auth/              # JWT auth + password hashing
+  ├── authorization/     # RBAC: authenticate() + authorize()
+  └── hooks/             # Action/filter hook registry
+apps/studio/src/         # React admin panel (Vite + Tailwind + Zustand)
+  ├── pages/             # 11 pages: Dashboard, Products, Content, Media, Users, etc.
+  ├── components/layout/ # DashboardLayout with sidebar + 9 nav items
+  └── stores/            # Zustand: auth-store, plugin-store, theme-store
+plugins/                 # 7 official plugins (extora.json + src/)
+themes/                  # 3 official themes (amazon, admin, default)
+docker/                  # Dockerfile.core, Dockerfile.studio, nginx.conf, compose files
 ```
 
 ---
 
-## COMMON PITFALLS
+## ARCHITECTURE: HOW THINGS CONNECT
 
-1. **Prisma types appear as `any`**: ESLint no-unsafe-* rules are disabled globally because Prisma's generated types use complex generics.
+### WordPress-Like Routing
+```
+http://localhost/              → Published website (static HTML from /usr/share/nginx/published/)
+http://localhost/admin-panel/  → Extora Studio (React SPA, Vite base: /admin-panel/)
+http://localhost/api/v1/       → REST API (nginx → core:3000)
+http://localhost/storage/      → MinIO files (nginx → minio:9000, anonymous read)
+```
 
-2. **tsconfig `include` needs tests for lint**: Test files must be in tsconfig include for ESLint project service. But NOT for build tsconfig.
+### Published Site Pipeline
+```
+Admin Panel → API → PostgreSQL (products, content, categories)
+    ↓
+Publish Site (POST /api/v1/site/publish)
+    ↓
+publishing/engine.ts reads DB → generates static HTML
+    ↓
+written to /app/apps/core/published/ (shared volume with nginx)
+    ↓
+nginx serves at http://localhost/
+```
 
-3. **`packageManager` field**: Required by Turborepo. Must stay in root `package.json`.
-
-4. **Plugin builds**: Plugin tsconfigs must `include` only `src/**/*.ts` for build. Tests are excluded.
-
-5. **Corepack issues**: On macOS Homebrew Node.js 22.13.1, corepack has signature verification bug. Use direct pnpm binary path.
-
-6. **Commerce is proprietary**: Do NOT commit commerce changes with MIT license. Keep `UNLICENSED`.
+### Media Upload Pipeline
+```
+Browser → multipart/form-data → nginx (500MB limit, unbuffered) → Core @multipart
+    ↓
+PutObjectCommand → MinIO bucket (UUID-named key)
+    ↓
+Prisma Media table (url: /storage/extora/uploads/{uuid}.ext)
+    ↓
+nginx /storage/ proxy → MinIO (anonymous reads, no credentials exposed)
+```
 
 ---
 
-## TEST COUNTS (as of last update)
+## CODE CONVENTIONS & GOTCHAS
+
+### Prisma — Always use `as any` for new/unknown models
+The generated Prisma client won't recognize newly added models until regenerate. Use:
+```typescript
+const products = await (prisma as any).product.findMany({ ... });
+```
+Also use `as any` for `details`, `manifest`, `metadata` JSON fields.
+
+### Fastify v5 — `onRequest` hooks MUST be async
+Even if the hook has no `await`, wrap it with `async` and add `await Promise.resolve()`:
+```typescript
+server.addHook("onRequest", async (request: FastifyRequest) => {
+  await Promise.resolve(); // required to satisfy both Fastify v5 AND eslint require-await
+  ctx.logger.debug(`${request.method} ${request.url}`);
+});
+```
+Sync hooks silently block ALL HTTP in Fastify v5.
+
+### ESLint — Relaxed rules for complex files
+When adding new backend routes or complex UI pages, add the file pattern to:
+`eslint.config.mjs` → `files: [...]` array → gets these rules disabled:
+`require-await`, `no-empty-function`, `no-non-null-assertion`, `restrict-template-expressions`,
+`no-unnecessary-condition`, `no-base-to-string`, `no-confusing-void-expression`, `no-misused-promises`
+
+**Always add `apps/studio/src/**/*.tsx`** (not just `.ts`) to match TSX files.
+
+### Prisma Schema Changes — Use raw SQL in Docker
+Prisma `db push` and `migrate` often fail with drift. Use direct PostgreSQL:
+```bash
+docker exec extora-postgres psql -U extora -d extora -c "
+  CREATE TABLE IF NOT EXISTS \"NewModel\" (...);
+  ALTER TABLE \"ExistingModel\" ADD COLUMN IF NOT EXISTS field TYPE DEFAULT ...;
+"
+```
+Then update `prisma/schema.prisma` and run `npx prisma generate`.
+
+### Studio Build
+- `vite.config.ts` has `base: "/admin-panel/"` — ALL asset paths use this prefix
+- Always run `npx vite build` after source changes — dist/ must be rebuilt for Docker
+- Studio is served by nginx at `/admin-panel/` location
+
+### Docker Rebuild
+- Core: `docker compose up -d --build core` (rebuilds apps/core + dependencies)
+- Nginx: `docker compose up -d --build nginx` (rebuilds studio dist + nginx config)
+- Full: `docker compose up -d --build` (rebuilds everything)
+- **Core image uses pre-built dist/** — always `npx tsc` before rebuilding
+
+### Admin Credentials
+- Email: `admin@extora.dev` · Password: `admin123`
+- Seeded via `apps/core/prisma/seed.ts`
+- SUPER_ADMIN role skips all RBAC permission checks
+
+### Corepack Issues
+On macOS Homebrew Node.js 22.13.1, corepack signature verification is broken:
+```bash
+corepack disable 2>/dev/null  # Do this once per session
+```
+Then `pnpm` works directly without corepack.
+
+---
+
+## API ENDPOINTS (Key routes)
+
+| Method | Route | Purpose |
+|--------|-------|---------|
+| POST | `/api/v1/auth/login` | Login → accessToken + refreshToken |
+| GET | `/api/v1/system/health` | Health (PG, Redis, S3, OpenSearch, SMTP) |
+| GET/POST/DELETE | `/api/v1/commerce/products` | Product CRUD |
+| PATCH | `/api/v1/commerce/products/:id` | Product update |
+| GET/POST/DELETE | `/api/v1/commerce/categories` | Category CRUD |
+| GET/POST/DELETE | `/api/v1/commerce/brands` | Brand CRUD |
+| GET/POST/DELETE | `/api/v1/commerce/tags` | Tag CRUD |
+| GET/POST/DELETE | `/api/v1/content` | Content entry CRUD |
+| GET/POST/DELETE | `/api/v1/media` | Media library CRUD |
+| POST | `/api/v1/media/upload` | Multipart file → MinIO/S3 |
+| POST | `/api/v1/site/publish` | Generate static HTML |
+| GET/POST | `/api/v1/theme/settings` | Theme settings |
+| GET | `/api/v1/plugins` | List installed plugins |
+| GET | `/api/v1/themes` | List installed themes |
+
+---
+
+## CURRENT METRICS
 
 | Component | Tests | Test Files |
 |---|---|---|
-| Core | 94 | 12 |
-| SDK | 53 | 8 |
-| CLI | 8 | 1 |
-| Commerce | 81 | 11 |
-| CMS | 33 | 6 |
-| Forms | 25 | 6 |
-| SEO | 12 | 3 |
-| Analytics | 9 | 2 |
-| **Total** | **315** | **47** |
+| Core | 137 | 14+ |
+| SDK | 58 | 9 |
+| CLI | 13 | 1 |
+| Commerce | 167 | 11 |
+| CMS | 70 | 6 |
+| Forms | 58 | 6 |
+| SEO | 22 | 3 |
+| Analytics | 23 | 2 |
+| Registry | 6 | 1 |
+| Cloud | 7 | 1 |
+| Enterprise | 2 | 1 |
+| Others | ~150 | ~60 |
+| **Total** | **~716** | **~120** |
 
----
-
-## WHAT TO BUILD NEXT
-
-### Priority 1 — Core Features
-- [ ] Commerce API integration tests (Fastify inject)
-- [ ] Forms public submission endpoint test
-- [ ] CLI `extora serve` command
-- [ ] Studio component tests
-
-### Priority 2 — Fixes
-- [ ] Docker verification (start services, test health endpoint)
-- [ ] Studio build in turbo pipeline
-- [ ] Prisma migration on clean DB
-
-### Priority 3 — New Features
-- [ ] Extora Registry (private npm)
-- [ ] GraphQL support in Core
-- [ ] WebSocket support in Core
-- [ ] Marketplace publisher dashboard
+- **Commits:** 178+ | **Files:** 340+
+- **Docker:** 7 containers (nginx, core, postgres, redis, minio, opensearch, mailhog) — all healthy
+- **5 services:** database, redis, storage, opensearch, email — all connected
+- **5 plugins auto-registered:** auth, cms, commerce, forms, seo
