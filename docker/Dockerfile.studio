@@ -1,7 +1,11 @@
-# Extora Studio — Nginx serving static files + API proxy
+# Extora Nginx — serves published site + Studio admin panel + API proxy
 FROM nginx:alpine
 
-COPY apps/studio/dist /usr/share/nginx/html
+# Studio admin panel (served at /admin-panel/)
+COPY apps/studio/dist /usr/share/nginx/studio
+RUN mkdir -p /usr/share/nginx/published
+
+# Nginx config
 COPY docker/nginx.conf /etc/nginx/nginx.conf
 
 EXPOSE 80

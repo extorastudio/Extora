@@ -1,6 +1,9 @@
 # Extora — Docker Compose (Full Stack)
 # Start: docker compose -f docker/docker-compose.full.yml up -d
 # Stop:  docker compose -f docker/docker-compose.full.yml down
+# Website: http://localhost         (published site)
+# Admin:    http://localhost/admin-panel  (Studio management)
+# API:      http://localhost/api/v1/system/health
 
 services:
   postgres:
@@ -74,8 +77,6 @@ services:
     image: mailhog/mailhog:latest
     container_name: extora-mailhog
     restart: unless-stopped
-    ports:
-      - "8025:8025"
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:8025/ > /dev/null"]
       interval: 10s
@@ -92,6 +93,8 @@ services:
     restart: unless-stopped
     expose:
       - "3000"
+    volumes:
+      - published_data:/app/apps/core/published
     environment:
       NODE_ENV: production
       DATABASE_URL: postgresql://extora:${DB_PASSWORD:-extora}@postgres:5432/extora
@@ -123,15 +126,17 @@ services:
       retries: 5
       start_period: 30s
 
-  studio:
+  nginx:
     build:
       context: ..
       dockerfile: docker/Dockerfile.studio
-    image: extora-studio:local
-    container_name: extora-studio
+    image: extora-nginx:local
+    container_name: extora-nginx
     restart: unless-stopped
     ports:
       - "80:80"
+    volumes:
+      - published_data:/usr/share/nginx/published
     depends_on:
       core:
         condition: service_healthy
@@ -141,3 +146,4 @@ volumes:
   redisdata:
   miniodata:
   osdata:
+  published_data:
