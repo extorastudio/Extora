@@ -29,6 +29,8 @@ services:
     image: extora-core:local
     container_name: extora-core
     restart: unless-stopped
+    ports:
+      - "3000:3000"
     environment:
       NODE_ENV: production
       DATABASE_URL: postgresql://extora:${DB_PASSWORD:-extora}@postgres:5432/extora
@@ -121,7 +123,9 @@ services:
     restart: unless-stopped
     environment:
       discovery.type: single-node
+      OPENSEARCH_INITIAL_ADMIN_PASSWORD: ${OPENSEARCH_PASSWORD:-Admin123!}
       plugins.security.disabled: "true"
+      DISABLE_SECURITY_PLUGIN: "true"
     volumes:
       - osdata:/usr/share/opensearch/data
     healthcheck:
