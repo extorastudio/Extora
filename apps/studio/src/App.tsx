@@ -15,9 +15,11 @@ import ContentPage from "./pages/Content";
 import MediaPage from "./pages/Media";
 import ThemeSettingsPage from "./pages/ThemeSettings";
 import { Package, Users2, Clock } from "lucide-react";
+import { CardSkeleton } from "./components/ui/Skeleton";
 
 function DashboardPage() {
   const [stats, setStats] = useState({ plugins: 0, products: 0, uptime: "—" });
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -41,9 +43,24 @@ function DashboardPage() {
           uptime: h > 0 ? `${String(h)}h ${String(m)}m` : `${String(m)}m ${String(s)}s`,
         });
       } catch { /* ignore */ }
+      finally { setIsLoading(false); }
     };
     void fetchStats();
   }, []);
+
+  if (isLoading) {
+    return (
+      <div>
+        <h2 className="mb-4 text-2xl font-bold text-white">Dashboard</h2>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <CardSkeleton />
+          <CardSkeleton />
+          <CardSkeleton />
+          <CardSkeleton />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div>

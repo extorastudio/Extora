@@ -5,6 +5,7 @@ import {
   Truck, Layers, Link2, Tag, DollarSign, Box, FolderTree,
   Tags, Shield, Grid3X3, MessageSquare
 } from "lucide-react";
+import { TableSkeleton } from "../components/ui/Skeleton";
 
 interface ProductData {
   id?: string;
@@ -328,7 +329,7 @@ export default function ProductsPage() {
           )}
 
           {taxLoading ? (
-            <div className="py-12 text-center text-gray-400">Loading...</div>
+            <TableSkeleton rows={3} />
           ) : taxonomies.length === 0 ? (
             <div className="rounded-xl border border-gray-800 bg-gray-900 py-16 text-center">
               <Package className="mx-auto mb-3 h-10 w-10 text-gray-600" />
@@ -641,7 +642,7 @@ export default function ProductsPage() {
             )}
           </div>
           {isLoading ? (
-            <div className="py-12 text-center text-gray-400">Loading products...</div>
+            <TableSkeleton rows={5} />
           ) : filtered.length === 0 ? (
             <div className="rounded-xl border border-gray-800 bg-gray-900 py-16 text-center">
               <Package className="mx-auto mb-3 h-10 w-10 text-gray-600" />

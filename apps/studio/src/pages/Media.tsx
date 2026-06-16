@@ -2,6 +2,7 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import apiClient from "../api/client";
 import { Image, Plus, Trash2, RefreshCw, Copy, Check, X, Upload, FileText, Film, File, Music } from "lucide-react";
+import { GridSkeleton } from "../components/ui/Skeleton";
 
 interface MediaItem {
   id: string; filename: string; originalName: string; mimeType: string;
@@ -247,7 +248,7 @@ export default function MediaPage() {
       )}
 
       {isLoading ? (
-        <div className="py-12 text-center text-gray-400">Loading media library...</div>
+        <GridSkeleton count={6} />
       ) : items.length === 0 ? (
         <div className="rounded-xl border border-gray-800 bg-gray-900 py-16 text-center">
           <Image className="mx-auto mb-3 h-10 w-10 text-gray-600" />

@@ -58,6 +58,7 @@ export default function DashboardLayout({ children, currentPage }: DashboardLayo
       const { data } = await apiClient.post("/site/publish");
       const site = (data as { site?: { pages: number; sizeKB: number } }).site;
       setPublishMsg({ ok: true, text: `Published! ${String(site?.pages ?? 0)} pages, ${String(site?.sizeKB ?? 0)} KB` });
+    } catch {
       setPublishMsg({ ok: false, text: "Publish failed" });
     } finally {
       setPublishing(false);

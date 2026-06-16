@@ -4,6 +4,7 @@ import {
   Save, Download, Upload as UploadIcon, RotateCcw, Check,
   Palette, Type, Layout, ShoppingBag, Globe, Code, Shield
 } from "lucide-react";
+import { PageSkeleton } from "../components/ui/Skeleton";
 
 interface Settings {
   siteName: string; siteTagline: string; logoUrl: string; faviconUrl: string;
@@ -92,7 +93,7 @@ export default function ThemeSettingsPage() {
   ];
 
   if (loading) {
-    return <div className="flex h-64 items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" /></div>;
+    return <PageSkeleton />;
   }
 
   return (

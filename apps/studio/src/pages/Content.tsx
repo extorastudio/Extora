@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import apiClient from "../api/client";
 import { FileText, Plus, Save, Trash2, RefreshCw, Send } from "lucide-react";
+import { TableSkeleton } from "../components/ui/Skeleton";
 
 interface ContentEntry {
   id: string;
@@ -183,7 +184,7 @@ export default function ContentPage() {
       )}
 
       {isLoading ? (
-        <div className="py-12 text-center text-gray-400">Loading content...</div>
+        <TableSkeleton rows={5} />
       ) : entries.length === 0 ? (
         <div className="rounded-xl border border-gray-800 bg-gray-900 py-16 text-center">
           <FileText className="mx-auto mb-3 h-10 w-10 text-gray-600" />

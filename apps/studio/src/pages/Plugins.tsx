@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { usePluginStore } from "../stores/plugin-store";
 import { Puzzle, ToggleLeft, ToggleRight, RefreshCw, AlertCircle, Package } from "lucide-react";
+import { TableSkeleton } from "../components/ui/Skeleton";
 
 export default function PluginsPage() {
   const { plugins, isLoading, error, fetchPlugins, togglePlugin } = usePluginStore();
@@ -31,7 +32,7 @@ export default function PluginsPage() {
       )}
 
       {isLoading && plugins.length === 0 ? (
-        <div className="py-12 text-center text-gray-400">Loading plugins...</div>
+        <TableSkeleton rows={4} />
       ) : plugins.length === 0 ? (
         <div className="rounded-xl border border-gray-800 bg-gray-900 py-16 text-center">
           <Package className="mx-auto mb-3 h-10 w-10 text-gray-600" />
