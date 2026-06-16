@@ -1,5 +1,7 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import type { PrismaClient } from "@prisma/client";
+import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import { randomUUID } from "node:crypto";
 import { authenticate, authorize } from "./authorization/rbac.js";
 import { validateManifest } from "./plugin-loader/manifest.js";
 import {
@@ -628,5 +630,61 @@ export function registerAdminRoutes(server: FastifyInstance, prisma: PrismaClien
     const theme = (body?.theme as string) ?? "default";
     await (prisma as any).themeSetting.deleteMany({ where: { themeName: theme } });
     return await reply.send({ success: true });
+  });
+
+  // =========================================================================
+  // File Upload → MinIO/S3
+  // =========================================================================
+
+  const s3Client = new S3Client({
+    endpoint: process.env.S3_ENDPOINT ?? "http://minio:9000",
+    region: process.env.S3_REGION ?? "us-east-1",
+    credentials: {
+      accessKeyId: process.env.S3_ACCESS_KEY ?? "minioadmin",
+      secretAccessKey: process.env.S3_SECRET_KEY ?? "minioadmin",
+    },
+    forcePathStyle: true,
+  });
+
+  const BUCKET = process.env.S3_BUCKET ?? "extora";
+
+  server.post("/api/v1/media/upload", async (request: FastifyRequest, reply: FastifyReply) => {
+    await authenticate(request, reply, prisma);
+
+    try {
+      const data = await request.file();
+      if (!data) return await reply.status(400).send({ code: "NO_FILE", message: "No file uploaded" });
+
+      const buffer = await data.toBuffer();
+      const ext = data.filename.split(".").pop() ?? "bin";
+      const key = `uploads/${randomUUID()}.${ext}`;
+
+      await s3Client.send(new PutObjectCommand({
+        Bucket: BUCKET,
+        Key: key,
+        Body: buffer,
+        ContentType: data.mimetype,
+      }));
+
+      const url = `${process.env.S3_ENDPOINT ?? "http://minio:9000"}/${BUCKET}/${key}`;
+
+      const media = await prisma.media.create({
+        data: {
+          filename: data.filename,
+          originalName: data.filename,
+          mimeType: data.mimetype,
+          size: buffer.length,
+          storageBackend: "s3",
+          storagePath: key,
+          url,
+          uploadedBy: (request as unknown as Record<string, string>).userId ?? null,
+        },
+      });
+
+      return await reply.status(201).send({ data: media });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Upload failed";
+      return reply.status(500).send({ code: "UPLOAD_FAILED", message });
+    }
   });
 }

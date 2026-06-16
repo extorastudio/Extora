@@ -3,6 +3,7 @@ import net from "node:net";
 import Fastify from "fastify";
 import cors from "@fastify/cors";
 import websocket from "@fastify/websocket";
+import multipart from "@fastify/multipart";
 import { S3Client, ListBucketsCommand } from "@aws-sdk/client-s3";
 import type { FastifyInstance, FastifyRequest } from "fastify";
 import type { BootstrapContext } from "./bootstrap.js";
@@ -55,6 +56,7 @@ export async function createServer(ctx: BootstrapContext): Promise<FastifyInstan
   });
 
   await server.register(websocket);
+  await server.register(multipart, { limits: { fileSize: 50 * 1024 * 1024 } });
 
   // Request logging (async required by Fastify v5)
   server.addHook("onRequest", async (request: FastifyRequest) => {
