@@ -39,17 +39,25 @@ RUN pnpm --filter @extora/core build
 FROM node:22-alpine AS runner
 WORKDIR /app
 
-RUN addgroup -g 1001 extora && adduser -u 1001 -G extora -s /bin/sh -D extora
+RUN corepack enable && corepack prepare pnpm@9 --activate && apk add --no-cache curl
 
-COPY --from=builder /app/node_modules ./node_modules
+COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
+COPY packages/types/package.json packages/types/
+COPY packages/sdk/package.json packages/sdk/
+COPY apps/core/package.json apps/core/
+COPY tsconfig.base.json ./
+
+RUN pnpm install --frozen-lockfile --filter @extora/core
+
 COPY --from=builder /app/apps/core/dist ./dist
 COPY --from=builder /app/apps/core/prisma ./prisma
-COPY --from=builder /app/apps/core/package.json ./
+
+RUN addgroup -g 1001 extora && adduser -u 1001 -G extora -s /bin/sh -D extora
 
 USER extora
 EXPOSE 3000
 
 HEALTHCHECK --interval=30s --timeout=3s --retries=3 \
-  CMD wget -qO- http://localhost:3000/api/v1/system/health || exit 1
+  CMD curl -f http://localhost:3000/api/v1/system/health || exit 1
 
-CMD ["node", "dist/index.js"]
+CMD ["node", "dist/src/index.js"]

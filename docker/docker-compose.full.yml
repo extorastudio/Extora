@@ -23,7 +23,10 @@ services:
 
   # ── Core Runtime ──
   core:
-    image: ${DOCKERHUB_USERNAME:-extorastudio}/extora-core:latest
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.core
+    image: extora-core:local
     container_name: extora-core
     restart: unless-stopped
     environment:
