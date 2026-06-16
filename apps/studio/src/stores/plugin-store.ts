@@ -40,9 +40,9 @@ export const usePluginStore = create<PluginStore>((set, get) => ({
   togglePlugin: async (name: string, activate: boolean) => {
     try {
       if (activate) {
-        await apiClient.post(`/plugins/${name}/activate`);
+        await apiClient.post(`/plugins/${encodeURIComponent(name)}/activate`, { name });
       } else {
-        await apiClient.post(`/plugins/${name}/deactivate`);
+        await apiClient.post(`/plugins/${encodeURIComponent(name)}/deactivate`, { name });
       }
       await get().fetchPlugins();
     } catch (err: unknown) {

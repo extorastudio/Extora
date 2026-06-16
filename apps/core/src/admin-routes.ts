@@ -60,7 +60,9 @@ export function registerAdminRoutes(server: FastifyInstance, prisma: PrismaClien
     await authenticate(request, reply, prisma);
     await authorize(request, reply, prisma, "plugin", "install");
 
-    const { name } = request.params as { name: string };
+    const params = request.params as { name: string };
+    const bodyName = (request.body as Record<string, unknown> | undefined)?.name as string | undefined;
+    const name = bodyName ?? decodeURIComponent(params.name);
     const result = await uninstallPlugin(prisma, server.log, name);
     return reply.status(result.success ? 200 : 404).send(result);
   });
@@ -77,7 +79,9 @@ export function registerAdminRoutes(server: FastifyInstance, prisma: PrismaClien
     await authenticate(request, reply, prisma);
     await authorize(request, reply, prisma, "plugin", "activate");
 
-    const { name } = request.params as { name: string };
+    const params = request.params as { name: string };
+    const bodyName = (request.body as Record<string, unknown> | undefined)?.name as string | undefined;
+    const name = bodyName ?? decodeURIComponent(params.name);
     const plugin = await prisma.plugin.findUnique({ where: { name } });
 
     if (!plugin) {
@@ -103,7 +107,9 @@ export function registerAdminRoutes(server: FastifyInstance, prisma: PrismaClien
     await authenticate(request, reply, prisma);
     await authorize(request, reply, prisma, "plugin", "activate");
 
-    const { name } = request.params as { name: string };
+    const params = request.params as { name: string };
+    const bodyName = (request.body as Record<string, unknown> | undefined)?.name as string | undefined;
+    const name = bodyName ?? decodeURIComponent(params.name);
     const plugin = await prisma.plugin.findUnique({ where: { name } });
 
     if (!plugin) {
@@ -194,7 +200,9 @@ export function registerAdminRoutes(server: FastifyInstance, prisma: PrismaClien
     await authenticate(request, reply, prisma);
     await authorize(request, reply, prisma, "theme", "configure");
 
-    const { name } = request.params as { name: string };
+    const params = request.params as { name: string };
+    const bodyName = (request.body as Record<string, unknown> | undefined)?.name as string | undefined;
+    const name = bodyName ?? decodeURIComponent(params.name);
     const result = await uninstallTheme(prisma, server.log, name);
     return reply.status(result.success ? 200 : 404).send(result);
   });
@@ -211,7 +219,9 @@ export function registerAdminRoutes(server: FastifyInstance, prisma: PrismaClien
     await authenticate(request, reply, prisma);
     await authorize(request, reply, prisma, "theme", "configure");
 
-    const { name } = request.params as { name: string };
+    const params = request.params as { name: string };
+    const bodyName = (request.body as Record<string, unknown> | undefined)?.name as string | undefined;
+    const name = bodyName ?? decodeURIComponent(params.name);
     const theme = await prisma.theme.findUnique({ where: { name } });
 
     if (!theme) {

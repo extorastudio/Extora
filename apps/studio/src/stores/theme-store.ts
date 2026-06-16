@@ -33,7 +33,7 @@ export const useThemeStore = create<ThemeStore>((set, get) => ({
   },
 
   activateTheme: async (name: string) => {
-    await apiClient.post(`/themes/${name}/activate`);
+    await apiClient.post(`/themes/${encodeURIComponent(name)}/activate`, { name });
     await get().fetchThemes();
   },
 }));

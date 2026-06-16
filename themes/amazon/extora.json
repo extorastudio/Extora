@@ -1,0 +1,21 @@
+{
+  "name": "@extora/amazon",
+  "version": "1.0.0",
+  "type": "theme",
+  "title": "Amazon Ecommerce",
+  "description": "Full ecommerce theme inspired by Amazon — product listings, cart, checkout, order tracking",
+  "author": { "name": "Extora", "email": "themes@extora.dev", "url": "https://extora.dev" },
+  "license": "MIT",
+  "keywords": ["ecommerce", "amazon", "shop", "store", "products"],
+  "categories": ["ecommerce"],
+  "screenshots": [],
+  "extora": { "core": ">=0.3.0" },
+  "entry": { "server": "./src/render.ts" },
+  "permissions": ["db:read", "http:outbound:*"],
+  "dependencies": { "@extora/commerce": ">=0.0.0", "@extora/cms": ">=0.0.0" },
+  "hooks": {
+    "actions": ["order.placed", "product.viewed"],
+    "filters": ["product.beforeRender", "cart.beforeCheckout"]
+  },
+  "config": { "schema": "./config.schema.json" }
+}
