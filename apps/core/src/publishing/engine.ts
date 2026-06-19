@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, writeFile, readdir, unlink } from "node:fs/promises";
 import { join } from "node:path";
 import { existsSync } from "node:fs";
 import type { PrismaClient } from "@prisma/client";
@@ -745,21 +745,25 @@ export async function publishSite(prisma: PrismaClient, logger: Logger): Promise
   if (!existsSync(outputDir)) await mkdir(outputDir, { recursive: true });
 
   const pages: PageData[] = [];
-  const products = await (prisma as any).product.findMany({ where: { status: "published" }, orderBy: { createdAt: "desc" }, take: 50 });
-  const categories = await (prisma as any).productCategory.findMany({ orderBy: { name: "asc" } });
+  const rawProducts = await (prisma as any).product.findMany({ where: { status: "published" }, orderBy: { createdAt: "desc" }, take: 50 });
+  const rawCategories = await (prisma as any).productCategory.findMany({ orderBy: { name: "asc" } });
   const contentEntries = await (prisma as any).contentEntry.findMany({ where: { status: "published" } });
-  const deals = products.filter((p: any) => p.dealType);
   const site = { name: siteName };
 
-  // ── Check active plugins for client-side gating ──
+  // ── Check active plugins for gating ──
   let isCommerceActive = true, isCmsActive = true;
   try {
-    const plugins = await (prisma as any).plugin.findMany({ where: { isActive: true } });
-    const names = plugins.map((p: any) => p.name ?? "");
+    const plugs = await (prisma as any).plugin.findMany({ where: { isActive: true } });
+    const names = plugs.map((p: any) => p.name ?? "");
     isCommerceActive = names.some((n: string) => n.includes("commerce"));
     isCmsActive = names.some((n: string) => n.includes("cms"));
   } catch { /* plugin table optional */ }
   const pluginState = { commerce: isCommerceActive, cms: isCmsActive };
+
+  // If commerce disabled, clear products + categories so no commerce pages are generated
+  const products = isCommerceActive ? rawProducts : [];
+  const categories = isCommerceActive ? rawCategories : [];
+  const deals = products.filter((p: any) => p.dealType);
 
   // ── HOMEPAGE ──
   const hpSections: string[] = [];
@@ -1502,6 +1506,15 @@ renderCompare();
   });
 
   // ── WRITE FILES ──
+  // Clean up old HTML files from previous publish (stale pages)
+  try {
+    const oldFiles = await readdir(outputDir);
+    for (const f of oldFiles) {
+      if (f.endsWith(".html") || f === "sitemap.xml" || f === "robots.txt") {
+        await unlink(join(outputDir, f));
+      }
+    }
+  } catch { /* ok if dir is empty */ }
   const allProducts = products.map((p: any) => ({
     name: String(p.name ?? ""), slug: String(p.slug ?? ""),
     category: String(p.category ?? ""), price: Number(p.price ?? 0),

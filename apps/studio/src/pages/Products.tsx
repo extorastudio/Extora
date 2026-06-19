@@ -89,7 +89,7 @@ export default function ProductsPage() {
 
   const fetchSeoMeta = async (slug: string) => {
     if (!slug) return;
-    try { const r = await apiClient.get(`/seo/meta?resourceType=product&resourceId=${encodeURIComponent(slug)}`); const d = (r.data as any)?.data ?? {}; if (d && d.title !== undefined) { setSeoTitle(d.title??""); setSeoDesc(d.description??""); setSeoKeywords(d.keywords??""); setSeoOgTitle(d.ogTitle??""); setSeoOgDesc(d.ogDescription??""); setSeoOgImage(d.ogImage??""); setSeoNoIndex(!!d.noIndex); setSeoFocusKw(d.focusKeyword??""); } } catch { /* no meta */ }
+    try { const r = await apiClient.get(`/seo/meta?resourceType=product&resourceId=${encodeURIComponent(slug)}`); const d = (r.data)?.data ?? {}; if (d?.title !== undefined) { setSeoTitle(d.title??""); setSeoDesc(d.description??""); setSeoKeywords(d.keywords??""); setSeoOgTitle(d.ogTitle??""); setSeoOgDesc(d.ogDescription??""); setSeoOgImage(d.ogImage??""); setSeoNoIndex(!!d.noIndex); setSeoFocusKw(d.focusKeyword??""); } } catch { /* no meta */ }
   };
   const saveSeoMeta = async () => {
     if (!editing) return; setSeoSaving(true); setSeoMsg("");

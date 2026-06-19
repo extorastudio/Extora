@@ -3863,3 +3863,32 @@ Root cause: IIFE pattern `{condition && (() => { ... })()}` doesn't render corre
 
 All SEO state (title, desc, kw, focusKw, OG, noIndex) properly initialized from fetchSeoMeta.
 Docker deploy: 34 pages. CI all green.
+
+
+### Phase 163: Fix — Commerce Plugin Gating + Draft Filter + Publish Cleanup
+**Date:** June 19, 2026 | **Commit:** (upcoming)
+**Duration:** ~20 minutes
+
+**Three critical fixes:**
+
+**1. Commerce disabled → No products on published site**
+- Root cause: Categories were fetched from DB regardless of commerce state
+- Fix: `categories` cleared to empty array when `isCommerceActive = false`
+- Products, categories, brands, deals all gated behind commerce state
+- Result: 34 pages (active) → 6-7 pages (inactive)
+
+**2. Draft products showing on published API**
+- Root cause: `product.findMany()` had NO `where` clause, returned ALL products
+- Fix: Added `where: statusFilter ? { status: statusFilter } : {}` 
+- Result: `?status=published` correctly filters drafts
+
+**3. Stale HTML files not cleaned on re-publish**
+- Root cause: Old product/category/brand pages remained on disk after commerce disabled
+- Fix: Added cleanup loop before writing new files — `readdir` + `unlink` for all .html
+- Result: No stale files left in published directory
+
+**Bonus: Commerce API gate** — when Commerce disabled, published product query returns empty array
+
+**Docker deploy:** 34 pages (active), 7 pages (inactive), 7 containers healthy
+
+**CI all green**

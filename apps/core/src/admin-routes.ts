@@ -290,9 +290,21 @@ export function registerAdminRoutes(server: FastifyInstance, prisma: PrismaClien
 
   server.get("/api/v1/commerce/products", async (request: FastifyRequest, reply: FastifyReply) => {
     await authenticate(request, reply, prisma);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const statusFilter = (request.query as any)?.status as string | undefined;
+    const where: any = statusFilter ? { status: statusFilter } : {};
+
+    // Check if Commerce plugin is active
+    try {
+      const plugins = await (prisma as any).plugin.findMany({ where: { isActive: true } });
+      const activeNames = plugins.map((p: any) => p.name ?? "");
+      if (!activeNames.some((n: string) => n.includes("commerce"))) {
+        // Commerce disabled — return empty list for published filtering
+        if (statusFilter === "published") return await reply.send({ data: [] });
+      }
+    } catch { /* plugin check optional */ }
+
     const list = await (prisma as any).product.findMany({
-      orderBy: { createdAt: "desc" },
+      where, orderBy: { createdAt: "desc" },
     });
     return await reply.send({ data: list });
   });
