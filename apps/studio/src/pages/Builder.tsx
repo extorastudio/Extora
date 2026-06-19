@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import apiClient from "../api/client";
 import {
   Layout, Type, Image, Square, Sparkles, ShoppingBag, Columns,
@@ -57,6 +57,17 @@ export default function BuilderPage() {
   const [elements, setElements] = useState<Element[]>([]);
   const [selected, setSelected] = useState<string | null>(null);
   const [activeCategory, setActiveCategory] = useState("layout");
+
+  useEffect(() => {
+    const syncCategory = () => {
+      const hash = window.location.hash.slice(2);
+      const map: Record<string, string> = { "builder-layout": "layout", "builder-content": "content", "builder-media": "media", "builder-commerce": "commerce" };
+      setActiveCategory(map[hash] ?? "layout");
+    };
+    syncCategory();
+    window.addEventListener("hashchange", syncCategory);
+    return () => window.removeEventListener("hashchange", syncCategory);
+  }, []);
   const [pageTitle, setPageTitle] = useState("New Page");
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState("");

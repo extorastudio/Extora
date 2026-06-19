@@ -2843,3 +2843,20 @@ All CI green: lint 16/16, typecheck 20/20, test 34/34
 - Shows "—" until data loads, then date/time
 
 **717+ tests pass. 192+ commits. 358+ files.**
+
+
+### Phase 118: Products + Builder Sub-Menus Linked to Tabs
+**Date:** June 19, 2026 | **Commit:** `(pending)`
+**Duration:** ~20 minutes
+
+**Products sub-menu now properly linked to tabs:**
+- Clicking Categories/Brands/Tags/Attributes/Reviews in sidebar switches the Products page to that tab
+- Hash change listener ensures it works on every navigation (not just mount)
+- Fallback to "All Products" when hash doesn't match
+
+**Builder now has expandable sub-menus:**
+- All Elements, Layout, Content, Media, Commerce
+- Each sub-menu item links to the corresponding category tab in Builder
+- Hash change listener syncs the active category tab
+
+**717+ tests pass. 193+ commits. 359+ files.**

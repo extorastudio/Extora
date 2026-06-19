@@ -4,8 +4,9 @@ import apiClient from "../../api/client";
 import {
   LayoutDashboard, Layout, Users, Puzzle, Palette, Settings, Server,
   HardDrive, FileText, Image, Activity, LogOut, Menu, X, Package,
-  ShoppingCart, Globe, CheckCircle, AlertCircle, Loader2,
+  ShoppingCart, ShoppingBag, Globe, CheckCircle, AlertCircle, Loader2,
   ChevronDown, ChevronRight, FolderTree, Shield, Tags, Grid3X3, MessageSquare,
+  PanelTop, Type,
 } from "lucide-react";
 
 interface NavItem {
@@ -30,7 +31,15 @@ const navItems: NavItem[] = [
   },
   { id: "orders", label: "Orders", icon: ShoppingCart },
   { id: "content", label: "Content", icon: FileText },
-  { id: "builder", label: "Builder", icon: Layout },
+  { id: "builder", label: "Builder", icon: Layout,
+    children: [
+      { id: "builder", label: "All Elements", icon: Layout },
+      { id: "builder-layout", label: "Layout", icon: PanelTop },
+      { id: "builder-content", label: "Content", icon: Type },
+      { id: "builder-media", label: "Media", icon: Image },
+      { id: "builder-commerce", label: "Commerce", icon: ShoppingBag },
+    ],
+  },
   { id: "media", label: "Media", icon: Image },
   { id: "users", label: "Users", icon: Users },
   { id: "plugins", label: "Plugins", icon: Puzzle },

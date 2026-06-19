@@ -79,9 +79,15 @@ export default function ProductsPage() {
   const [subTab, setSubTab] = useState("products");
 
   useEffect(() => {
-    const hash = window.location.hash.slice(2);
-    const validTabs = ["products", "categories", "brands", "tags", "attributes", "reviews"];
-    if (validTabs.includes(hash)) setSubTab(hash);
+    const syncTab = () => {
+      const hash = window.location.hash.slice(2);
+      const validTabs = ["products", "categories", "brands", "tags", "attributes", "reviews"];
+      if (validTabs.includes(hash)) setSubTab(hash);
+      else setSubTab("products");
+    };
+    syncTab();
+    window.addEventListener("hashchange", syncTab);
+    return () => window.removeEventListener("hashchange", syncTab);
   }, []);
   const [taxonomies, setTaxonomies] = useState<{ id: string; name: string; slug: string; description: string }[]>([]);
   const [taxLoading, setTaxLoading] = useState(false);
