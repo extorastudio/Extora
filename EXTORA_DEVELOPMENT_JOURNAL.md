@@ -2641,3 +2641,18 @@ Products page reads URL hash on mount to set correct sub-tab
 - Organized in collapsible card sections with icons
 
 **715+ tests pass. 185+ commits, 350+ files.**
+
+
+### Phase 110: Docker Entrypoint with Auto MinIO Seeding
+**Date:** June 16, 2026 | **Commit:** `(pending)`
+**Duration:** ~15 minutes
+
+**Docker entrypoint enhanced with automatic MinIO bucket setup:**
+- Retry loop waits for MinIO health check (up to 10 attempts)
+- Automatically creates `extora` bucket
+- Sets bucket to anonymous read for public access via nginx proxy
+- MinIO seeding happens before server start
+
+**Config page now fetches live data from API (Phase 109).**
+
+**716+ tests pass. 186+ commits, 351+ files.**
