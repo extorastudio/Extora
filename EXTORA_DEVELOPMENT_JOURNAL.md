@@ -2983,3 +2983,23 @@ all CI green (717+ tests, 195+ commits, 361+ files).
 - Fallback error handling
 
 **717+ tests pass. 199+ commits. 365+ files.**
+
+
+### Phase 126: Product Review System — Public Submit + Display
+**Date:** June 19, 2026 | **Commit:** `(pending)`
+**Duration:** ~20 minutes
+
+**Full product review system:**
+- POST /api/v1/reviews (public) — submit review with rating, title, content, author
+- GET /api/v1/reviews/:productId (public) — list approved reviews
+- Reviews admin API at /api/v1/commerce/reviews (approve/pending)
+
+**Published product pages now show:**
+- Star rating input (1-5 stars, clickable, color changes)
+- Review form: title, content, name
+- Submit button → calls /api/v1/reviews
+- Review list below with star display, author, date
+- "No reviews yet" empty state
+- Reviews fetched dynamically via JS on page load
+
+**717+ tests pass. 200+ commits. 366+ files.**

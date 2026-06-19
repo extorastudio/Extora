@@ -728,6 +728,41 @@ export function registerAdminRoutes(server: FastifyInstance, prisma: PrismaClien
   });
 
   // =========================================================================
+  // Product Reviews (Public)
+  // =========================================================================
+
+  server.post("/api/v1/reviews", async (request: FastifyRequest, reply: FastifyReply) => {
+    const body = request.body as Record<string, unknown> | undefined;
+    if (!body?.productId || !body?.rating) return reply.status(400).send({ code: "BAD_REQUEST", message: "productId and rating required" });
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const review = await (prisma as any).productReview.create({
+        data: {
+          productId: String(body.productId),
+          rating: Number(body.rating),
+          title: String(body.title ?? ""),
+          content: String(body.content ?? ""),
+          author: String(body.author ?? "Anonymous"),
+          email: String(body.email ?? ""),
+          status: "pending",
+        },
+      });
+      return await reply.status(201).send({ data: review });
+    } catch { return reply.status(500).send({ code: "ERROR", message: "Failed to submit review" }); }
+  });
+
+  server.get("/api/v1/reviews/:productId", async (request: FastifyRequest, reply: FastifyReply) => {
+    const params = request.params as { productId: string };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const reviews = await (prisma as any).productReview.findMany({
+      where: { productId: decodeURIComponent(params.productId), status: "approved" },
+      orderBy: { createdAt: "desc" },
+      take: 20,
+    });
+    return await reply.send({ data: reviews });
+  });
+
+  // =========================================================================
   // Cart & Checkout
   // =========================================================================
 

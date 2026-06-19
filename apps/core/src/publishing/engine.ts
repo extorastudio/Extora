@@ -328,6 +328,44 @@ ${specRows ? `<h4 style="margin:16px 0 8px">Technical Specifications</h4><table 
 </div>
 </div>
 
+<div style="max-width:1200px;margin:20px auto;background:white;border-radius:4px;padding:28px" id="reviews-${e(p.slug)}">
+<h3 style="margin-bottom:16px">Customer Reviews</h3>
+<div id="reviewList-${e(p.slug)}" style="margin-bottom:20px">
+<p style="color:#565959;font-size:.9rem" id="reviewLoading-${e(p.slug)}">Loading reviews...</p>
+</div>
+<div style="border-top:1px solid #e7e7e7;padding-top:16px">
+<h4 style="margin-bottom:12px">Write a Review</h4>
+<div style="display:flex;align-items:center;gap:4px;margin-bottom:8px" id="starInput-${e(p.slug)}">
+${[1,2,3,4,5].map((n) => `<span onclick="setRating('${e(p.slug)}',${n})" style="font-size:1.5rem;cursor:pointer;color:#ddd" id="star${n}-${e(p.slug)}">★</span>`).join("")}
+</div>
+<input type="hidden" id="ratingVal-${e(p.slug)}" value="5">
+<input type="text" id="reviewTitle-${e(p.slug)}" placeholder="Review title" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:4px;margin-bottom:8px;font-size:.9rem">
+<textarea id="reviewContent-${e(p.slug)}" placeholder="Share your experience..." rows="3" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:4px;font-size:.9rem;resize:vertical"></textarea>
+<input type="text" id="reviewName-${e(p.slug)}" placeholder="Your name" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:4px;margin:8px 0;font-size:.9rem">
+<button onclick="submitReview('${e(p.slug)}','${e(p.id)}')" style="padding:10px 24px;background:#ffd814;border:1px solid #fcd200;border-radius:20px;cursor:pointer;font-weight:600">Submit Review</button>
+<span id="reviewMsg-${e(p.slug)}" style="color:#007600;margin-left:12px;font-size:.85rem"></span>
+</div>
+</div>
+<script>
+function setRating(slug, n) { document.getElementById("ratingVal-"+slug).value = n; for(let i=1;i<=5;i++) document.getElementById("star"+i+"-"+slug).style.color = i<=n ? "#febd69" : "#ddd"; }
+function submitReview(slug, productId) {
+  const rating = document.getElementById("ratingVal-"+slug).value;
+  const title = document.getElementById("reviewTitle-"+slug).value;
+  const content = document.getElementById("reviewContent-"+slug).value;
+  const author = document.getElementById("reviewName-"+slug).value || "Anonymous";
+  const msg = document.getElementById("reviewMsg-"+slug);
+  fetch("/api/v1/reviews", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({productId, rating:Number(rating), title, content, author}) })
+    .then(r => r.json()).then(() => { msg.textContent = "Review submitted! Pending approval."; })
+    .catch(() => { msg.textContent = "Failed to submit"; });
+}
+fetch("/api/v1/reviews/${e(p.id)}").then(r => r.json()).then(d => {
+  const reviews = d.data || [];
+  const el = document.getElementById("reviewList-${e(p.slug)}");
+  if (reviews.length === 0) { el.innerHTML = '<p style="color:#565959;font-size:.9rem">No reviews yet. Be the first!</p>'; return; }
+  el.innerHTML = reviews.map(r => '<div style="border-bottom:1px solid #e7e7e7;padding:12px 0"><div style="color:#febd69;margin-bottom:4px">'+"★".repeat(r.rating)+"☆".repeat(5-r.rating)+' <strong>'+r.title+'</strong></div><p style="color:#0f1111;font-size:.9rem;margin:4px 0">'+r.content+'</p><span style="color:#565959;font-size:.8rem">By '+r.author+' on '+new Date(r.createdAt).toLocaleDateString()+'</span></div>').join("");
+}).catch(() => { document.getElementById("reviewLoading-${e(p.slug)}").textContent = "No reviews yet."; });
+</script>
+
 <div class="section-header"><h2>Frequently Bought Together</h2></div>
 <div class="products-grid">${products.filter((_: any, i: number) => i < 4).map(productCard).join("")}</div>
 
