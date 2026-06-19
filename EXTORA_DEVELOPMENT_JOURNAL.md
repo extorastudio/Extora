@@ -3984,3 +3984,19 @@ var SEO_ACTIVE = true/false;
 - Flag embedded: `var RECS_ACTIVE = true/false`
 
 **Verified:** isRecsActive=false → all 6 recommendation sections removed from both server HTML and client JS
+
+
+### Phase 167: Free Delivery Badge + Final Verification
+**Date:** June 19, 2026 | **Commit:** (upcoming)
+**Duration:** ~10 minutes
+
+**Free Delivery badge** on product cards where price >= ₹499
+- Green "Free Delivery" badge inline with discount/deal badges
+- Matches announcement bar messaging ("Free shipping above ₹499")
+
+**Verified:**
+- Draft products: 0 in published API (status filter working)
+- Sitemap: Automatically respects plugin gating (uses pages array)
+- Free Delivery badge: 10 occurrences (products above 499)
+
+**Docker deploy:** 34 pages, CI all green

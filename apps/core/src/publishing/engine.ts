@@ -747,6 +747,7 @@ ${rating > 0 ? `<span class="stars">${stars(rating)}</span>` : ""}
 ${discount > 0 ? `<span class="badge">-${discount}%</span>` : ""}
 ${p.dealType ? `<span class="badge" style="background:#c45500">${e(p.dealLabel ?? p.dealType)}</span>` : ""}
 ${isBestSeller ? `<span class="badge" style="background:#e67a00">Best Seller</span>` : ""}
+${price >= 499 ? `<span class="badge" style="background:#007600">Free Delivery</span>` : ""}
 <span style="display:flex;align-items:center;margin-top:auto">${stockHtml}${stockStatus === "outofstock" || stockQty <= 0 ? `<button class="btn-cart" style="margin-left:auto;padding:6px 12px;background:#eee;border:1px solid #ccc;border-radius:16px;font-size:.75rem;cursor:pointer;color:#888" onclick="notifyMe('${e(p.slug)}','${e(p.name)}');event.preventDefault();event.stopPropagation()">Notify Me</button>` : `<button class="btn-cart" style="margin-left:auto;padding:6px 12px;background:#ffd814;border:1px solid #fcd200;border-radius:16px;font-size:.75rem;font-weight:600;cursor:pointer;color:#0f1111" data-name="${e(p.name)}" data-price="${price}" onclick="addToCart(this);return false">Add to Cart</button>`}</span>
 </a>
 </div>`;
