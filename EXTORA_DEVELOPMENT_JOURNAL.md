@@ -3003,3 +3003,15 @@ all CI green (717+ tests, 195+ commits, 361+ files).
 - Reviews fetched dynamically via JS on page load
 
 **717+ tests pass. 200+ commits. 366+ files.**
+
+
+### Phase 127: Custom 404 Page
+**Date:** June 19, 2026 | **Commit:** `(pending)`
+**Duration:** ~10 minutes
+
+**Custom 404 page added to published site:**
+- nginx error_page directive serves /404.html
+- Friendly message with links: Homepage, Browse Products, Search
+- Styled consistently with site theme
+
+**717+ tests pass. 201+ commits. 367+ files.**

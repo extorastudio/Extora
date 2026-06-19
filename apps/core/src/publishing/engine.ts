@@ -428,6 +428,23 @@ function renderContentBody(body: string): string {
   }
   if (!pages.some((p) => p.slug === "about")) pages.push({ slug: "about", title: "About", description: "About us", content: `<div class="page-content"><h1>About ${e(siteName)}</h1><p>Your trusted online store built with Extora Studio.</p></div>` });
 
+  // ── 404 PAGE ──
+  pages.push({
+    slug: "404", title: "Page Not Found", description: "404",
+    content: `<div class="page-content" style="text-align:center;padding:80px 20px">
+<h1 style="font-size:4rem;color:#ccc;margin-bottom:8px">404</h1>
+<h2 style="font-size:1.5rem;margin-bottom:12px">Page Not Found</h2>
+<p style="color:#565959;margin-bottom:24px">The page you're looking for doesn't exist or has been moved.</p>
+<div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+<a href="/index.html" class="btn-cart" style="text-decoration:none;display:inline-block;padding:10px 24px">Go to Homepage</a>
+<a href="/products.html" style="color:#007185;text-decoration:none;padding:10px 24px">Browse Products</a>
+<a href="/search.html" style="color:#007185;text-decoration:none;padding:10px 24px">Search</a>
+</div>
+</div>`,
+  });
+
+  // ── MAINTENANCE PAGE (when enabled) ──
+
   // ── SEARCH RESULTS PAGE ──
   const productJson = JSON.stringify(products.map((p: any) => ({
     id: String(p.id ?? ""), name: String(p.name ?? ""), price: Number(p.price ?? 0),
