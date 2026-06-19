@@ -279,7 +279,7 @@ ${rating > 0 ? `<span class="stars">${stars(rating)}</span>` : ""}
 <div class="pr"><span class="p">${rupee(price)}</span>${mrp && mrp > price ? `<span class="mrp">${rupee(mrp)}</span>` : ""}</div>
 ${discount > 0 ? `<span class="badge">-${discount}%</span>` : ""}
 ${p.dealType ? `<span class="badge" style="background:#c45500">${e(p.dealLabel ?? p.dealType)}</span>` : ""}
-<span class="stock-ok" style="display:flex;align-items:center">In Stock<button class="btn-cart" style="margin-left:auto;padding:6px 12px;background:#ffd814;border:1px solid #fcd200;border-radius:16px;font-size:.75rem;font-weight:600;cursor:pointer;color:#0f1111" onclick="event.preventDefault()">Add to Cart</button></span>
+<span class="stock-ok" style="display:flex;align-items:center">In Stock<button class="btn-cart" style="margin-left:auto;padding:6px 12px;background:#ffd814;border:1px solid #fcd200;border-radius:16px;font-size:.75rem;font-weight:600;cursor:pointer;color:#0f1111" onclick="addToCart(this);return false">Add to Cart</button></span>
 </a>
 </div>`;
 }
@@ -347,7 +347,7 @@ ${p.emiAvailable ? `<div class="emi">EMI starts at <span class="price">${rupee(e
 ${p.codAvailable ? `<div class="cod">Cash on Delivery available</div>` : ""}
 <div class="qty-row">Quantity: <select>${[1,2,3,4,5].map((n) => `<option value="${n}">${n}</option>`).join("")}</select></div>
 <div class="buttons">
-<button class="btn-cart">Add to Cart</button>
+<button class="btn-cart" onclick="addToCart(this);return false">Add to Cart</button>
 <button class="btn-buy">Buy Now</button>
 </div>
 <div class="secure">🔒 Secure transaction</div>
