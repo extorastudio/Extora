@@ -3370,3 +3370,27 @@ This caused ALL buttons (cart, search, login, reviews, newsletter) to silently f
 **Docker deploy:** 26 pages, 1221 KB
 
 **CI all green:** Lint 16/16, Typecheck 20/20, Test 34/34
+
+
+### Phase 146: Mobile Responsive + Empty States + Notify Me
+**Date:** June 19, 2026 | **Commit:** (upcoming)
+**Duration:** ~25 minutes
+
+**Mobile Responsive CSS:**
+- Tablet (768px): product detail stacks to 1 column, zoom disabled, filter sidebar full-width, nav links hidden, product grid 160px min, compare bar stacks
+- Phone (480px): 2-column grid, smaller images (140px), search bar full-width below logo, reduced font sizes, compact buttons, hidden nav extras
+
+**Empty State improvements:**
+- Empty cart: shows "Your Cart is Empty" + trending products + "Shop Now" button (was just alert)
+- Empty wishlist: shows "Your Wishlist is Empty" + trending + "Discover Products" button (was just alert)
+
+**Notify Me button for Out of Stock:**
+- Gray "Notify Me" button replaces "Add to Cart" when stockStatus is "outofstock" or stockQty <= 0
+- Collects email via prompt, stores in localStorage
+- OOS products hide Add to Cart button, show only Notify Me
+
+**ESLint config:** Added `no-useless-escape: off` for engine.ts (escaping single quotes in JS strings inside template literals)
+
+**Docker deploy:** 26 pages, 1221 KB, 7 containers healthy
+
+**CI all green:** Lint 16/16, Typecheck 20/20, Test 34/34

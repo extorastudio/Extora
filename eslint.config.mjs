@@ -41,6 +41,7 @@ export default tseslint.config(
       "@typescript-eslint/no-confusing-void-expression": "off",
       "@typescript-eslint/no-misused-promises": "off",
       "no-console": "off",
+      "no-useless-escape": "off",
     },
   },
   {
