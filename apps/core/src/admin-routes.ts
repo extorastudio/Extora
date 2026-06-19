@@ -423,6 +423,19 @@ export function registerAdminRoutes(server: FastifyInstance, prisma: PrismaClien
     return await reply.send({ data: orders });
   });
 
+  server.patch("/api/v1/commerce/orders/:id", async (request: FastifyRequest, reply: FastifyReply) => {
+    await authenticate(request, reply, prisma);
+    const params = request.params as { id: string };
+    const body = request.body as Record<string, unknown> | undefined;
+    const newStatus = String(body?.status ?? "confirmed");
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (prisma as any).$queryRawUnsafe(
+      `UPDATE "Order" SET status = $1 WHERE id = $2`,
+      newStatus, decodeURIComponent(params.id),
+    );
+    return await reply.send({ success: true, status: newStatus });
+  });
+
   // =========================================================================
   // Content Entries (Pages, Blog Posts)
   // =========================================================================

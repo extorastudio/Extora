@@ -155,6 +155,11 @@ function addToCart(el) {
   if (existing) existing.qty++; else cart.push({ name, price, qty: 1 });
   saveCart(cart); el.textContent = "Added!"; el.style.background = "#007600"; el.style.color = "white";
   setTimeout(() => { el.textContent = "Add to Cart"; el.style.background = ""; el.style.color = ""; }, 1500);
+  // Sync to API if logged in
+  const token = localStorage.getItem("at");
+  if (token) {
+    fetch("/api/v1/commerce/cart/add", { method:"POST", headers:{"Content-Type":"application/json", Authorization:"Bearer "+token}, body: JSON.stringify({productId: name, name, price, qty: 1}) }).catch(() => {});
+  }
 }
 function removeFromCart(name) { saveCart(getCart().filter(i => i.name !== name)); location.reload(); }
 function showCart() {

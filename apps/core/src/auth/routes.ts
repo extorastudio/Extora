@@ -131,20 +131,20 @@ export function registerAuthRoutes(server: FastifyInstance, prisma: PrismaClient
         email: body.email,
         passwordHash,
         displayName: body.displayName,
-        role: "VIEWER",
+        role: "CUSTOMER",
       },
     });
 
-    // Assign default VIEWER role
+    // Assign default CUSTOMER role
     const viewerRole = await prisma.roleDefinition.findUnique({
-      where: { name: "VIEWER" },
+      where: { name: "CUSTOMER" },
     });
 
     if (!viewerRole) {
-      // Create VIEWER role if it doesn't exist
+      // Create CUSTOMER role if it doesn't exist
       const newRole = await prisma.roleDefinition.create({
         data: {
-          name: "VIEWER",
+          name: "CUSTOMER",
           description: "Default role for new users",
           isSystem: true,
         },
