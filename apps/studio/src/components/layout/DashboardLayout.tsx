@@ -3,6 +3,7 @@ import { useAuthStore } from "../../stores/auth-store";
 import apiClient from "../../api/client";
 import {
   LayoutDashboard,
+  Layout,
   Users,
   Puzzle,
   Palette,
@@ -33,6 +34,7 @@ const navItems = [
   { id: "products", label: "Products", icon: Package },
   { id: "orders", label: "Orders", icon: ShoppingCart },
   { id: "content", label: "Content", icon: FileText },
+  { id: "builder", label: "Builder", icon: Layout },
   { id: "media", label: "Media", icon: Image },
   { id: "users", label: "Users", icon: Users },
   { id: "plugins", label: "Plugins", icon: Puzzle },

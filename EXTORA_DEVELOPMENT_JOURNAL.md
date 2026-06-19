@@ -2530,3 +2530,37 @@ Each with inline CRUD via generic taxonomyCrud API factory.
 Dashboard, Products, Orders, Content, Media, Users, Plugins, Themes, Theme Settings, Services, Config, Monitoring, Backups
 
 **716+ tests pass. 181+ commits, 345+ files.**
+
+
+### Phase 105: Visual Page Builder — Elementor-Style Drag & Drop
+**Date:** June 16, 2026 | **Commit:** `(pending)`
+**Duration:** ~45 minutes
+
+**Visual page builder (Elementor substitute) added to Studio:**
+
+**Element Palette (9 element types):**
+- Text Block — editable text with alignment, size, color
+- Heading — h1/h2/h3 with alignment and color
+- Image — URL, alt text, width, border radius
+- Button — text, URL, color, alignment
+- Spacer — adjustable height
+- 2 Columns — side-by-side text with gap control
+- Hero Banner — title, subtitle, background color
+- Product Grid — count and columns (renders on published site)
+- Divider — color and thickness
+
+**3-panel layout:**
+- Left: Element palette (click to add)
+- Center: Content area with live preview, element reordering (move up/down), delete, click to select
+- Right: Element settings panel — color picker, text inputs, alignment buttons
+
+**Features:**
+- Toggle between Edit and Preview modes
+- Element drag reorder (move up/move down buttons)
+- Each element has configurable properties
+- Save as Content entry (type: page, status: published)
+- Publish site renders builder content on live website
+
+**13 of 13 Studio pages now complete (all have real content).**
+
+**716+ tests pass. 182+ commits, 347+ files.**
