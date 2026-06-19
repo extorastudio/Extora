@@ -3074,3 +3074,64 @@ Builder→published rendering, Search with JS filtering
 All CI green, 717+ tests, 204+ commits, 369+ files
 7 containers healthy, 5 services, 7 plugins
 23 pages, 516 KB published
+
+
+### Phase 130: Customer Role Fix + Order Management + Cart-API Sync
+**Date:** June 19, 2026 | **Commits:** `4bc8923`
+**Duration:** ~20 minutes
+
+**Three critical fixes:**
+- Auth register: default role CUSTOMER (was VIEWER)
+- Order management: admin can change order status via dropdown
+- Cart: addToCart syncs to API when user logged in
+
+### Phase 131: MinIO Bucket Auto-Creation Fix
+**Date:** June 19, 2026 | **Commits:** `1217df6`
+**Duration:** ~10 minutes
+
+**Entrypoint now uses MinIO REST API instead of mc CLI:**
+- `mc` not available in core container — switched to curl + Basic Auth
+- Bucket created via PUT /extora with base64 encoded credentials
+- Public read policy set for anonymous S3 access
+
+### Phase 132: Cart Button — Data Attributes Approach
+**Date:** June 19, 2026 | **Commits:** `52b4956` → `87f402c`
+**Duration:** ~30 minutes
+
+**Cart buttons fixed with data attributes:**
+- Product name + price embedded as data-name, data-price on button
+- Eliminates DOM traversal (was silently failing)
+- Updated: product cards, detail pages, search results
+- onclick="addToCart(this);return false"
+
+### Phase 133: Published JS Syntax Fix — TypeScript Annotations Removed
+**Date:** June 19, 2026 | **Commit:** `fde6a68`
+**Duration:** ~15 minutes
+
+**CRITICAL BUG FIX:** TypeScript type annotations `(v: any)` and `(viewed: any[])`
+leaked into published JavaScript, breaking the entire script block on all pages.
+This caused ALL buttons (cart, search, login, reviews, newsletter) to silently fail.
+
+**Fix:** Removed all TS annotations from embedded JS. Published JS now passes
+`node --check` validation.
+
+**Root cause of ALL reported button failures since Phase 129.**
+
+### Phase 134: Recently Viewed Products
+**Date:** June 19, 2026 | **Commits:** `724baef`
+**Duration:** ~15 minutes
+
+**Recently viewed products displayed on product pages:**
+- Tracks product views in localStorage (up to 8)
+- Shows "Recently Viewed" section below product detail
+- Deduplicates, newest first
+
+### Phase 135: Show Cart Fix — Array Index Instead of Name
+**Date:** June 19, 2026 | **Commit:** `87f402c`
+**Duration:** ~10 minutes
+
+**Cart modal "Remove" button fixed:**
+- Changed from name-based removal (broken escaping) to index-based
+- `removeFromCart(idx)` using array index — no string escaping issues
+
+**717+ tests pass. 210+ commits. 372+ files.**
