@@ -111,7 +111,7 @@ footer .bt{grid-column:1/-1;text-align:center;color:#999;font-size:.75rem;paddin
 <header><div class="top-nav"><div class="inner">
 <a href="/index.html" class="logo">extora<span style="color:white">.in</span></a>
 <div class="search"><input placeholder="Search..."><button>Go</button></div>
-<div class="nav-r"><a href="#">Account</a><a href="#">Orders</a><a href="#" style="font-weight:700" onclick="showCart();return false">Cart <span id="cartCount"></span></a></div>
+<div class="nav-r"><a href="/account.html" id="headerAccount">Sign In</a><a href="/orders.html">Orders</a><a href="#" style="font-weight:700" onclick="showCart();return false">Cart <span id="cartCount"></span></a></div>
 </div></div>
 <nav class="sub-nav"><div class="inner">
 <a href="/index.html">All</a><a href="/products.html">Best Sellers</a><a href="/deals.html">Today's Deals</a><a href="/about.html">About</a></div></nav>
@@ -163,7 +163,18 @@ document.addEventListener("click", function(e) {
   const btn = e.target.closest(".btn-cart, .add-cart");
   if (btn) { e.preventDefault(); addToCart(btn); }
 });
-document.addEventListener("DOMContentLoaded", updateCartCount);
+document.addEventListener("DOMContentLoaded", function() {
+  updateCartCount();
+  // Check login state
+  const token = localStorage.getItem("at");
+  const accEl = document.getElementById("headerAccount");
+  if (token && accEl) {
+    fetch("/api/v1/auth/session", { headers: { Authorization: "Bearer " + token } })
+      .then(r => r.json()).then(d => {
+        if (d.user) { accEl.textContent = "Hello, " + (d.user.displayName || "User"); accEl.href = "/account.html"; }
+      }).catch(() => {});
+  }
+});
 </script>
 </body></html>`;
 }
@@ -385,6 +396,115 @@ function doSearch() {
 }
 doSearch();
 </script>`,
+  });
+
+  // ── CUSTOMER ACCOUNT PAGE ──
+  pages.push({
+    slug: "account", title: "My Account", description: "Sign in or create an account",
+    content: `<div class="page-content" style="max-width:500px;margin:40px auto">
+<div style="display:flex;gap:0;margin-bottom:24px">
+<button id="tabLogin" onclick="showTab('login')" style="flex:1;padding:12px;background:#ffd814;border:1px solid #fcd200;font-weight:600;cursor:pointer;border-radius:8px 0 0 8px">Sign In</button>
+<button id="tabRegister" onclick="showTab('register')" style="flex:1;padding:12px;background:white;border:1px solid #ddd;cursor:pointer;border-radius:0 8px 8px 0">Register</button>
+</div>
+
+<div id="loginForm">
+<h2 style="margin-bottom:16px">Sign In</h2>
+<input type="email" id="loginEmail" placeholder="Email" style="width:100%;padding:12px;border:1px solid #ddd;border-radius:4px;margin-bottom:8px;font-size:1rem">
+<input type="password" id="loginPass" placeholder="Password" style="width:100%;padding:12px;border:1px solid #ddd;border-radius:4px;margin-bottom:12px;font-size:1rem">
+<button onclick="doLogin()" style="width:100%;padding:12px;background:#ffd814;border:1px solid #fcd200;border-radius:8px;font-size:1rem;font-weight:600;cursor:pointer">Sign In</button>
+<p id="loginMsg" style="color:#cc0c39;margin-top:8px;font-size:.85rem"></p>
+</div>
+
+<div id="registerForm" style="display:none">
+<h2 style="margin-bottom:16px">Create Account</h2>
+<input type="text" id="regName" placeholder="Full Name" style="width:100%;padding:12px;border:1px solid #ddd;border-radius:4px;margin-bottom:8px;font-size:1rem">
+<input type="email" id="regEmail" placeholder="Email" style="width:100%;padding:12px;border:1px solid #ddd;border-radius:4px;margin-bottom:8px;font-size:1rem">
+<input type="password" id="regPass" placeholder="Password (min 8 chars)" style="width:100%;padding:12px;border:1px solid #ddd;border-radius:4px;margin-bottom:12px;font-size:1rem">
+<button onclick="doRegister()" style="width:100%;padding:12px;background:#ffd814;border:1px solid #fcd200;border-radius:8px;font-size:1rem;font-weight:600;cursor:pointer">Create Account</button>
+<p id="regMsg" style="color:#007600;margin-top:8px;font-size:.85rem"></p>
+</div>
+
+<div id="accountInfo" style="display:none">
+<h2 style="margin-bottom:8px">Welcome, <span id="accName"></span>!</h2>
+<p style="color:#565959;margin-bottom:16px" id="accEmail"></p>
+<button onclick="doLogout()" style="padding:8px 20px;background:white;border:1px solid #ddd;border-radius:8px;cursor:pointer">Sign Out</button>
+<a href="/orders.html" style="display:inline-block;margin-left:12px;color:#007185;text-decoration:none">View Orders</a>
+</div>
+
+<script>
+const API = "/api/v1/auth";
+function showTab(t) {
+  document.getElementById("tabLogin").style.background = t==="login" ? "#ffd814" : "white";
+  document.getElementById("tabRegister").style.background = t==="register" ? "#ffd814" : "white";
+  document.getElementById("loginForm").style.display = t==="login" ? "block" : "none";
+  document.getElementById("registerForm").style.display = t==="register" ? "block" : "none";
+}
+function checkSession() {
+  const token = localStorage.getItem("at");
+  if (token) {
+    fetch(API + "/session", { headers: { Authorization: "Bearer " + token } })
+      .then(r => r.json()).then(d => {
+        if (d.user) {
+          document.getElementById("loginForm").style.display = "none";
+          document.getElementById("registerForm").style.display = "none";
+          document.getElementById("accountInfo").style.display = "block";
+          document.getElementById("accName").textContent = d.user.displayName;
+          document.getElementById("accEmail").textContent = d.user.email;
+        }
+      }).catch(() => {});
+  }
+}
+async function doLogin() {
+  const email = document.getElementById("loginEmail").value;
+  const pass = document.getElementById("loginPass").value;
+  try {
+    const r = await fetch(API + "/login", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({email, password}) });
+    const d = await r.json();
+    if (d.accessToken) { localStorage.setItem("at", d.accessToken); location.reload(); }
+    else document.getElementById("loginMsg").textContent = d.message || "Login failed";
+  } catch { document.getElementById("loginMsg").textContent = "Network error"; }
+}
+async function doRegister() {
+  const displayName = document.getElementById("regName").value;
+  const email = document.getElementById("regEmail").value;
+  const password = document.getElementById("regPass").value;
+  if (password.length < 8) { document.getElementById("regMsg").textContent = "Password must be 8+ characters"; return; }
+  try {
+    const r = await fetch(API + "/register", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({displayName, email, password}) });
+    const d = await r.json();
+    if (d.accessToken) { localStorage.setItem("at", d.accessToken); location.reload(); }
+    else document.getElementById("regMsg").textContent = d.message || "Registration failed";
+  } catch { document.getElementById("regMsg").textContent = "Network error"; }
+}
+function doLogout() { localStorage.removeItem("at"); location.reload(); }
+checkSession();
+</script>
+</div>`,
+  });
+
+  // ── CUSTOMER ORDERS PAGE ──
+  pages.push({
+    slug: "orders", title: "My Orders", description: "View your order history",
+    content: `<div class="page-content">
+<h1>My Orders</h1>
+<div id="ordersList"><p style="color:#565959">Sign in to view your orders.</p></div>
+<script>
+const token = localStorage.getItem("at");
+if (token) {
+  fetch("/api/v1/commerce/orders", { headers: { Authorization: "Bearer " + token } })
+    .then(r => r.json()).then(d => {
+      const orders = d.data || [];
+      if (orders.length === 0) {
+        document.getElementById("ordersList").innerHTML = '<p style="color:#565959;text-align:center;padding:40px">No orders yet. <a href="/index.html" style="color:#007185">Start shopping</a></p>';
+        return;
+      }
+      document.getElementById("ordersList").innerHTML = '<table style="width:100%;border-collapse:collapse"><thead><tr style="background:#f0f2f2"><th style="text-align:left;padding:10px">Order</th><th style="text-align:left">Date</th><th style="text-align:right">Total</th><th style="text-align:center">Status</th></tr></thead><tbody>' +
+      orders.map(o => '<tr style="border-bottom:1px solid #e7e7e7"><td style="padding:10px"><strong>' + o.orderNumber + '</strong></td><td style="padding:10px;color:#565959">' + new Date(o.createdAt).toLocaleDateString() + '</td><td style="padding:10px;text-align:right;font-weight:600">₹' + (o.total||0).toLocaleString("en-IN") + '</td><td style="padding:10px;text-align:center"><span style="background:#007600;color:white;padding:2px 8px;border-radius:4px;font-size:.8rem;text-transform:capitalize">' + (o.status||'confirmed') + '</span></td></tr>').join("") +
+      '</tbody></table>';
+    }).catch(() => {});
+}
+</script>
+</div>`,
   });
 
   // ── WRITE FILES ──

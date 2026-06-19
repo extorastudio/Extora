@@ -2911,3 +2911,30 @@ skeleton loaders, expandable sub-menus, builder content rendering,
 all CI green (717+ tests, 195+ commits, 361+ files).
 
 **717+ tests pass. 195+ commits. 361+ files. All CI green.**
+
+
+### Phase 122: Customer Account — Login, Register, My Orders on Published Site
+**Date:** June 19, 2026 | **Commit:** `(pending)`
+**Duration:** ~20 minutes
+
+**Customer-facing pages added to published site:**
+
+1. **Account page (/account.html):**
+   - Sign In / Register tabs
+   - Calls /api/v1/auth/login and /api/v1/auth/register
+   - Stores JWT in localStorage
+   - Shows "Welcome, Name" with sign-out when logged in
+   - Session check on page load via /api/v1/auth/session
+
+2. **Orders page (/orders.html):**
+   - Shows order history from /api/v1/commerce/orders
+   - Order table: number, date, total (₹), status badge
+   - Requires login (Bearer token from localStorage)
+   - Empty state: "Start shopping" link
+
+3. **Header updated:**
+   - "Sign In" link changes to "Hello, Name" when logged in
+   - Token checked via /api/v1/auth/session on page load
+   - Orders link always visible
+
+**717+ tests pass. 196+ commits. 362+ files.**
