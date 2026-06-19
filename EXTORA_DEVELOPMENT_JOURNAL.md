@@ -3135,3 +3135,30 @@ This caused ALL buttons (cart, search, login, reviews, newsletter) to silently f
 - `removeFromCart(idx)` using array index — no string escaping issues
 
 **717+ tests pass. 210+ commits. 372+ files.**
+
+
+### Phase 136: Buy Now Flow + Trending Products + Also Bought
+**Date:** June 19, 2026 | **Commit:** `cf62084`
+**Duration:** ~25 minutes
+
+**Buy Now button now functional:**
+- `buyNow(el)` calls `addToCart(el)` then opens cart modal via `showCart()`
+- Button has `data-name` and `data-price` attributes (consistent with Add to Cart)
+
+**Trending Products section added to homepage:**
+- Sorted by rating * reviews count (popularity score)
+- Shows top 8 products in grid with "Trending Products" header
+- "Featured Products" section remains (first 12 by recency)
+
+**Customers Also Bought section on product pages:**
+- Filters same-category products, sorts by rating * review score
+- Replaces generic "Similar Products"
+
+**Frequently Bought Together improved:**
+- Uses product upSellIds and crossSellIds arrays when available
+- Falls back to same-category products if <4 candidates
+- IIFE pattern inside template literal for server-side computation
+
+**Docker rebuild + deployment:** 7 containers healthy, site published (23 pages, 500 KB)
+
+**CI all green:** Lint 16/16, Typecheck 20/20, Test 34/34

@@ -157,6 +157,10 @@ function addToCart(el) {
   if (token) fetch("/api/v1/commerce/cart/add", { method:"POST", headers:{"Content-Type":"application/json", Authorization:"Bearer "+token}, body: JSON.stringify({productId: name, name, price, qty: 1}) }).catch(() => {});
   return false;
 }
+function buyNow(el) {
+  addToCart(el);
+  setTimeout(() => showCart(), 300);
+}
 function removeFromCart(idx) { const c = getCart(); c.splice(idx,1); saveCart(c); showCart(); }
 function showCart() {
   const cart = getCart();
@@ -295,7 +299,11 @@ export async function publishSite(prisma: PrismaClient, logger: Logger): Promise
   // ── HOMEPAGE ──
   const hpSections: string[] = [];
   if (deals.length > 0) hpSections.push(`<div class="section-header"><h2>Today's Deals</h2><a href="/deals.html">See all</a></div><div class="products-grid">${deals.slice(0, 6).map(productCard).join("")}</div>`);
-  hpSections.push(`<div class="section-header"><h2>Featured Products</h2><a href="/products.html">See all</a></div><div class="products-grid">${products.slice(0, 12).map(productCard).join("")}</div>`);
+  // Trending: sort by rating * reviews (popularity score)
+  const trending = [...products].sort((a: any, b: any) => ((b.rating ?? 0) * (b.reviews ?? 1)) - ((a.rating ?? 0) * (a.reviews ?? 1)));
+  hpSections.push(`<div class="section-header"><h2>Trending Products</h2><a href="/products.html">See all</a></div><div class="products-grid">${trending.slice(0, 8).map(productCard).join("")}</div>`);
+  const featured = products.slice(0, 12);
+  hpSections.push(`<div class="section-header"><h2>Featured Products</h2></div><div class="products-grid">${featured.map(productCard).join("")}</div>`);
   if (categories.length) hpSections.push(`<div class="section-header"><h2>Shop by Category</h2></div><div style="max-width:1500px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;padding:0 15px 20px">${categories.slice(0, 6).map((c: any) => `<div style="background:white;padding:20px;border-radius:4px"><h3>${e(c.name)}</h3><p style="color:#565959;font-size:.85rem">${e(c.description)}</p><a href="/category-${e(c.slug)}.html" style="color:#007185;font-size:.85rem;text-decoration:none">Shop now</a></div>`).join("")}</div>`);
   pages.push({ slug: "index", title: siteName, description: "Online Shopping", content: `<div style="background:linear-gradient(180deg,#3a5a8c 0,#131921 350px,#eaeded 350px);padding:30px 15px 60px"><div style="max-width:1500px;margin:0 auto"><h1 style="font-size:2rem;color:white;text-shadow:0 1px 2px rgba(0,0,0,.3)">${e(siteName)}</h1><p style="color:rgba(255,255,255,.9);font-size:1.1rem">Great products, great prices</p></div></div>${hpSections.join("")}` });
 
@@ -344,7 +352,7 @@ ${p.codAvailable ? `<div class="cod">Cash on Delivery available</div>` : ""}
 <div class="qty-row">Quantity: <select>${[1,2,3,4,5].map((n) => `<option value="${n}">${n}</option>`).join("")}</select></div>
 <div class="buttons">
 <button class="btn-cart" data-name="${e(p.name)}" data-price="${p.price ?? 0}" onclick="addToCart(this);return false">Add to Cart</button>
-<button class="btn-buy">Buy Now</button>
+<button class="btn-buy" data-name="${e(p.name)}" data-price="${p.price ?? 0}" onclick="buyNow(this);return false">Buy Now</button>
 </div>
 <div class="secure">🔒 Secure transaction</div>
 <div class="seller-info">Sold by <strong>${e(p.sellerName ?? "Extora Seller")}</strong> (${p.sellerRating ? stars(Number(p.sellerRating)) : "★★★★"} ${p.sellerRating ?? "4.0"})</div>
@@ -396,10 +404,10 @@ fetch("/api/v1/reviews/${e(p.id)}").then(r => r.json()).then(d => {
 </script>
 
 <div class="section-header"><h2>Frequently Bought Together</h2></div>
-<div class="products-grid">${products.filter((_: any, i: number) => i < 4).map(productCard).join("")}</div>
+<div class="products-grid">${(function() { const upsellIds: string[] = Array.isArray(p.upSellIds) ? p.upSellIds.map(String).filter(Boolean) : []; const crossSellIds: string[] = Array.isArray(p.crossSellIds) ? p.crossSellIds.map(String).filter(Boolean) : []; const fbt: any[] = []; for (const id of [...upsellIds, ...crossSellIds]) { const found = products.find((x: any) => String(x.id) === id || String(x.slug) === id); if (found) fbt.push(found); } if (fbt.length < 4) { for (const x of products) { if (x.id !== p.id && String(x.category) === String(p.category) && !fbt.find((f: any) => f.id === x.id)) { fbt.push(x); if (fbt.length >= 4) break; } } } return fbt.slice(0, 4).map(productCard).join(""); })()}</div>
 
-<div class="section-header"><h2>Similar Products</h2></div>
-<div class="products-grid">${products.filter((x: any) => x.id !== p.id).slice(0, 6).map(productCard).join("")}</div>
+<div class="section-header"><h2>Customers Also Bought</h2></div>
+<div class="products-grid">${products.filter((x: any) => x.id !== p.id && String(x.category) === String(p.category)).sort((a: any, b: any) => ((b.rating ?? 0) * (b.reviews ?? 1)) - ((a.rating ?? 0) * (a.reviews ?? 1))).slice(0, 6).map(productCard).join("")}</div>
 </div>`,
     });
   }
