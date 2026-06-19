@@ -12,11 +12,18 @@ const e = (s: any) => String(s ?? "").replaceAll("&", "&amp;").replaceAll("<", "
 const stars = (n: number) => "★".repeat(Math.floor(n)) + "☆".repeat(5 - Math.floor(n));
 const rupee = (n: number) => "₹" + n.toLocaleString("en-IN");
 
-function layout(site: { name: string }, body: string, pageTitle: string, allProducts?: any[], pluginState?: { commerce: boolean; cms: boolean }): string {
+function layout(site: { name: string }, body: string, pageTitle: string, allProducts?: any[], pluginState?: { commerce: boolean; cms: boolean }, seoMeta?: { title?: string; description?: string; keywords?: string; ogTitle?: string; ogDescription?: string; ogImage?: string; noIndex?: boolean }): string {
   const productJson = allProducts ? JSON.stringify(allProducts) : "[]";
   const cs = pluginState?.commerce ?? true;
   const cms = pluginState?.cms ?? true;
-  return `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>${e(pageTitle)} — ${e(site.name)}</title><meta name="generator" content="Extora"><style>
+  const seo = seoMeta ?? {};
+  const seoTitle = seo.title || pageTitle;
+  const seoDesc = seo.description || "";
+  const seoKeywords = seo.keywords || "";
+  const metaExtra = seoDesc ? `<meta name="description" content="${e(seoDesc)}">` + (seoKeywords ? `<meta name="keywords" content="${e(seoKeywords)}">` : "") : "";
+  const ogExtra = seo.ogTitle ? `<meta property="og:title" content="${e(seo.ogTitle || "")}"><meta property="og:description" content="${e(seo.ogDescription || "")}">${seo.ogImage ? `<meta property="og:image" content="${e(seo.ogImage)}">` : ""}` : "";
+  const robotsContent = seo.noIndex ? "noindex, nofollow" : "index, follow";
+  return `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><meta name="robots" content="${robotsContent}"><title>${e(seoTitle)} — ${e(site.name)}</title><meta name="generator" content="Extora">${metaExtra}${ogExtra}<style>
 *{box-sizing:border-box;margin:0;padding:0}
 .announce-bar{background:#232f3e;color:white;text-align:center;padding:8px 16px;font-size:.82rem;position:relative;display:flex;align-items:center;justify-content:center;gap:12px}
 .announce-bar .announce-close{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:rgba(255,255,255,.6);cursor:pointer;font-size:1.1rem;padding:2px 6px}
@@ -1499,9 +1506,18 @@ renderCompare();
     name: String(p.name ?? ""), slug: String(p.slug ?? ""),
     category: String(p.category ?? ""), price: Number(p.price ?? 0),
   }));
+
+  // Fetch SEO meta for product pages
+  const seoMetaMap: Record<string, any> = {};
+  try {
+    const metas = await (prisma as any).$queryRawUnsafe(`SELECT * FROM "plugin_seo_meta"`) as any[];
+    for (const m of metas) seoMetaMap[`${m.resource_type}_${m.resource_id}`] = m;
+  } catch { /* SEO table optional */ }
+
   let totalSize = 0;
   for (const page of pages) {
-    const html = layout(site, page.content, page.title, allProducts, pluginState);
+    const seoMeta = seoMetaMap[`product_${page.slug}`] ?? undefined;
+    const html = layout(site, page.content, page.title, allProducts, pluginState, seoMeta);
     const fileName = page.slug === "index" ? "index.html" : `${page.slug}.html`;
     await writeFile(join(outputDir, fileName), html, "utf-8");
     totalSize += Buffer.byteLength(html, "utf-8");

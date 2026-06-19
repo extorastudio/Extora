@@ -3712,3 +3712,35 @@ All plugin-dependent menu items now conditionally render based on active plugin 
 **Docker deploy:** 34 pages, 2033 KB, 7 containers healthy
 
 **CI all green:** Lint 16/16, Typecheck 20/20, Test 34/34
+
+
+### Phase 158: [Plugin] SEO Meta Tags — API + Publishing Engine
+**Date:** June 19, 2026 | **Commit:** (upcoming)
+**Duration:** ~20 minutes
+
+**Layer:** Plugin (SEO) + Core (publishing engine integration)
+
+**[Plugin — SEO] API Routes (in admin-routes.ts, marked `[PLUGIN: SEO]`):**
+- `GET /api/v1/seo/meta?resourceType=product&resourceId=...` — fetch meta for a resource
+- `POST /api/v1/seo/meta` — upsert SEO meta (title, description, keywords, og:title, og:description, og:image, noIndex)
+- Uses raw SQL to access `plugin_seo_meta` table (created by SEO plugin's onInstall)
+
+**[Core — Publishing Engine] SEO Meta Integration:**
+- Layout function now accepts `seoMeta` parameter
+- Custom `<title>`, `<meta name="description">`, `<meta name="keywords">` injected
+- Open Graph tags (og:title, og:description, og:image) added
+- `robots` meta tag: "index, follow" or "noindex, nofollow" based on `noIndex`
+- SEO meta fetched from DB for each product page during publish
+- Falls back to default title if no SEO meta set
+
+**Version bump:** `@extora/seo` 0.0.0 → 0.1.0
+
+**Architectural note — All development follows layers:**
+1. Plugin-Specific → `plugins/<name>/` + version in extora.json
+2. Theme-Specific → `themes/<name>/` + version in extora.json  
+3. Core/Studio → `apps/core/`, `apps/studio/` + package.json version
+4. AGENTS.md updated with architecture + versioning rules
+
+**Docker deploy:** 34 pages, 2033 KB, 7 containers healthy
+
+**CI all green:** Lint 16/16, Typecheck 20/20, Test 34/34

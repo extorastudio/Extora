@@ -165,6 +165,61 @@ nginx /storage/ proxy → MinIO (anonymous reads, no credentials exposed)
 
 ---
 
+## ARCHITECTURE: WHAT GOES WHERE
+
+Every feature, component, or change MUST be categorized into one of three layers. This determines where the code lives and how it's managed:
+
+### 1. Core/Studio (Platform Layer)
+**Location:** `apps/core/src/`, `apps/studio/src/`, `packages/`
+**What belongs here:** Platform infrastructure that ALL plugins/themes depend on.
+- Fastify server, Prisma schema, auth engine, RBAC, event bus, hooks
+- Admin panel shell (sidebar, routing, layout)
+- Publishing engine, plugin loader, bootstrap
+- Media upload (generic), system config, monitoring, backups
+- **Version in:** `package.json` (root + apps/core + apps/studio)
+- **No version bump needed unless:** New API endpoints, schema changes, breaking changes
+
+### 2. Plugin-Specific (Feature Layer)
+**Location:** `plugins/<name>/`
+**What belongs here:** All business logic and features.
+- Commerce: products, categories, cart, checkout, orders, brands, tags
+- CMS: content entries, builder elements, page types
+- Forms: form builder, submissions, email notifications
+- SEO: meta tags, sitemap, structured data
+- Analytics: tracking, reports, dashboards
+- Product-Analytics: sales reports, inventory analysis
+- Auth: OAuth providers, MFA, password policies
+- **Version in:** `plugins/<name>/extora.json` (MUST bump on every change)
+- **When disabled:** All features from this plugin must disappear from BOTH admin panel AND published site
+- **When enabled:** All features reappear
+
+### 3. Theme-Specific (Presentation Layer)
+**Location:** `themes/<name>/`
+**What belongs here:** Visual presentation and layout.
+- Gallery layout, zoom effects, thumbnail navigation
+- Color schemes, typography, spacing
+- Product card designs, button styles, badges
+- Header/footer layouts, mobile responsive breakpoints
+- Loading skeletons, empty states, announcement bars
+- **Version in:** `themes/<name>/extora.json` (MUST bump on every change)
+- **Can override:** Plugin default templates via filter hooks
+
+### VERSIONING RULES
+- **Plugin updated:** MUST bump version in `plugins/<name>/extora.json`
+- **Theme updated:** MUST bump version in `themes/<name>/extora.json`
+- **Core updated:** Bump root `package.json` version
+- **Studio updated:** Bump `apps/studio/package.json` version
+- **Version format:** Semver (major.minor.patch) — `1.0.0` → `1.0.1` (patch), `1.1.0` (minor), `2.0.0` (major)
+
+### JOURNAL RULES
+- Update `EXTORA_DEVELOPMENT_JOURNAL.md` after **every** change
+- Include: Phase number, date, duration, files changed, what was built, verification
+- Append only — never delete or overwrite old entries
+- Single commit per phase (code + journal together)
+- Build + deploy + CI verification must be documented
+
+---
+
 ## CODE CONVENTIONS & GOTCHAS
 
 ### Prisma — Always use `as any` for new/unknown models
