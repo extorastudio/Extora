@@ -3674,3 +3674,41 @@ All plugin-dependent menu items now conditionally render based on active plugin 
 **When a plugin is deactivated:** Its menus disappear from sidebar.
 **When reactivated:** Menus reappear.
 **Products API still works** even with commerce deactivated (routes are in core, not plugin)
+
+
+### Phase 157: Plugin Gating on Published Site (Commerce/CMS)
+**Date:** June 19, 2026 | **Commit:** (upcoming)
+**Duration:** ~25 minutes
+
+**Plugin state now reflected on published customer-facing site:**
+
+**Server-side gating (publishing engine):**
+- Checks active plugins via `prisma.plugin.findMany({ where: { isActive: true } })`
+- `isCommerceActive` → when false, skips wishlist, orders, account, compare pages
+- `isCmsActive` → when false, skips content entry pages
+- Plugin state passed to `layout()` function
+
+**Client-side gating (JS in footer):**
+- `var COMMERCE_ACTIVE = true/false` embedded in every published page
+- `var CMS_ACTIVE = true/false` embedded in every published page
+- When commerce inactive → Cart, Wishlist, Orders nav links hidden via JS
+- When CMS inactive → CMS-dependent features hidden
+
+**Verified with test cycle:**
+- Commerce deactivated → 31 pages (down from 34), `COMMERCE_ACTIVE = false`
+- CMS deactivated → `CMS_ACTIVE = false` in HTML
+- Both reactivated → 34 pages restored, flags = true
+
+**Admin panel gating (DashboardLayout.tsx — previous phase):**
+- Products/Orders menus hidden when commerce deactivated
+- Content/Builder menus hidden when CMS deactivated
+- Analytics hidden when product-analytics deactivated
+
+**Backend API gating (admin-routes.ts — to note):**
+- Products/orders API routes are in core (not plugin-gated)
+- Plugin gating affects published site + admin sidebar visibility  
+- API still works even with plugins disabled (admin can still manage data)
+
+**Docker deploy:** 34 pages, 2033 KB, 7 containers healthy
+
+**CI all green:** Lint 16/16, Typecheck 20/20, Test 34/34

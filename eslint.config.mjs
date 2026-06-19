@@ -42,6 +42,7 @@ export default tseslint.config(
       "@typescript-eslint/no-misused-promises": "off",
       "no-console": "off",
       "no-useless-escape": "off",
+      "@typescript-eslint/prefer-nullish-coalescing": "off",
     },
   },
   {

@@ -1028,7 +1028,7 @@ export function registerAdminRoutes(server: FastifyInstance, prisma: PrismaClien
         inStock: inStock ?? 0,
         outOfStock: outOfStock ?? 0,
         lowStock: lowStock ?? 0,
-        estimatedInventoryValue: ((totalStockValue as any)?._sum?.price ?? 0),
+        estimatedInventoryValue: ((totalStockValue)?._sum?.price ?? 0),
       },
     });
   });

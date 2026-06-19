@@ -12,8 +12,10 @@ const e = (s: any) => String(s ?? "").replaceAll("&", "&amp;").replaceAll("<", "
 const stars = (n: number) => "★".repeat(Math.floor(n)) + "☆".repeat(5 - Math.floor(n));
 const rupee = (n: number) => "₹" + n.toLocaleString("en-IN");
 
-function layout(site: { name: string }, body: string, pageTitle: string, allProducts?: any[]): string {
+function layout(site: { name: string }, body: string, pageTitle: string, allProducts?: any[], pluginState?: { commerce: boolean; cms: boolean }): string {
   const productJson = allProducts ? JSON.stringify(allProducts) : "[]";
+  const cs = pluginState?.commerce ?? true;
+  const cms = pluginState?.cms ?? true;
   return `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>${e(pageTitle)} — ${e(site.name)}</title><meta name="generator" content="Extora"><style>
 *{box-sizing:border-box;margin:0;padding:0}
 .announce-bar{background:#232f3e;color:white;text-align:center;padding:8px 16px;font-size:.82rem;position:relative;display:flex;align-items:center;justify-content:center;gap:12px}
@@ -249,6 +251,13 @@ footer .inner{grid-template-columns:repeat(2,1fr)}
 <div class="bt">&copy; 2026 ${e(site.name)}. Published with Extora.</div>
 </div></footer>
 <script>
+var COMMERCE_ACTIVE = ${cs};
+var CMS_ACTIVE = ${cms};
+if (!COMMERCE_ACTIVE) {
+  document.querySelectorAll(".nav-r a").forEach(function(a) {
+    if (a.textContent.includes("Wishlist") || a.textContent.includes("Cart") || a.href.includes("orders.html")) a.style.display = "none";
+  });
+}
 function getCart() { try { return JSON.parse(localStorage.getItem("extora_cart") || "[]"); } catch { return []; } }
 function saveCart(c) { localStorage.setItem("extora_cart", JSON.stringify(c)); updateCartCount(); }
 function updateCartCount() { const c = getCart(); const count = c.reduce((s,i) => s + i.qty, 0); const el = document.getElementById("cartCount"); if (el) el.textContent = count || ""; }
@@ -735,6 +744,16 @@ export async function publishSite(prisma: PrismaClient, logger: Logger): Promise
   const deals = products.filter((p: any) => p.dealType);
   const site = { name: siteName };
 
+  // ── Check active plugins for client-side gating ──
+  let isCommerceActive = true, isCmsActive = true;
+  try {
+    const plugins = await (prisma as any).plugin.findMany({ where: { isActive: true } });
+    const names = plugins.map((p: any) => p.name ?? "");
+    isCommerceActive = names.some((n: string) => n.includes("commerce"));
+    isCmsActive = names.some((n: string) => n.includes("cms"));
+  } catch { /* plugin table optional */ }
+  const pluginState = { commerce: isCommerceActive, cms: isCmsActive };
+
   // ── HOMEPAGE ──
   const hpSections: string[] = [];
   if (deals.length > 0) hpSections.push(`<div class="section-header"><h2>Today's Deals <span class="deal-timer" id="hpDealTimer">Ends in: <span class="time-box" id="hpTimerH">00</span>h <span class="time-box" id="hpTimerM">00</span>m <span class="time-box" id="hpTimerS">00</span>s</span></h2><a href="/deals.html">See all</a></div><div class="products-grid">${deals.slice(0, 6).map(productCard).join("")}</div>`);
@@ -1176,7 +1195,7 @@ function renderContentBody(body: string): string {
 }
 
 // ── CONTENT PAGES ──
-  for (const entry of contentEntries) {
+  if (isCmsActive) for (const entry of contentEntries) {
     pages.push({
       slug: String(entry.slug),
       title: String(entry.title),
@@ -1267,7 +1286,7 @@ doSearch();
   });
 
   // ── CUSTOMER ACCOUNT PAGE ──
-  pages.push({
+  if (isCommerceActive) pages.push({
     slug: "account", title: "My Account", description: "Sign in or create an account",
     content: `<div class="page-content" style="max-width:500px;margin:40px auto">
 <div style="display:flex;gap:0;margin-bottom:24px">
@@ -1372,7 +1391,7 @@ checkSession();
   });
 
   // ── CUSTOMER ORDERS PAGE ──
-  pages.push({
+  if (isCommerceActive) pages.push({
     slug: "orders", title: "My Orders", description: "View your order history",
     content: `<div class="page-content">
 <h1>My Orders</h1>
@@ -1421,7 +1440,7 @@ renderWishlist();
   });
 
   // ── PRODUCT COMPARISON PAGE ──
-  pages.push({
+  if (isCommerceActive) pages.push({
     slug: "compare", title: "Compare Products", description: "Side by side comparison",
     content: `<div class="page-content">
 <h1>Compare Products</h1>
@@ -1482,7 +1501,7 @@ renderCompare();
   }));
   let totalSize = 0;
   for (const page of pages) {
-    const html = layout(site, page.content, page.title, allProducts);
+    const html = layout(site, page.content, page.title, allProducts, pluginState);
     const fileName = page.slug === "index" ? "index.html" : `${page.slug}.html`;
     await writeFile(join(outputDir, fileName), html, "utf-8");
     totalSize += Buffer.byteLength(html, "utf-8");
