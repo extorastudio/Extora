@@ -40,6 +40,7 @@ export default function DashboardLayout({ children, currentPage }: DashboardLayo
   const commerceActive = activePlugins.some((p) => p.name.includes("commerce") && p.isActive);
   const cmsActive = activePlugins.some((p) => p.name.includes("cms") && p.isActive);
   const analyticsActive = activePlugins.some((p) => p.name.includes("product-analytics") && p.isActive);
+  const seoActive = activePlugins.some((p) => p.name.includes("seo") && p.isActive);
 
   // Build nav items dynamically based on active plugins
   const navItems: NavItem[] = [
@@ -57,6 +58,7 @@ export default function DashboardLayout({ children, currentPage }: DashboardLayo
     } as NavItem] : []),
     ...(commerceActive ? [{ id: "orders", label: "Orders", icon: ShoppingCart } as NavItem] : []),
     ...(analyticsActive ? [{ id: "analytics", label: "Analytics", icon: TrendingUp } as NavItem] : []),
+    ...(seoActive ? [{ id: "seo", label: "SEO", icon: Globe } as NavItem] : []),
     ...(cmsActive ? [{ id: "content", label: "Content", icon: FileText } as NavItem] : []),
     ...(cmsActive ? [{
       id: "builder", label: "Builder", icon: Layout,

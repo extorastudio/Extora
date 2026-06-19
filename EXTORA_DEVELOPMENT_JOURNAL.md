@@ -3744,3 +3744,42 @@ All plugin-dependent menu items now conditionally render based on active plugin 
 **Docker deploy:** 34 pages, 2033 KB, 7 containers healthy
 
 **CI all green:** Lint 16/16, Typecheck 20/20, Test 34/34
+
+
+### Phase 159: WordPress-Style SEO Settings — Admin Panel + Meta Injection
+**Date:** June 19, 2026 | **Commit:** (upcoming)
+**Duration:** ~30 minutes
+
+**Layer:** Plugin (SEO) + Core (publishing engine, Prisma schema) + Studio (UI)
+
+**[Plugin — SEO]**
+- Prisma model `SeoMeta` added to schema (@map "plugin_seo_meta")
+- ORM-based CRUD: POST /api/v1/seo/meta (upsert), GET (findUnique)
+- Stored per resourceType + resourceId
+
+**[Core — Publishing Engine]**
+- `seoMetaMap` built from `seoMeta.findMany()` query
+- Meta tags injected into `<head>`: description, keywords, og:title, og:description, og:image
+- `<meta name="robots">` with "index, follow" or "noindex, nofollow"
+- SEO title overrides page title
+  
+**[Studio — SeoSettings.tsx]**
+- WordPress-style SEO settings page at #/seo
+- Left panel: Product list with search + SEO status indicator (green eye = has meta)
+- Right panel: SEO meta editor form
+  - Meta title with char counter (50-60 recommended)
+  - Meta description textarea with char counter (150-160 recommended)
+  - Keywords input
+  - OG section: title, description, image URL
+  - Noindex checkbox
+- Save button + success feedback
+- Global SEO defaults section (template-based)
+
+**Dynamic menu:** SEO nav item appears only when seo plugin active (seoActive check)
+**SEO plugin bumped:** v0.1.0 → v0.2.0
+
+**Verified:** Published product page shows 9 meta tags including custom description, keywords, og:title, og:image
+
+**Docker deploy:** 34 pages, 2034 KB, 7 containers healthy
+
+**CI all green:** Lint 16/16, Typecheck 20/20, Test 34/34

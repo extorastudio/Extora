@@ -1510,13 +1510,17 @@ renderCompare();
   // Fetch SEO meta for product pages
   const seoMetaMap: Record<string, any> = {};
   try {
-    const metas = await (prisma as any).$queryRawUnsafe(`SELECT * FROM "plugin_seo_meta"`) as any[];
-    for (const m of metas) seoMetaMap[`${m.resource_type}_${m.resource_id}`] = m;
+    const metas = await (prisma as any).seoMeta.findMany() ?? [];
+    for (const m of metas) seoMetaMap[`${m.resourceType}_${m.resourceId}`] = m;
   } catch { /* SEO table optional */ }
 
   let totalSize = 0;
   for (const page of pages) {
-    const seoMeta = seoMetaMap[`product_${page.slug}`] ?? undefined;
+    let resourceId = page.slug;
+    if (page.slug.startsWith("product-")) resourceId = page.slug.replace("product-", "");
+    else if (page.slug.startsWith("category-")) resourceId = page.slug.replace("category-", "");
+    else if (page.slug.startsWith("brand-")) resourceId = page.slug.replace("brand-", "");
+    const seoMeta = seoMetaMap[`product_${resourceId}`] ?? undefined;
     const html = layout(site, page.content, page.title, allProducts, pluginState, seoMeta);
     const fileName = page.slug === "index" ? "index.html" : `${page.slug}.html`;
     await writeFile(join(outputDir, fileName), html, "utf-8");

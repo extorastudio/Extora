@@ -1052,11 +1052,9 @@ export function registerAdminRoutes(server: FastifyInstance, prisma: PrismaClien
     await authenticate(request, reply, prisma);
     const { resourceType, resourceId } = request.query as { resourceType?: string; resourceId?: string };
     try {
-      const metas = await (prisma as any).$queryRawUnsafe(
-        `SELECT * FROM "plugin_seo_meta" WHERE "resource_type" = \$1 AND "resource_id" = \$2`,
-        resourceType ?? "product", resourceId ?? ""
-      ) as any[];
-      return await reply.send({ success: true, data: metas[0] ?? null });
+      const id = `${resourceType ?? "product"}_${resourceId ?? ""}`;
+      const meta = await (prisma as any).seoMeta.findUnique({ where: { id } });
+      return await reply.send({ success: true, data: meta });
     } catch {
       return await reply.send({ success: true, data: null });
     }
@@ -1067,13 +1065,12 @@ export function registerAdminRoutes(server: FastifyInstance, prisma: PrismaClien
     const { resourceType, resourceId, title, description, keywords, ogTitle, ogDescription, ogImage, noIndex } = request.body as Record<string, unknown>;
     if (!resourceType || !resourceId) return await reply.status(400).send({ code: "MISSING_FIELDS", message: "resourceType and resourceId required" });
     try {
-      await (prisma as any).$executeRawUnsafe(
-        `INSERT INTO "plugin_seo_meta" (id, resource_type, resource_id, title, description, keywords, og_title, og_description, og_image, no_index) VALUES (\$1, \$2, \$3, \$4, \$5, \$6, \$7, \$8, \$9, \$10) ON CONFLICT (id) DO UPDATE SET title=\$4, description=\$5, keywords=\$6, og_title=\$7, og_description=\$8, og_image=\$9, no_index=\$10`,
-        `${resourceType}_${resourceId}`, resourceType, resourceId,
-        title ?? null, description ?? null, keywords ?? null,
-        ogTitle ?? null, ogDescription ?? null, ogImage ?? null,
-        noIndex ? true : false
-      );
+      const id = `${resourceType}_${resourceId}`;
+      await (prisma as any).seoMeta.upsert({
+        where: { id },
+        create: { id, resourceType, resourceId, title, description, keywords, ogTitle, ogDescription, ogImage, noIndex: !!noIndex },
+        update: { title, description, keywords, ogTitle, ogDescription, ogImage, noIndex: !!noIndex },
+      });
       return await reply.send({ success: true, message: "SEO meta saved" });
     } catch (e: any) {
       return await reply.status(500).send({ code: "DB_ERROR", message: e?.message ?? "Failed to save meta" });

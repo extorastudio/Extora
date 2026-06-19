@@ -533,3 +533,21 @@ model ThemeSetting {
   @@unique([themeName, key])
   @@index([themeName])
 }
+
+model SeoMeta {
+  id           String   @id
+  resourceType String   @map("resource_type")
+  resourceId   String   @map("resource_id")
+  title        String?
+  description  String?
+  keywords     String?
+  ogTitle      String?  @map("og_title")
+  ogDescription String? @map("og_description")
+  ogImage      String?  @map("og_image")
+  canonicalUrl String?  @map("canonical_url")
+  noIndex      Boolean  @default(false) @map("no_index")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@map("plugin_seo_meta")
+}

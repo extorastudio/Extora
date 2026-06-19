@@ -1,17 +1,38 @@
 {
   "name": "@extora/seo",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "type": "plugin",
   "title": "Extora SEO",
-  "description": "Search engine optimization — meta tags, sitemaps, Open Graph, structured data",
-  "author": { "name": "Extora Team", "email": "team@extora.dev" },
+  "description": "Search engine optimization \u2014 meta tags, sitemaps, Open Graph, structured data",
+  "author": {
+    "name": "Extora Team",
+    "email": "team@extora.dev"
+  },
   "license": "UNLICENSED",
-  "extora": { "core": ">=1.0.0 <2.0.0" },
-  "dependencies": { "@extora/cms": ">=1.0.0" },
-  "permissions": ["database:read", "database:write", "http:outbound:*"],
-  "entry": { "server": "dist/index.js", "studio": "dist/studio/index.js" },
+  "extora": {
+    "core": ">=1.0.0 <2.0.0"
+  },
+  "dependencies": {
+    "@extora/cms": ">=1.0.0"
+  },
+  "permissions": [
+    "database:read",
+    "database:write",
+    "http:outbound:*"
+  ],
+  "entry": {
+    "server": "dist/index.js",
+    "studio": "dist/studio/index.js"
+  },
   "hooks": {
-    "actions": ["content.published", "content.updated"],
-    "filters": ["seo.meta_tags", "seo.sitemap", "seo.robots"]
+    "actions": [
+      "content.published",
+      "content.updated"
+    ],
+    "filters": [
+      "seo.meta_tags",
+      "seo.sitemap",
+      "seo.robots"
+    ]
   }
 }
