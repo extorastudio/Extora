@@ -100,6 +100,23 @@ body{font-family:Arial,Helvetica,sans-serif;color:#0f1111;background:#eaeded;lin
 .search-suggestions .sug-item .sug-cat{color:#565959;font-size:.8rem}
 .search-suggestions .sug-item .sug-price{color:#b12704;font-weight:600;font-size:.85rem}
 .search-suggestions .sug-highlight{font-weight:700;color:#c7511f}
+.compare-check{position:absolute;top:6px;left:6px;z-index:2;font-size:1.1rem;color:#888;transition:color .2s;line-height:1}
+.compare-check.checked{color:#ffd814}
+.compare-bar{position:fixed;bottom:0;left:0;right:0;background:#232f3e;color:white;padding:12px 20px;display:none;z-index:999;justify-content:space-between;align-items:center;box-shadow:0 -2px 12px rgba(0,0,0,.2)}
+.compare-bar .cb-items{display:flex;gap:16px;align-items:center;flex:1;overflow-x:auto}
+.compare-bar .cb-item{display:flex;align-items:center;gap:6px;font-size:.85rem;white-space:nowrap}
+.compare-bar .cb-item button{background:rgba(255,255,255,.15);border:none;color:white;border-radius:50%;width:20px;height:20px;cursor:pointer;font-size:.7rem;display:flex;align-items:center;justify-content:center}
+.compare-bar .cb-actions{display:flex;gap:8px}
+.compare-bar .cb-actions button{padding:8px 18px;border-radius:4px;border:none;font-weight:600;cursor:pointer;font-size:.8rem}
+.compare-bar .cb-compare{background:#ffd814;color:#0f1111}
+.compare-bar .cb-clear{background:rgba(255,255,255,.15);color:white}
+.compare-table{width:100%;border-collapse:collapse}
+.compare-table th,.compare-table td{padding:12px 16px;font-size:.9rem;border:1px solid #e7e7e7;vertical-align:top}
+.compare-table th{background:#f0f2f2;text-align:left;font-weight:600;min-width:120px}
+.compare-table td{text-align:center}
+.compare-table td:first-child{text-align:left;background:#f8f8f8;font-weight:600}
+.compare-table .ct-img{width:120px;height:120px;object-fit:contain}
+.compare-table .ct-price{font-size:1.1rem;color:#b12704;font-weight:600}
 
 .section-header{display:flex;align-items:baseline;gap:12px;padding:20px 15px 8px}
 .section-header h2{font-size:1.3rem;color:#0f1111}
@@ -215,6 +232,8 @@ document.addEventListener("DOMContentLoaded", function() {
   updateCartCount();
   updateWishCount();
   updateVisibleHearts();
+  updateCompareBar();
+  updateCompareChecks();
   trackPageView();
   const token = localStorage.getItem("at");
   const accEl = document.getElementById("headerAccount");
@@ -333,7 +352,45 @@ function updateVisibleHearts() {
     else { h.textContent = "♡"; h.classList.remove("active"); }
   });
 }
+// ── Compare Products ──
+function getCompare() { try { return JSON.parse(localStorage.getItem("extora_compare") || "[]"); } catch { return []; } }
+function saveCompare(c) { localStorage.setItem("extora_compare", JSON.stringify(c)); updateCompareBar(); updateCompareChecks(); }
+function updateCompareBar() {
+  const c = getCompare(); const bar = document.getElementById("compareBar");
+  const items = document.getElementById("compareItems");
+  if (!bar || !items) return;
+  if (c.length === 0) { bar.style.display = "none"; return; }
+  bar.style.display = "flex";
+  items.innerHTML = c.map(function(i, idx) {
+    return '<div class="cb-item"><span>' + i.name + '</span><button onclick="removeCompare(' + idx + ')">✕</button></div>';
+  }).join("");
+}
+function updateCompareChecks() {
+  var c = getCompare(); var slugs = c.map(function(i) { return i.slug; });
+  document.querySelectorAll(".compare-check").forEach(function(el) {
+    if (slugs.indexOf(el.getAttribute("data-slug")) !== -1) { el.textContent = "☑"; el.classList.add("checked"); }
+    else { el.textContent = "◻"; el.classList.remove("checked"); }
+  });
+}
+function toggleCompare(el) {
+  var slug = el.getAttribute("data-slug");
+  var c = getCompare(); var idx = c.findIndex(function(i) { return i.slug === slug; });
+  if (idx !== -1) { c.splice(idx, 1); }
+  else if (c.length < 3) { c.push({slug: slug, name: el.getAttribute("data-name"), price: el.getAttribute("data-price"), category: el.getAttribute("data-category"), brand: el.getAttribute("data-brand"), img: el.getAttribute("data-img"), rating: el.getAttribute("data-rating"), reviews: el.getAttribute("data-reviews")}); }
+  else { alert("Compare up to 3 products"); return; }
+  saveCompare(c);
+}
+function removeCompare(idx) { var c = getCompare(); c.splice(idx, 1); saveCompare(c); }
+function clearCompare() { localStorage.removeItem("extora_compare"); updateCompareBar(); updateCompareChecks(); }
+function showCompare() { location.href = "/compare.html"; }
 </script>
+<div class="compare-bar" id="compareBar" style="display:none">
+<div class="cb-items" id="compareItems"></div>
+<div class="cb-actions">
+<button class="cb-clear" onclick="clearCompare()">Clear</button>
+<button class="cb-compare" onclick="showCompare()">Compare Now</button>
+</div>
+</div>
 </body></html>`;
 }
 
@@ -346,6 +403,7 @@ function productCard(p: any): string {
   return `<div class="product-card">
 <a href="/product-${e(p.slug)}.html">
 <span class="wishlist-btn" data-slug="${e(p.slug)}" data-name="${e(p.name)}" onclick="toggleWishlist(this);event.preventDefault();event.stopPropagation()">♡</span>
+<span class="compare-check" onclick="toggleCompare(this);event.preventDefault();event.stopPropagation()" data-slug="${e(p.slug)}" data-name="${e(p.name)}" data-price="${price}" data-category="${e(p.category)}" data-brand="${e(p.brand)}" data-img="${e(img)}" data-rating="${rating}" data-reviews="${p.reviews ?? 0}">◻</span>
 <div class="img-wrap">${img ? `<img src="${e(img)}" alt="" loading="lazy">` : "No Image"}</div>
 <span class="pname">${e(p.name)}</span>
 ${rating > 0 ? `<span class="stars">${stars(rating)}</span>` : ""}
@@ -378,6 +436,8 @@ export async function publishSite(prisma: PrismaClient, logger: Logger): Promise
   const featured = products.slice(0, 12);
   hpSections.push(`<div class="section-header"><h2>Featured Products</h2></div><div class="products-grid">${featured.map(productCard).join("")}</div>`);
   if (categories.length) hpSections.push(`<div class="section-header"><h2>Shop by Category</h2></div><div style="max-width:1500px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;padding:0 15px 20px">${categories.slice(0, 6).map((c: any) => `<div style="background:white;padding:20px;border-radius:4px"><h3>${e(c.name)}</h3><p style="color:#565959;font-size:.85rem">${e(c.description)}</p><a href="/category-${e(c.slug)}.html" style="color:#007185;font-size:.85rem;text-decoration:none">Shop now</a></div>`).join("")}</div>`);
+  // Recently Viewed (client-side render)
+  hpSections.push(`<div id="homeRecentlyViewed"></div><script>try{var v=JSON.parse(localStorage.getItem("extora_viewed")||"[]");if(v.length>0){document.getElementById("homeRecentlyViewed").innerHTML='<div class="section-header"><h2>Recently Viewed</h2></div><div class="products-grid">'+v.slice(0,6).map(function(x){return'<div class="product-card"><a href="'+x.url+'" style="text-decoration:none;color:inherit;display:flex;flex-direction:column;padding:16px;height:100%"><span class="pname">'+x.name+'</span><span class="stock-ok">View Again</span></a></div>'}).join("")+'</div>'}}catch(e){}</script>`);
   pages.push({ slug: "index", title: siteName, description: "Online Shopping", content: `<div style="background:linear-gradient(180deg,#3a5a8c 0,#131921 350px,#eaeded 350px);padding:30px 15px 60px"><div style="max-width:1500px;margin:0 auto"><h1 style="font-size:2rem;color:white;text-shadow:0 1px 2px rgba(0,0,0,.3)">${e(siteName)}</h1><p style="color:rgba(255,255,255,.9);font-size:1.1rem">Great products, great prices</p></div></div>${hpSections.join("")}` });
 
   // ── PRODUCT DETAIL PAGES (Amazon.in style) ──
@@ -766,6 +826,39 @@ function renderWishlist() {
   }).join("");
 }
 renderWishlist();
+</script>
+</div>`,
+  });
+
+  // ── PRODUCT COMPARISON PAGE ──
+  pages.push({
+    slug: "compare", title: "Compare Products", description: "Side by side comparison",
+    content: `<div class="page-content">
+<h1>Compare Products</h1>
+<div id="compareContent"><p style="color:#565959;text-align:center;padding:40px">Select 2-3 products using the ☐ checkbox on product cards, then click Compare Now.</p></div>
+<script>
+function renderCompare() {
+  var c = getCompare();
+  var el = document.getElementById("compareContent");
+  if (c.length < 2) { el.innerHTML = '<p style="color:#565959;text-align:center;padding:40px">Select at least 2 products to compare. <a href="/index.html" style="color:#007185">Browse products</a></p>'; return; }
+  var rows = [
+    {label:"Image", values:c.map(function(i){return i.img ? '<img src="'+i.img+'" class="ct-img" alt="">' : '—'})},
+    {label:"Name", values:c.map(function(i){return i.name})},
+    {label:"Price", values:c.map(function(i){return '<span class="ct-price">₹'+Number(i.price||0).toLocaleString("en-IN")+'</span>'})},
+    {label:"Category", values:c.map(function(i){return i.category||'—'})},
+    {label:"Brand", values:c.map(function(i){return i.brand||'—'})},
+    {label:"Rating", values:c.map(function(i){var r=Number(i.rating||0);return r>0?'★'.repeat(Math.floor(r))+'☆'.repeat(5-Math.floor(r))+' '+r.toFixed(1)+' ('+i.reviews+')':'—'})},
+    {label:"Action", values:c.map(function(i){return '<a href="/product-'+i.slug+'.html" style="background:#ffd814;border:1px solid #fcd200;padding:8px 20px;border-radius:20px;text-decoration:none;color:#0f1111;font-weight:600;font-size:.85rem;display:inline-block">View</a>'})}
+  ];
+  var html = '<table class="compare-table"><thead><tr><th></th>' + c.map(function(){return '<th></th>'}).join("") + '</tr></thead><tbody>';
+  rows.forEach(function(row) {
+    html += '<tr><td>'+row.label+'</td>' + row.values.map(function(v){return '<td>'+v+'</td>'}).join("") + '</tr>';
+  });
+  html += '</tbody></table>';
+  html += '<div style="margin-top:16px;text-align:center"><button onclick="clearCompare();location.reload()" style="padding:8px 20px;background:rgba(255,255,255,.15);border:1px solid #ddd;border-radius:4px;cursor:pointer;font-size:.85rem">Clear & Start Over</button></div>';
+  el.innerHTML = html;
+}
+renderCompare();
 </script>
 </div>`,
   });

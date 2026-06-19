@@ -3188,3 +3188,26 @@ This caused ALL buttons (cart, search, login, reviews, newsletter) to silently f
 **Docker rebuild + deployment:** 7 containers healthy, 24 pages, 666 KB
 
 **CI all green:** Lint 16/16, Typecheck 20/20, Test 34/34
+
+
+### Phase 138: Product Comparison + Homepage Recently Viewed
+**Date:** June 19, 2026 | **Commit:** (upcoming)
+**Duration:** ~25 minutes
+
+**Product Comparison:**
+- ◻ checkbox on every product card (top-left, next to wishlist heart)
+- Click toggles ☑, stored in localStorage as `extora_compare`
+- Max 3 products, sticky compare bar at bottom of page
+- Compare bar shows selected names with ✕ remove buttons
+- "Compare Now" button navigates to /compare.html
+- Comparison table: Image, Name, Price, Category, Brand, Rating, Action (View link)
+- Clear All resets selection
+
+**Recently Viewed on Homepage:**
+- Client-side render from localStorage `extora_viewed`
+- Displays up to 6 recently viewed products below Shop by Category
+- Only appears when user has viewed products
+
+**Docker deploy:** 25 pages, 804 KB, 7 containers healthy
+
+**CI all green:** Lint 16/16, Typecheck 20/20, Test 34/34
