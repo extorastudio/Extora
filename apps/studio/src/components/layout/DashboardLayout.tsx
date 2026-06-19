@@ -16,6 +16,7 @@ import {
   Menu,
   X,
   Package,
+  ShoppingCart,
   Globe,
   CheckCircle,
   AlertCircle,
@@ -30,6 +31,7 @@ interface DashboardLayoutProps {
 const navItems = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
   { id: "products", label: "Products", icon: Package },
+  { id: "orders", label: "Orders", icon: ShoppingCart },
   { id: "content", label: "Content", icon: FileText },
   { id: "media", label: "Media", icon: Image },
   { id: "users", label: "Users", icon: Users },

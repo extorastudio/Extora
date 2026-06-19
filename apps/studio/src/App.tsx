@@ -14,6 +14,7 @@ import ProductsPage from "./pages/Products";
 import ContentPage from "./pages/Content";
 import MediaPage from "./pages/Media";
 import ThemeSettingsPage from "./pages/ThemeSettings";
+import OrdersPage from "./pages/Orders";
 import { Package, Users2, Clock } from "lucide-react";
 import { CardSkeleton } from "./components/ui/Skeleton";
 
@@ -101,6 +102,7 @@ const PAGE_MAP: Record<string, React.ComponentType> = {
   services: ServicesPage,
   config: ConfigPage,
   themeSettings: ThemeSettingsPage,
+  orders: OrdersPage,
   monitoring: MonitoringPage,
   backups: BackupsPage,
 };
