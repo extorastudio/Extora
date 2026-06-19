@@ -1062,14 +1062,15 @@ export function registerAdminRoutes(server: FastifyInstance, prisma: PrismaClien
 
   server.post("/api/v1/seo/meta", async (request: FastifyRequest, reply: FastifyReply) => {
     await authenticate(request, reply, prisma);
-    const { resourceType, resourceId, title, description, keywords, ogTitle, ogDescription, ogImage, noIndex } = request.body as Record<string, unknown>;
+    const { resourceType, resourceId, title, description, keywords, ogTitle, ogDescription, ogImage, noIndex, focusKeyword } = request.body as Record<string, unknown>;
     if (!resourceType || !resourceId) return await reply.status(400).send({ code: "MISSING_FIELDS", message: "resourceType and resourceId required" });
     try {
       const id = `${resourceType}_${resourceId}`;
+      const fo = typeof focusKeyword === "string" ? focusKeyword : null;
       await (prisma as any).seoMeta.upsert({
         where: { id },
-        create: { id, resourceType, resourceId, title, description, keywords, ogTitle, ogDescription, ogImage, noIndex: !!noIndex },
-        update: { title, description, keywords, ogTitle, ogDescription, ogImage, noIndex: !!noIndex },
+        create: { id, resourceType, resourceId, title, description, keywords, ogTitle, ogDescription, ogImage, noIndex: !!noIndex, focusKeyword: fo },
+        update: { title, description, keywords, ogTitle, ogDescription, ogImage, noIndex: !!noIndex, focusKeyword: fo },
       });
       return await reply.send({ success: true, message: "SEO meta saved" });
     } catch (e: any) {

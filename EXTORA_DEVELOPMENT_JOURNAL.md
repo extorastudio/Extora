@@ -3813,3 +3813,34 @@ All plugin-dependent menu items now conditionally render based on active plugin 
 **Docker deploy:** 34 pages, 2034 KB, 7 containers healthy
 
 **CI all green:** Lint 16/16, Typecheck 20/20, Test 34/34
+
+
+### Phase 161: Rank Math-Style SEO Tab — Score, Focus Keyword, Analysis
+**Date:** June 19, 2026 | **Commit:** (upcoming)
+**Duration:** ~25 minutes
+
+**Layer:** Studio (Product editor) + Plugin (SEO) + Core (API)
+
+**Rank Math-style SEO tab redesign:**
+- **SEO Score Circle** (0-100) — color-coded: Green ≥80, Yellow ≥50, Red <50
+- **Focus Keyword** input with real-time analysis
+- **Keyword Analysis Checklist:**
+  - Focus keyword in SEO title ✓/✗
+  - Focus keyword in meta description ✓/✗
+  - Focus keyword in URL slug ✓/✗
+  - Title length check (30-60 chars)
+  - Description length check (120-160 chars)
+  - OG image set check
+  - Indexable check (not noindex)
+- **Google Preview** — Live snippet preview with Arial font
+- **Snippet Editor** — SEO title + meta description + keywords
+- **Social OG** — collapsible section for FB/Twitter preview
+- **Gradient Save Button** (blue→purple)
+- Score calculated from 8 weighted checks
+
+**Technical:**
+- `focusKeyword` state added + saved via API
+- `SeoMeta` model extended with `focus_keyword` column
+- API route accepts `focusKeyword` in upsert
+
+**Docker deploy:** 34 pages, 2034 KB, 7 containers healthy
