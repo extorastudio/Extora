@@ -692,6 +692,23 @@ export default function ProductsPage() {
               </div>
             )}
 
+            {/* SEO Tab */}
+            {activeTab === "seo" && (
+              <div className="grid grid-cols-1 gap-4">
+                <div className="flex items-center gap-2"><Globe className="h-4 w-4 text-green-400" /><span className="text-sm font-semibold text-white">SEO Settings</span></div>
+                <div className="rounded-lg border border-gray-600 bg-gray-900/50 p-4"><h4 className="text-xs text-gray-500 uppercase mb-3">🔍 Google Preview</h4>
+                  <div className="font-[Arial] space-y-0.5"><div className="text-blue-400 text-base font-medium truncate">{seoTitle || editing?.name || "Product"}</div><div className="text-green-700 text-xs">https://extora.in/product-{editing?.slug || "..."}</div><div className="text-gray-300 text-xs leading-relaxed">{seoDesc || editing?.description?.slice(0,156) || "No description set"}</div></div>
+                </div>
+                <div><div className="flex justify-between mb-1"><label className="text-xs text-gray-400">SEO Title</label><span className="text-xs text-gray-500">{(seoTitle??"").length}/60</span></div><input type="text" value={seoTitle} onChange={e=>setSeoTitle(e.target.value)} placeholder={editing?.name + " — Buy Online | Extora"} className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none" /></div>
+                <div><div className="flex justify-between mb-1"><label className="text-xs text-gray-400">Meta Description</label><span className="text-xs text-gray-500">{(seoDesc??"").length}/160</span></div><textarea rows={3} value={seoDesc} onChange={e=>setSeoDesc(e.target.value)} placeholder="Buy online at best price. Free delivery." className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none resize-y" /></div>
+                <div><label className="text-xs text-gray-400 mb-1 block">Focus Keyword</label><input type="text" value={seoFocusKw} onChange={e=>setSeoFocusKw(e.target.value)} placeholder="Enter primary keyword" className="w-full rounded-lg border border-gray-600 bg-gray-800 px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none" /></div>
+                <div><label className="text-xs text-gray-400 mb-1 block">Keywords</label><input type="text" value={seoKeywords} onChange={e=>setSeoKeywords(e.target.value)} placeholder="buy online, best price" className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none" /></div>
+                <div className="border-t border-gray-700 pt-3"><h4 className="text-xs text-gray-500 uppercase mb-3">📱 Social (OG)</h4><div className="grid grid-cols-2 gap-3"><div><label className="text-xs text-gray-400 block mb-1">OG Title</label><input type="text" value={seoOgTitle} onChange={e=>setSeoOgTitle(e.target.value)} className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none" /></div><div><label className="text-xs text-gray-400 block mb-1">OG Image URL</label><input type="text" value={seoOgImage} onChange={e=>setSeoOgImage(e.target.value)} className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none" /></div></div><div className="mt-2"><label className="text-xs text-gray-400 block mb-1">OG Description</label><textarea rows={2} value={seoOgDesc} onChange={e=>setSeoOgDesc(e.target.value)} className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none resize-y" /></div></div>
+                <label className="flex items-center gap-2 cursor-pointer text-xs text-gray-400"><input type="checkbox" checked={seoNoIndex} onChange={e=>setSeoNoIndex(e.target.checked)} className="accent-red-500" /> Noindex</label>
+                <div className="flex items-center gap-3 border-t border-gray-700 pt-3"><button onClick={()=>void saveSeoMeta()} disabled={seoSaving} className="rounded-lg bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-500 disabled:opacity-50">{seoSaving?"Saving...":"💾 Save SEO"}</button>{seoMsg && <span className="text-sm text-green-400">{seoMsg}</span>}</div>
+              </div>
+            )}
+
             {/* Form Actions */}
             <div className="mt-6 flex items-center gap-3 border-t border-gray-700 pt-4">
               <button onClick={() => void handleSave()} className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
@@ -748,23 +765,7 @@ export default function ProductsPage() {
                               <Package className="h-5 w-5 text-gray-500" />
             )}
 
-            {/* SEO Tab */}
-            {activeTab === "seo" && (
-              <div className="grid grid-cols-1 gap-4">
-                <div className="flex items-center gap-2"><Globe className="h-4 w-4 text-green-400" /><span className="text-sm font-semibold text-white">SEO Settings</span></div>
-                <div className="rounded-lg border border-gray-600 bg-gray-900/50 p-4"><h4 className="text-xs text-gray-500 uppercase mb-3">🔍 Google Preview</h4>
-                  <div className="font-[Arial] space-y-0.5"><div className="text-blue-400 text-base font-medium truncate">{seoTitle || editing?.name || "Product"}</div><div className="text-green-700 text-xs">https://extora.in/product-{editing?.slug || "..."}</div><div className="text-gray-300 text-xs leading-relaxed">{seoDesc || editing?.description?.slice(0,156) || "No description set"}</div></div>
-                </div>
-                <div><div className="flex justify-between mb-1"><label className="text-xs text-gray-400">SEO Title</label><span className="text-xs text-gray-500">{(seoTitle??"").length}/60</span></div><input type="text" value={seoTitle} onChange={e=>setSeoTitle(e.target.value)} placeholder={editing?.name + " — Buy Online | Extora"} className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none" /></div>
-                <div><div className="flex justify-between mb-1"><label className="text-xs text-gray-400">Meta Description</label><span className="text-xs text-gray-500">{(seoDesc??"").length}/160</span></div><textarea rows={3} value={seoDesc} onChange={e=>setSeoDesc(e.target.value)} placeholder="Buy online at best price. Free delivery." className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none resize-y" /></div>
-                <div><label className="text-xs text-gray-400 mb-1 block">Focus Keyword</label><input type="text" value={seoFocusKw} onChange={e=>setSeoFocusKw(e.target.value)} placeholder="Enter primary keyword" className="w-full rounded-lg border border-gray-600 bg-gray-800 px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none" /></div>
-                <div><label className="text-xs text-gray-400 mb-1 block">Keywords</label><input type="text" value={seoKeywords} onChange={e=>setSeoKeywords(e.target.value)} placeholder="buy online, best price" className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none" /></div>
-                <div className="border-t border-gray-700 pt-3"><h4 className="text-xs text-gray-500 uppercase mb-3">📱 Social (OG)</h4><div className="grid grid-cols-2 gap-3"><div><label className="text-xs text-gray-400 block mb-1">OG Title</label><input type="text" value={seoOgTitle} onChange={e=>setSeoOgTitle(e.target.value)} className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none" /></div><div><label className="text-xs text-gray-400 block mb-1">OG Image URL</label><input type="text" value={seoOgImage} onChange={e=>setSeoOgImage(e.target.value)} className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none" /></div></div><div className="mt-2"><label className="text-xs text-gray-400 block mb-1">OG Description</label><textarea rows={2} value={seoOgDesc} onChange={e=>setSeoOgDesc(e.target.value)} className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none resize-y" /></div></div>
-                <label className="flex items-center gap-2 cursor-pointer text-xs text-gray-400"><input type="checkbox" checked={seoNoIndex} onChange={e=>setSeoNoIndex(e.target.checked)} className="accent-red-500" /> Noindex</label>
-                <div className="flex items-center gap-3 border-t border-gray-700 pt-3"><button onClick={()=>void saveSeoMeta()} disabled={seoSaving} className="rounded-lg bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-500 disabled:opacity-50">{seoSaving?"Saving...":"💾 Save SEO"}</button>{seoMsg && <span className="text-sm text-green-400">{seoMsg}</span>}</div>
-              </div>
-            )}
-
+            
 
                           </div>
                           <div>
