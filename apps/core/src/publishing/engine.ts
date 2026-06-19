@@ -502,6 +502,56 @@ document.addEventListener("DOMContentLoaded", function() {
     if (m) initZoom(m[1]);
   } catch(e) {}
 });
+// ── Delivery Pincode Checker ──
+function checkPincode(slug) {
+  var pin = document.getElementById("pincode-"+slug).value.trim();
+  var msg = document.getElementById("pincodeMsg-"+slug);
+  if (!/^[0-9]{6}$/.test(pin)) { msg.innerHTML = '<span style="color:#cc0c39">Please enter a valid 6-digit pincode</span>'; return; }
+  var p = parseInt(pin);
+  if (p >= 110000 && p <= 119999) msg.innerHTML = '<span style="color:#007600">✓ Delivery available in Delhi/NCR — 2-3 days</span>';
+  else if (p >= 400000 && p <= 409999) msg.innerHTML = '<span style="color:#007600">✓ Delivery available in Mumbai — 3-4 days</span>';
+  else if (p >= 560000 && p <= 569999) msg.innerHTML = '<span style="color:#007600">✓ Delivery available in Bangalore — 3-4 days</span>';
+  else if (p >= 500000 && p <= 509999) msg.innerHTML = '<span style="color:#007600">✓ Delivery available in Hyderabad — 3-5 days</span>';
+  else if (p >= 600000 && p <= 609999) msg.innerHTML = '<span style="color:#007600">✓ Delivery available in Chennai — 4-5 days</span>';
+  else msg.innerHTML = '<span style="color:#c45500">⚠ Delivery may take 5-7 days in this area</span>';
+}
+// ── Share ──
+function shareProduct(type, name, url) {
+  var shareUrl = "";
+  if (type === "whatsapp") shareUrl = "https://wa.me/?text=" + encodeURIComponent(name + " - " + decodeURIComponent(url));
+  else if (type === "facebook") shareUrl = "https://www.facebook.com/sharer/sharer.php?u=" + url;
+  else if (type === "twitter") shareUrl = "https://twitter.com/intent/tweet?text=" + encodeURIComponent(name) + "&url=" + url;
+  if (shareUrl) window.open(shareUrl, "_blank", "width=600,height=400");
+}
+function copyLink(slug) {
+  var url = window.location.origin + "/product-" + slug + ".html";
+  if (navigator.clipboard) { navigator.clipboard.writeText(url).then(function(){ alert("Link copied!"); }); }
+  else { var t = document.createElement("textarea"); t.value = url; t.style.position = "fixed"; t.style.opacity = "0"; document.body.appendChild(t); t.select(); document.execCommand("copy"); document.body.removeChild(t); alert("Link copied!"); }
+}
+// ── Q&A ──
+function getQA(slug) { try { return JSON.parse(localStorage.getItem("extora_qa_"+slug) || "[]"); } catch { return []; } }
+function saveQA(slug, qa) { localStorage.setItem("extora_qa_"+slug, JSON.stringify(qa)); renderQA(slug); }
+function renderQA(slug) {
+  var qa = getQA(slug); var el = document.getElementById("qaList-"+slug);
+  if (!el) return;
+  if (qa.length === 0) { el.innerHTML = '<p style="color:#565959;font-size:.85rem">No questions yet. Ask the first!</p>'; return; }
+  el.innerHTML = qa.map(function(q) {
+    return '<div style="border-bottom:1px solid #e7e7e7;padding:12px 0"><p style="color:#0f1111;font-size:.9rem;font-weight:600;margin:0 0 4px">Q: '+q.question+'</p>' +
+    (q.answer ? '<p style="color:#007600;font-size:.85rem;margin:0;">A: '+q.answer+'</p>' : '<p style="color:#565959;font-size:.8rem;margin:0;font-style:italic">Waiting for answer...</p>') +
+    '</div>';
+  }).join("");
+}
+function askQuestion(slug) {
+  var input = document.getElementById("qaInput-"+slug);
+  var msg = document.getElementById("qaMsg-"+slug);
+  var q = (input.value||"").trim();
+  if (q.length < 3) { msg.textContent = "Please enter a valid question"; msg.style.color = "#cc0c39"; return; }
+  var qa = getQA(slug);
+  qa.push({question: q, answer: "", date: new Date().toISOString()});
+  saveQA(slug, qa);
+  input.value = "";
+  msg.textContent = "Question submitted!"; msg.style.color = "#007600";
+}
 </script>
 <div class="compare-bar" id="compareBar" style="display:none">
 <div class="cb-items" id="compareItems"></div>
@@ -679,6 +729,39 @@ fetch("/api/v1/reviews/${e(p.id)}").then(r => r.json()).then(d => {
   el.innerHTML = reviews.map(r => '<div style="border-bottom:1px solid #e7e7e7;padding:12px 0"><div style="color:#febd69;margin-bottom:4px">'+"★".repeat(r.rating)+"☆".repeat(5-r.rating)+' <strong>'+r.title+'</strong></div><p style="color:#0f1111;font-size:.9rem;margin:4px 0">'+r.content+'</p><span style="color:#565959;font-size:.8rem">By '+r.author+' on '+new Date(r.createdAt).toLocaleDateString()+'</span></div>').join("");
 }).catch(() => { document.getElementById("reviewLoading-${e(p.slug)}").textContent = "No reviews yet."; });
 </script>
+
+<div style="max-width:1200px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:16px">
+<div style="background:white;border-radius:4px;padding:20px">
+<h4 style="margin:0 0 8px;font-size:.95rem">Check Delivery</h4>
+<div style="display:flex;gap:8px">
+<input type="text" id="pincode-${e(p.slug)}" maxlength="6" placeholder="Enter pincode" style="flex:1;padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:.9rem">
+<button onclick="checkPincode('${e(p.slug)}')" style="padding:8px 20px;background:#ffd814;border:1px solid #fcd200;border-radius:8px;font-weight:600;cursor:pointer;font-size:.85rem;white-space:nowrap">Check</button>
+</div>
+<p id="pincodeMsg-${e(p.slug)}" style="font-size:.85rem;margin:8px 0 0;color:#565959">Delivery in most cities within 2-4 days</p>
+</div>
+
+<div style="background:white;border-radius:4px;padding:20px">
+<h4 style="margin:0 0 8px;font-size:.95rem">Share</h4>
+<div style="display:flex;gap:12px">
+<a href="#" onclick="shareProduct('whatsapp','${e(p.name)}',encodeURIComponent(window.location.href));return false" style="background:#25D366;color:white;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;text-decoration:none;font-size:.9rem" title="WhatsApp">W</a>
+<a href="#" onclick="shareProduct('facebook',encodeURIComponent(window.location.href));return false" style="background:#1877F2;color:white;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;text-decoration:none;font-size:.9rem" title="Facebook">f</a>
+<a href="#" onclick="shareProduct('twitter','${e(p.name)}',encodeURIComponent(window.location.href));return false" style="background:#000;color:white;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;text-decoration:none;font-size:.8rem" title="X">X</a>
+<a href="#" onclick="copyLink('${e(p.slug)}');return false" style="background:#eee;color:#555;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;text-decoration:none;font-size:.8rem" title="Copy Link">🔗</a>
+</div>
+</div>
+</div>
+
+<div id="qa-${e(p.slug)}" style="max-width:1200px;margin:20px auto;background:white;border-radius:4px;padding:28px">
+<h3 style="margin-bottom:4px">Customer Questions & Answers</h3>
+<div id="qaList-${e(p.slug)}" style="margin:16px 0">
+<p style="color:#565959;font-size:.85rem">No questions yet. Ask the first!</p>
+</div>
+<div style="border-top:1px solid #e7e7e7;padding-top:16px;display:flex;gap:8px;flex-wrap:wrap">
+<input type="text" id="qaInput-${e(p.slug)}" placeholder="Ask a question about this product..." style="flex:1;min-width:200px;padding:10px 12px;border:1px solid #ddd;border-radius:8px;font-size:.9rem">
+<button onclick="askQuestion('${e(p.slug)}')" style="padding:10px 24px;background:#ffd814;border:1px solid #fcd200;border-radius:8px;font-weight:600;cursor:pointer;font-size:.9rem;white-space:nowrap">Ask Question</button>
+</div>
+<p id="qaMsg-${e(p.slug)}" style="font-size:.85rem;margin:8px 0 0;color:#007600"></p>
+</div>
 
 <div class="section-header"><h2>Frequently Bought Together</h2></div>
 <div class="products-grid">${(function() { const upsellIds: string[] = Array.isArray(p.upSellIds) ? p.upSellIds.map(String).filter(Boolean) : []; const crossSellIds: string[] = Array.isArray(p.crossSellIds) ? p.crossSellIds.map(String).filter(Boolean) : []; const fbt: any[] = []; for (const id of [...upsellIds, ...crossSellIds]) { const found = products.find((x: any) => String(x.id) === id || String(x.slug) === id); if (found) fbt.push(found); } if (fbt.length < 4) { for (const x of products) { if (x.id !== p.id && String(x.category) === String(p.category) && !fbt.find((f: any) => f.id === x.id)) { fbt.push(x); if (fbt.length >= 4) break; } } } return fbt.slice(0, 4).map(productCard).join(""); })()}</div>

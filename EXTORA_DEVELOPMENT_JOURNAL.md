@@ -3342,3 +3342,31 @@ This caused ALL buttons (cart, search, login, reviews, newsletter) to silently f
 **Docker deploy:** 26 pages, 1105 KB, 7 containers healthy
 
 **CI all green:** Lint 16/16, Typecheck 20/20, Test 34/34
+
+
+### Phase 145: Delivery Pincode Checker + Social Share + Q&A Section
+**Date:** June 19, 2026 | **Commit:** (upcoming)
+**Duration:** ~20 minutes
+
+**Delivery Pincode Checker on product pages:**
+- Input box + Check button to verify delivery availability
+- Recognizes major metro pincodes (Delhi 11xxxx, Mumbai 40xxxx, Bangalore 56xxxx, Hyderabad 50xxxx, Chennai 60xxxx)
+- Shows "✓ Delivery available" with estimated days or "⚠ may take 5-7 days" for other areas
+- 6-digit validation
+
+**Social Share buttons on product pages:**
+- WhatsApp, Facebook, X (Twitter), Copy Link — circular buttons with brand colors
+- WhatsApp: pre-filled message with product name + URL
+- Facebook: sharer.php URL
+- Twitter: intent/tweet with text + URL
+- Copy Link: clipboard API with fallback for older browsers
+
+**Q&A Section on product pages:**
+- "Customer Questions & Answers" with ask form
+- Questions stored in localStorage per product slug
+- Displays Q&A with "Waiting for answer..." for unanswered questions
+- "Ask Question" button submits with validation (min 3 chars)
+
+**Docker deploy:** 26 pages, 1221 KB
+
+**CI all green:** Lint 16/16, Typecheck 20/20, Test 34/34
