@@ -111,7 +111,17 @@ footer .bt{grid-column:1/-1;text-align:center;color:#999;font-size:.75rem;paddin
 <header><div class="top-nav"><div class="inner">
 <a href="/index.html" class="logo">extora<span style="color:white">.in</span></a>
 <div class="search"><input placeholder="Search..."><button>Go</button></div>
-<div class="nav-r"><a href="/account.html" id="headerAccount">Sign In</a><a href="/orders.html">Orders</a><a href="#" style="font-weight:700" onclick="showCart();return false">Cart <span id="cartCount"></span></a></div>
+<div class="nav-r" style="position:relative">
+<a href="/account.html" id="headerAccount">Sign In</a>
+<div id="accountDropdown" style="display:none;position:absolute;top:100%;right:0;background:white;border:1px solid #ddd;border-radius:4px;box-shadow:0 4px 12px rgba(0,0,0,.15);min-width:180px;z-index:100;padding:8px 0">
+<a href="/account.html" style="display:block;padding:8px 16px;color:#0f1111;text-decoration:none;font-size:.85rem">My Account</a>
+<a href="/orders.html" style="display:block;padding:8px 16px;color:#0f1111;text-decoration:none;font-size:.85rem">My Orders</a>
+<hr style="margin:4px 0;border:none;border-top:1px solid #e7e7e7">
+<a href="#" onclick="doHeaderLogout();return false" style="display:block;padding:8px 16px;color:#cc0c39;text-decoration:none;font-size:.85rem">Sign Out</a>
+</div>
+<a href="/orders.html">Orders</a>
+<a href="#" style="font-weight:700" onclick="showCart();return false">Cart <span id="cartCount"></span></a>
+</div>
 </div></div>
 <nav class="sub-nav"><div class="inner">
 <a href="/index.html">All</a><a href="/products.html">Best Sellers</a><a href="/deals.html">Today's Deals</a><a href="/about.html">About</a></div></nav>
@@ -121,7 +131,13 @@ footer .bt{grid-column:1/-1;text-align:center;color:#999;font-size:.75rem;paddin
 <div><h4>Get to Know Us</h4><a href="/about.html">About</a></div>
 <div><h4>Connect</h4><a href="#">Facebook</a><a href="#">Twitter</a><a href="#">Instagram</a></div>
 <div><h4>Make Money</h4><a href="#">Sell</a><a href="#">Affiliate</a></div>
-<div><h4>Help</h4><a href="#">Customer Service</a><a href="#">Returns</a></div>
+<div><h4>Let Us Help</h4><a href="/account.html">Your Account</a><a href="/orders.html">Your Orders</a><a href="#">Returns</a><a href="#">Help</a></div>
+<div style="grid-column:1/-1;margin-top:12px;padding:16px 0;border-top:1px solid #3a4553;display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+<span style="color:white;font-size:.9rem">Subscribe to our newsletter</span>
+<input type="email" id="nlEmail" placeholder="Enter your email" style="flex:1;min-width:200px;padding:8px 12px;border:1px solid #3a4553;border-radius:4px;background:#131921;color:white;font-size:.85rem">
+<button onclick="subscribeNewsletter()" style="padding:8px 20px;background:#febd69;border:none;border-radius:4px;font-weight:600;cursor:pointer;font-size:.85rem">Subscribe</button>
+<span id="nlMsg" style="color:#4caf50;font-size:.8rem"></span>
+</div>
 <div class="bt">&copy; 2026 ${e(site.name)}. Published with Extora.</div>
 </div></footer>
 <script>
@@ -165,16 +181,33 @@ document.addEventListener("click", function(e) {
 });
 document.addEventListener("DOMContentLoaded", function() {
   updateCartCount();
-  // Check login state
   const token = localStorage.getItem("at");
   const accEl = document.getElementById("headerAccount");
-  if (token && accEl) {
+  const dropdown = document.getElementById("accountDropdown");
+  if (token && accEl && dropdown) {
     fetch("/api/v1/auth/session", { headers: { Authorization: "Bearer " + token } })
       .then(r => r.json()).then(d => {
-        if (d.user) { accEl.textContent = "Hello, " + (d.user.displayName || "User"); accEl.href = "/account.html"; }
+        if (d.user) {
+          accEl.textContent = "Hello, " + (d.user.displayName || "User") + " ▼";
+          accEl.href = "#";
+          accEl.style.cursor = "pointer";
+          accEl.onclick = function(e) { e.preventDefault(); dropdown.style.display = dropdown.style.display === "block" ? "none" : "block"; };
+          document.addEventListener("click", function(ev) { if (!accEl.contains(ev.target) && !dropdown.contains(ev.target)) dropdown.style.display = "none"; });
+        }
       }).catch(() => {});
   }
 });
+function doHeaderLogout() { localStorage.removeItem("at"); location.href = "/index.html"; }
+function subscribeNewsletter() {
+  const email = document.getElementById("nlEmail")?.value;
+  const msg = document.getElementById("nlMsg");
+  if (email && email.includes("@")) {
+    localStorage.setItem("extora_subscriber", email);
+    if (msg) { msg.textContent = "Subscribed!"; setTimeout(() => { if (msg) msg.textContent = ""; }, 3000); }
+  } else {
+    if (msg) { msg.textContent = "Enter valid email"; }
+  }
+}
 </script>
 </body></html>`;
 }

@@ -2938,3 +2938,21 @@ all CI green (717+ tests, 195+ commits, 361+ files).
    - Orders link always visible
 
 **717+ tests pass. 196+ commits. 362+ files.**
+
+
+### Phase 123: Account Dropdown + Newsletter Subscription
+**Date:** June 19, 2026 | **Commit:** `(pending)`
+**Duration:** ~15 minutes
+
+**Header now has full account dropdown when logged in:**
+- "Hello, Name ▼" with dropdown: My Account, My Orders, Sign Out
+- Dropdown opens on click, closes on outside click
+- Sign In link shown when not logged in
+
+**Footer now has newsletter subscription form:**
+- Email input + Subscribe button in footer
+- Stores subscriber email in localStorage
+- Success/error feedback messages
+- Styled with Amazon-like orange button (#febd69)
+
+**717+ tests pass. 197+ commits. 363+ files.**
