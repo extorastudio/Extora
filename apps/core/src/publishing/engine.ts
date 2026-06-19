@@ -240,8 +240,49 @@ ${specRows ? `<h4 style="margin:16px 0 8px">Technical Specifications</h4><table 
   if (deals.length) pages.push({ slug: "deals", title: "Today's Deals", description: "Limited time offers", content: `<div class="section-header"><h2>Today's Deals</h2></div><div class="products-grid">${deals.map(productCard).join("")}</div>` });
   pages.push({ slug: "products", title: "All Products", description: "Browse all", content: `<div class="section-header"><h2>All Products</h2></div><div class="products-grid">${products.map(productCard).join("")}</div>` });
 
-  // ── CONTENT PAGES ──
-  for (const entry of contentEntries) pages.push({ slug: String(entry.slug), title: String(entry.title), description: String(entry.excerpt ?? "").slice(0, 160), content: `<div class="page-content"><h1>${e(entry.title)}</h1>${String(entry.body)}</div>` });
+  function renderBuilderElement(el: any): string {
+  const c = el.content ?? {};
+  switch (el.type) {
+    case "heading": return `<${c.level ?? "h2"} style="text-align:${c.align ?? "left"};color:${c.color ?? "#0f1111"};font-weight:700;margin:12px 0">${e(c.text)}</${c.level ?? "h2"}>`;
+    case "text": return `<p style="text-align:${c.align ?? "left"};font-size:${c.size ?? "16"}px;color:${c.color ?? "#333"};line-height:1.7;padding:8px 0">${e(c.text)}</p>`;
+    case "button": return `<div style="text-align:${c.align ?? "center"};padding:16px 0"><a href="${e(c.url)}" style="display:inline-block;padding:14px 36px;background:${c.bgColor ?? "#ffd814"};color:${c.textColor ?? "#0f1111"};border-radius:8px;text-decoration:none;font-weight:600;font-size:${c.size ?? "16"}px">${e(c.text)}</a></div>`;
+    case "image": return `<div style="padding:12px 0"><img src="${e(c.src)}" alt="${e(c.alt)}" style="width:${c.width ?? "100%"};border-radius:${c.borderRadius ?? "8"}px;max-width:100%" /></div>`;
+    case "video": return `<div style="padding:12px 0"><video src="${e(c.src)}" poster="${e(c.poster)}" controls style="width:${c.width ?? "100%"};max-height:${c.height ?? "400"}px;border-radius:8px"></video></div>`;
+    case "spacer": return `<div style="height:${c.height ?? "40"}px"></div>`;
+    case "divider": return `<hr style="border:none;border-top:${c.thickness ?? "1"}px solid ${c.color ?? "#e7e7e7"};margin:16px 0" />`;
+    case "hero": return `<div style="background:${c.bgColor ?? "#232f3e"};color:${c.textColor ?? "white"};padding:80px 40px;text-align:center;border-radius:8px;min-height:${c.height ?? "300"}px;display:flex;flex-direction:column;align-items:center;justify-content:center;margin:16px 0"><h2 style="font-size:2.2rem;margin:0 0 8px">${e(c.title)}</h2><p style="font-size:1.2rem;opacity:0.9;margin:0">${e(c.subtitle)}</p></div>`;
+    case "columns2": return `<div style="display:grid;grid-template-columns:1fr 1fr;gap:${c.gap ?? "24"}px;padding:16px 0"><div style="padding:20px;background:#f8f8f8;border-radius:4px">${e(c.leftText)}</div><div style="padding:20px;background:#f8f8f8;border-radius:4px">${e(c.rightText)}</div></div>`;
+    case "columns3": return `<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:${c.gap ?? "16"}px;padding:16px 0">${[1,2,3].map((n) => `<div style="padding:16px;background:#f8f8f8;border-radius:4px">${e(c[`col${n}`] ?? `Column ${n}`)}</div>`).join("")}</div>`;
+    case "products": {
+      const cols = Number(c.columns ?? 4);
+      return `<div style="display:grid;grid-template-columns:repeat(${cols},1fr);gap:0;padding:16px 0;background:white">${Array.from({ length: Math.min(Number(c.count ?? 8), 12) }).map(() => `<div style="border:1px solid #f0f0f0;padding:16px;text-align:center"><div style="height:180px;background:#f7f7f7;margin-bottom:8px;display:flex;align-items:center;justify-content:center;color:#999">Product</div><p style="font-size:.9rem;color:#0f1111;margin-bottom:4px">Sample Item</p><p style="font-size:1.1rem;font-weight:600;color:#b12704">₹999</p></div>`).join("")}</div>`;
+    }
+    case "deals": return `<div style="background:${c.bgColor ?? "#cc0c39"};color:white;padding:50px 40px;text-align:center;border-radius:8px;margin:16px 0"><h2 style="font-size:1.8rem;margin:0 0 8px">${e(c.title)}</h2><p style="font-size:1.2rem;opacity:0.9;margin:0">${e(c.subtitle)}</p><a href="/deals.html" style="display:inline-block;margin-top:16px;padding:12px 32px;background:white;color:#cc0c39;border-radius:8px;text-decoration:none;font-weight:600">Shop Deals</a></div>`;
+    case "categories": return `<div style="display:grid;grid-template-columns:repeat(${c.columns ?? "3"},1fr);gap:${c.gap ?? "16"}px;padding:16px 0">${Array.from({ length: Math.min(Number(c.count ?? 6), 8) }).map((_, i) => `<div style="background:white;padding:20px;border-radius:8px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.08)"><h3 style="margin:0 0 4px">Category ${i + 1}</h3><p style="color:#565959;font-size:.85rem;margin:0">Browse products</p></div>`).join("")}</div>`;
+    case "section": return `<div style="background:${c.bgColor ?? "transparent"};padding:${c.padding ?? "40"}px 0;min-height:60px"></div>`;
+    default: return "";
+  }
+}
+
+function renderContentBody(body: string): string {
+  try {
+    const parsed = JSON.parse(body) as Record<string, unknown>;
+    if (parsed.elements && Array.isArray(parsed.elements)) {
+      return `<div style="max-width:1200px;margin:0 auto;padding:20px">${parsed.elements.map(renderBuilderElement).join("")}</div>`;
+    }
+  } catch { /* not JSON, render as plain HTML */ }
+  return body;
+}
+
+// ── CONTENT PAGES ──
+  for (const entry of contentEntries) {
+    pages.push({
+      slug: String(entry.slug),
+      title: String(entry.title),
+      description: String(entry.excerpt ?? "").slice(0, 160),
+      content: `<div class="page-content" style="background:white;border-radius:4px;overflow:hidden"><h1 style="font-size:1.8rem;margin:0 0 20px;padding:32px 32px 0">${e(entry.title)}</h1><div style="padding:0 32px 32px">${renderContentBody(String(entry.body))}</div></div>`,
+    });
+  }
   if (!pages.some((p) => p.slug === "about")) pages.push({ slug: "about", title: "About", description: "About us", content: `<div class="page-content"><h1>About ${e(siteName)}</h1><p>Your trusted online store built with Extora Studio.</p></div>` });
 
   // ── SEARCH RESULTS PAGE ──

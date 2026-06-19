@@ -2719,3 +2719,16 @@ Products page reads URL hash on mount to set correct sub-tab
 - Published site always has content from first start
 
 **717+ tests pass. 187+ commits. 353+ files.**
+
+
+### Phase 113: Builder Content Renders on Published Site
+**Date:** June 19, 2026 | **Commit:** `(pending)`
+**Duration:** ~20 minutes
+
+**Builder-generated content now renders as HTML on published site:**
+- Publishing engine detects builder JSON (elements array) in content body
+- 16 element types rendered: heading, text, button, image, video, spacer, divider, hero, columns2, columns3, products, deals, categories, section
+- Non-builder content renders as before (plain HTML)
+- Tested: 4-element page with hero, heading, 2-column layout, and button — all rendered correctly
+
+**717+ tests pass. 188+ commits. 354+ files.**
