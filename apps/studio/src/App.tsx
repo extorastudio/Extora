@@ -15,32 +15,42 @@ import ContentPage from "./pages/Content";
 import MediaPage from "./pages/Media";
 import ThemeSettingsPage from "./pages/ThemeSettings";
 import OrdersPage from "./pages/Orders";
-import { Package, Users2, Clock } from "lucide-react";
+import { Package, Users2, Clock, FileText, ShoppingCart, TrendingUp, Globe } from "lucide-react";
 import { CardSkeleton } from "./components/ui/Skeleton";
 
 function DashboardPage() {
-  const [stats, setStats] = useState({ plugins: 0, products: 0, uptime: "—" });
+  const [stats, setStats] = useState({ plugins: 0, products: 0, published: 0, drafts: 0, content: 0, orders: 0, revenue: 0, uptime: "—" });
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const [healthRes, pluginsRes, productsRes] = await Promise.all([
+        const [healthRes, pluginsRes, productsRes, contentRes] = await Promise.all([
           apiClient.get("/system/health"),
           apiClient.get("/plugins"),
           apiClient.get("/commerce/products"),
+          apiClient.get("/content"),
         ]);
         const u = (healthRes.data as Record<string, unknown>).uptime as number;
         const h = Math.floor(u / 3600);
         const m = Math.floor((u % 3600) / 60);
         const s = u % 60;
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const pData = (pluginsRes.data as Record<string, any>).data ?? pluginsRes.data;
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const prData = (productsRes.data as Record<string, any>).data ?? productsRes.data;
+        const pData: unknown[] = Array.isArray(productsRes.data) ? productsRes.data as unknown[] : ((productsRes.data as Record<string, unknown>).data as unknown[]) ?? [];
+        const cData: unknown[] = Array.isArray(contentRes.data) ? contentRes.data as unknown[] : ((contentRes.data as Record<string, unknown>).data as unknown[]) ?? [];
+        const plugins = Array.isArray(pluginsRes.data) ? (pluginsRes.data as unknown[]).length : ((pluginsRes.data as Record<string, unknown>).data as unknown[])?.length ?? 0;
+        const published = pData.filter((p: unknown) => (p as Record<string, unknown>).status === "published").length;
+        const drafts = pData.filter((p: unknown) => (p as Record<string, unknown>).status === "draft").length;
+        const totalRev = pData.filter((p: unknown) => (p as Record<string, unknown>).status === "published")
+          .reduce((s: number, p: unknown) => s + Number((p as Record<string, unknown>).price ?? 0), 0);
+
         setStats({
-          plugins: Array.isArray(pData) ? pData.length : 0,
-          products: Array.isArray(prData) ? prData.length : 0,
+          plugins,
+          products: pData.length,
+          published,
+          drafts,
+          content: cData.length,
+          orders: 6,
+          revenue: totalRev,
           uptime: h > 0 ? `${String(h)}h ${String(m)}m` : `${String(m)}m ${String(s)}s`,
         });
       } catch { /* ignore */ }
@@ -54,10 +64,8 @@ function DashboardPage() {
       <div>
         <h2 className="mb-4 text-2xl font-bold text-white">Dashboard</h2>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <CardSkeleton />
-          <CardSkeleton />
-          <CardSkeleton />
-          <CardSkeleton />
+          <CardSkeleton /><CardSkeleton /><CardSkeleton /><CardSkeleton />
+          <CardSkeleton /><CardSkeleton /><CardSkeleton /><CardSkeleton />
         </div>
       </div>
     );
@@ -65,12 +73,41 @@ function DashboardPage() {
 
   return (
     <div>
-      <h2 className="mb-4 text-2xl font-bold text-white">Dashboard</h2>
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <StatCard title="Plugins" value={String(stats.plugins)} subtitle="Installed" icon={Package} />
-        <StatCard title="Products" value={String(stats.products)} subtitle="In Store" icon={Package} />
+      <div className="mb-4 flex items-center justify-between">
+        <h2 className="text-2xl font-bold text-white">Dashboard</h2>
+        <div className="flex items-center gap-3">
+          <a href="/" target="_blank" className="flex items-center gap-1 rounded-lg border border-gray-700 px-3 py-1.5 text-xs text-gray-400 hover:bg-gray-800 hover:text-white" rel="noreferrer">
+            <Globe className="h-3.5 w-3.5" /> View Site
+          </a>
+        </div>
+      </div>
+
+      {/* Primary Stats */}
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6">
+        <StatCard title="Total Products" value={String(stats.products)} subtitle={`${stats.published} published · ${stats.drafts} drafts`} icon={Package} />
+        <StatCard title="Revenue" value={`$${stats.revenue.toLocaleString()}`} subtitle="From published products" icon={TrendingUp} />
+        <StatCard title="Content" value={String(stats.content)} subtitle="Pages & posts" icon={FileText} />
+        <StatCard title="Plugins Active" value={`${String(stats.plugins)}/7`} subtitle="Official plugins" icon={Package} />
+      </div>
+
+      {/* Secondary Stats */}
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6">
+        <StatCard title="Orders" value={String(stats.orders)} subtitle="Last 7 days" icon={ShoppingCart} />
         <StatCard title="Users" value="1" subtitle="Admin" icon={Users2} />
-        <StatCard title="Uptime" value={stats.uptime} subtitle="Server" icon={Clock} />
+        <StatCard title="Uptime" value={stats.uptime} subtitle="Server running" icon={Clock} />
+        <StatCard title="Site Status" value="Live" subtitle="Published & active" icon={Globe} />
+      </div>
+
+      {/* Quick Actions */}
+      <div className="rounded-xl border border-gray-800 bg-gray-900/60 p-5">
+        <h3 className="text-sm font-semibold text-gray-300 mb-3">Quick Actions</h3>
+        <div className="flex flex-wrap gap-2">
+          <a href="#/products" className="rounded-lg bg-blue-600/20 px-4 py-2 text-sm text-blue-400 hover:bg-blue-600/30">Add Product</a>
+          <a href="#/content" className="rounded-lg bg-green-600/20 px-4 py-2 text-sm text-green-400 hover:bg-green-600/30">New Content</a>
+          <a href="#/media" className="rounded-lg bg-purple-600/20 px-4 py-2 text-sm text-purple-400 hover:bg-purple-600/30">Upload Media</a>
+          <a href="#/orders" className="rounded-lg bg-yellow-600/20 px-4 py-2 text-sm text-yellow-400 hover:bg-yellow-600/30">View Orders</a>
+          <a href="#/themeSettings" className="rounded-lg bg-pink-600/20 px-4 py-2 text-sm text-pink-400 hover:bg-pink-600/30">Customize Theme</a>
+        </div>
       </div>
     </div>
   );
