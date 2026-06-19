@@ -3645,3 +3645,32 @@ This caused ALL buttons (cart, search, login, reviews, newsletter) to silently f
 **Docker deploy:** 34 pages, 2023 KB, 7 containers healthy
 
 **CI all green:** Lint 16/16, Typecheck 20/20, Test 34/34
+
+
+### Phase 156: Fix — All Plugin Menus Now Dynamic (Disable = Hide)
+**Date:** June 19, 2026 | **Commit:** (upcoming)
+**Duration:** ~20 minutes
+
+**Root Cause:** Deactivating plugins didn't hide their menus because only Analytics was dynamic.
+All other menus (Products, Orders, Content, Builder) were hardcoded static const arrays.
+
+**Fix — DashboardLayout.tsx:**
+All plugin-dependent menu items now conditionally render based on active plugin state:
+- Products + sub-items (Categories, Brands, Tags, Attributes, Reviews) → `commerceActive`
+- Orders → `commerceActive`
+- Content → `cmsActive`
+- Builder + sub-items → `cmsActive`
+- Analytics → `analyticsActive`
+- Core items (Dashboard, Media, Users, Plugins, Themes, Config) → always visible
+
+**Plugin menu mapping:**
+| Plugin | Controls Menus |
+|--------|---------------|
+| @extora/commerce | Products (6 sub-items), Orders |
+| @extora/cms | Content, Builder (4 sub-items) |
+| @extora/product-analytics | Analytics |
+| Core (always) | Dashboard, Media, Users, Plugins, Themes, Config, Services |
+
+**When a plugin is deactivated:** Its menus disappear from sidebar.
+**When reactivated:** Menus reappear.
+**Products API still works** even with commerce deactivated (routes are in core, not plugin)

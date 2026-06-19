@@ -37,12 +37,14 @@ export default function DashboardLayout({ children, currentPage }: DashboardLayo
 
   useEffect(() => { void fetchPlugins(); }, [fetchPlugins]);
 
+  const commerceActive = activePlugins.some((p) => p.name.includes("commerce") && p.isActive);
+  const cmsActive = activePlugins.some((p) => p.name.includes("cms") && p.isActive);
   const analyticsActive = activePlugins.some((p) => p.name.includes("product-analytics") && p.isActive);
 
   // Build nav items dynamically based on active plugins
   const navItems: NavItem[] = [
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
-    {
+    ...(commerceActive ? [{
       id: "products", label: "Products", icon: Package,
       children: [
         { id: "products", label: "All Products", icon: Package },
@@ -52,11 +54,12 @@ export default function DashboardLayout({ children, currentPage }: DashboardLayo
         { id: "attributes", label: "Attributes", icon: Grid3X3 },
         { id: "reviews", label: "Reviews", icon: MessageSquare },
       ],
-    },
-    { id: "orders", label: "Orders", icon: ShoppingCart },
+    } as NavItem] : []),
+    ...(commerceActive ? [{ id: "orders", label: "Orders", icon: ShoppingCart } as NavItem] : []),
     ...(analyticsActive ? [{ id: "analytics", label: "Analytics", icon: TrendingUp } as NavItem] : []),
-    { id: "content", label: "Content", icon: FileText },
-    { id: "builder", label: "Builder", icon: Layout,
+    ...(cmsActive ? [{ id: "content", label: "Content", icon: FileText } as NavItem] : []),
+    ...(cmsActive ? [{
+      id: "builder", label: "Builder", icon: Layout,
       children: [
         { id: "builder", label: "All Elements", icon: Layout },
         { id: "builder-layout", label: "Layout", icon: PanelTop },
@@ -64,7 +67,7 @@ export default function DashboardLayout({ children, currentPage }: DashboardLayo
         { id: "builder-media", label: "Media", icon: Image },
         { id: "builder-commerce", label: "Commerce", icon: ShoppingBag },
       ],
-    },
+    } as NavItem] : []),
     { id: "media", label: "Media", icon: Image },
     { id: "users", label: "Users", icon: Users },
     { id: "plugins", label: "Plugins", icon: Puzzle },
