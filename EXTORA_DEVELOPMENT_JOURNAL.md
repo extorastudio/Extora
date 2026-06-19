@@ -2564,3 +2564,19 @@ Dashboard, Products, Orders, Content, Media, Users, Plugins, Themes, Theme Setti
 **13 of 13 Studio pages now complete (all have real content).**
 
 **716+ tests pass. 182+ commits, 347+ files.**
+
+
+### Phase 106: Enhanced User Management
+**Date:** June 16, 2026 | **Commit:** `(pending)`
+**Duration:** ~20 minutes
+
+**Users page enhanced with add user and enable/disable functionality:**
+- Add user form: Display Name, Email, Password, Role (VIEWER to SUPER_ADMIN)
+- Toggle active/inactive per user
+- Role badges with color coding (SUPER_ADMIN = purple, others = blue)
+- Active status with icon badges (green check / red X)
+- Uses existing /auth/register API endpoint
+
+**14 of 14 Studio pages fully functional.**
+
+**716+ tests pass. 183+ commits, 348+ files.**
