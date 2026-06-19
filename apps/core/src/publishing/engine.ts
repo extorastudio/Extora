@@ -94,6 +94,8 @@ body{font-family:Arial,Helvetica,sans-serif;color:#0f1111;background:#eaeded;lin
 .product-card .pr .mrp{font-size:.8rem;color:#565959;text-decoration:line-through}
 .product-card .badge{display:inline-block;background:#cc0c39;color:white;font-size:.7rem;padding:2px 6px;border-radius:2px;margin-bottom:4px}
 .product-card .stock-ok{color:#007600;font-size:.75rem;margin-top:auto}
+.stock-no{color:#cc0c39;font-size:.75rem;font-weight:600}
+.stock-low{color:#c45500;font-size:.75rem;font-weight:600}
 
 .search-suggestions{position:absolute;top:100%;left:0;right:0;background:white;border:1px solid #ddd;border-top:none;border-radius:0 0 4px 4px;box-shadow:0 4px 12px rgba(0,0,0,.12);z-index:1000;display:none;max-height:300px;overflow-y:auto}
 .search-suggestions .sug-item{padding:10px 16px;cursor:pointer;font-size:.9rem;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;gap:8px}
@@ -427,6 +429,11 @@ function productCard(p: any): string {
   const mrp = p.mrp ? Number(p.mrp) : null;
   const discount = mrp && mrp > price ? Math.round((1 - price / mrp) * 100) : (p.discountPercent ? Number(p.discountPercent) : 0);
   const rating = Number(p.rating ?? 0);
+  const stockQty = Number(p.stockQty ?? 10);
+  const stockStatus = String(p.stockStatus ?? "instock");
+  let stockHtml = '<span class="stock-ok">In Stock</span>';
+  if (stockStatus === "outofstock" || stockQty <= 0) stockHtml = '<span class="stock-no">Out of Stock</span>';
+  else if (stockStatus === "low" || stockQty <= 5) stockHtml = `<span class="stock-low">Only ${stockQty} left</span>`;
   return `<div class="product-card">
 <a href="/product-${e(p.slug)}.html">
 <span class="wishlist-btn" data-slug="${e(p.slug)}" data-name="${e(p.name)}" onclick="toggleWishlist(this);event.preventDefault();event.stopPropagation()">♡</span>
@@ -437,7 +444,7 @@ ${rating > 0 ? `<span class="stars">${stars(rating)}</span>` : ""}
 <div class="pr"><span class="p">${rupee(price)}</span>${mrp && mrp > price ? `<span class="mrp">${rupee(mrp)}</span>` : ""}</div>
 ${discount > 0 ? `<span class="badge">-${discount}%</span>` : ""}
 ${p.dealType ? `<span class="badge" style="background:#c45500">${e(p.dealLabel ?? p.dealType)}</span>` : ""}
-<span class="stock-ok" style="display:flex;align-items:center">In Stock<button class="btn-cart" style="margin-left:auto;padding:6px 12px;background:#ffd814;border:1px solid #fcd200;border-radius:16px;font-size:.75rem;font-weight:600;cursor:pointer;color:#0f1111" data-name="${e(p.name)}" data-price="${price}" onclick="addToCart(this);return false">Add to Cart</button></span>
+<span style="display:flex;align-items:center;margin-top:auto">${stockHtml}<button class="btn-cart" style="margin-left:auto;padding:6px 12px;background:#ffd814;border:1px solid #fcd200;border-radius:16px;font-size:.75rem;font-weight:600;cursor:pointer;color:#0f1111" data-name="${e(p.name)}" data-price="${price}" onclick="addToCart(this);return false">Add to Cart</button></span>
 </a>
 </div>`;
 }
@@ -505,7 +512,7 @@ ${mrp && mrp > price ? `<div class="mrp-row">M.R.P: <span class="mrp">${rupee(mr
 ${p.emiAvailable ? `<div class="emi">EMI starts at <span class="price">${rupee(emiPrice)}</span>. No Cost EMI available</div>` : ""}
 <div class="offers"><h4>Offers</h4><ul>${offers.map((o: string) => `<li>${e(o)}</li>`).join("")}</ul></div>
 <div class="features"><h4>Highlights</h4><ul>${highlights.map((h: string) => `<li>${e(h)}</li>`).join("")}</ul></div>
-<div class="stock">In Stock</div>
+${p.stockStatus === "outofstock" || Number(p.stockQty ?? 10) <= 0 ? `<div class="stock-no" style="font-size:1.1rem;font-weight:600">Currently Unavailable</div>` : Number(p.stockQty ?? 10) <= 5 ? `<div class="stock-low" style="font-size:1rem;font-weight:600">Only ${p.stockQty} left in stock</div>` : `<div class="stock">In Stock</div>`}
 <div class="delivery">FREE delivery <strong>${e(p.deliveryDate ?? "Tomorrow")}</strong>. <a href="#" style="color:#007185">Details</a></div>
 <div class="delivery">Delivered by <strong>${e(p.deliveryInfo ?? "Amazon")}</strong></div>
 ${p.codAvailable ? `<div class="cod">Cash on Delivery available</div>` : ""}
@@ -581,6 +588,7 @@ fetch("/api/v1/reviews/${e(p.id)}").then(r => r.json()).then(d => {
     img: Array.isArray(p.images) && p.images.length > 0 ? String(p.images[0]) : "",
     deal: p.dealType ? String(p.dealLabel ?? p.dealType) : null,
     discountPercent: Number(p.discountPercent ?? 0), createdAt: String(p.createdAt ?? ""),
+    stockQty: Number(p.stockQty ?? 10), stockStatus: String(p.stockStatus ?? "instock"),
   })));
   const categoriesJson = JSON.stringify(categories.map((c: any) => ({ name: String(c.name ?? ""), slug: String(c.slug ?? "") })));
 
@@ -627,7 +635,7 @@ function sortCategory() {
     (p.rating > 0 ? '<span class="stars">'+"★".repeat(Math.floor(p.rating))+"☆".repeat(5-Math.floor(p.rating))+'</span>' : '') +
     '<div class="pr"><span class="p">&#' + '8377;' + p.price.toLocaleString("en-IN") + '</span>'+mrp+'</div>'+discount+
     (p.deal ? '<span class="badge" style="background:#c45500">'+p.deal+'</span>' : '') +
-    '<span class="stock-ok" style="display:flex;align-items:center">In Stock<button class="btn-cart" style="margin-left:auto;padding:6px 12px;background:#ffd814;border:1px solid #fcd200;border-radius:16px;font-size:.75rem;font-weight:600;cursor:pointer;color:#0f1111" data-name="'+p.name.replace(/'/g,"&#39;")+'" data-price="'+p.price+'" onclick="addToCart(this);return false">Add to Cart</button></span></a></div>';
+    ''+(p.stockStatus==='outofstock'||(p.stockQty||10)<=0?'<span class="stock-no">Out of Stock</span>':(p.stockStatus==='low'||(p.stockQty||10)<=5?'<span class="stock-low">Only '+(p.stockQty||10)+' left</span>':'<span class="stock-ok">In Stock</span>'))+'<button class="btn-cart" style="margin-left:auto;padding:6px 12px;background:#ffd814;border:1px solid #fcd200;border-radius:16px;font-size:.75rem;font-weight:600;cursor:pointer;color:#0f1111" data-name="'+p.name.replace(/'/g,"&#39;")+'" data-price="'+p.price+'" onclick="addToCart(this);return false">Add to Cart</button></span></a></div>';
   }).join("");
   updateVisibleHearts(); updateCompareChecks();
 }
@@ -671,7 +679,7 @@ function sortDeals() {
     (p.rating > 0 ? '<span class="stars">'+"★".repeat(Math.floor(p.rating))+"☆".repeat(5-Math.floor(p.rating))+'</span>' : '') +
     '<div class="pr"><span class="p">&#' + '8377;' + p.price.toLocaleString("en-IN") + '</span>'+mrp+'</div>'+discount+
     '<span class="badge" style="background:#c45500">'+p.deal+'</span>' +
-    '<span class="stock-ok" style="display:flex;align-items:center">In Stock<button class="btn-cart" style="margin-left:auto;padding:6px 12px;background:#ffd814;border:1px solid #fcd200;border-radius:16px;font-size:.75rem;font-weight:600;cursor:pointer;color:#0f1111" data-name="'+p.name.replace(/'/g,"&#39;")+'" data-price="'+p.price+'" onclick="addToCart(this);return false">Add</button></span></a></div>';
+    ''+(p.stockStatus==='outofstock'||(p.stockQty||10)<=0?'<span class="stock-no">Out of Stock</span>':(p.stockStatus==='low'||(p.stockQty||10)<=5?'<span class="stock-low">Only '+(p.stockQty||10)+' left</span>':'<span class="stock-ok">In Stock</span>'))+'<button class="btn-cart" style="margin-left:auto;padding:6px 12px;background:#ffd814;border:1px solid #fcd200;border-radius:16px;font-size:.75rem;font-weight:600;cursor:pointer;color:#0f1111" data-name="'+p.name.replace(/'/g,"&#39;")+'" data-price="'+p.price+'" onclick="addToCart(this);return false">Add</button></span></a></div>';
   }).join("");
   updateVisibleHearts(); updateCompareChecks();
 }
@@ -743,7 +751,7 @@ function sortProducts() {
     (p.rating > 0 ? '<span class="stars">'+"★".repeat(Math.floor(p.rating))+"☆".repeat(5-Math.floor(p.rating))+'</span>' : '') +
     '<div class="pr"><span class="p">&#' + '8377;' + p.price.toLocaleString("en-IN") + '</span>'+mrp+'</div>'+discount+
     (p.deal ? '<span class="badge" style="background:#c45500">'+p.deal+'</span>' : '') +
-    '<span class="stock-ok" style="display:flex;align-items:center">In Stock<button class="btn-cart" style="margin-left:auto;padding:6px 12px;background:#ffd814;border:1px solid #fcd200;border-radius:16px;font-size:.75rem;font-weight:600;cursor:pointer;color:#0f1111" data-name="'+p.name.replace(/'/g,"&#39;")+'" data-price="'+p.price+'" onclick="addToCart(this);return false">Add to Cart</button></span></a></div>';
+    ''+(p.stockStatus==='outofstock'||(p.stockQty||10)<=0?'<span class="stock-no">Out of Stock</span>':(p.stockStatus==='low'||(p.stockQty||10)<=5?'<span class="stock-low">Only '+(p.stockQty||10)+' left</span>':'<span class="stock-ok">In Stock</span>'))+'<button class="btn-cart" style="margin-left:auto;padding:6px 12px;background:#ffd814;border:1px solid #fcd200;border-radius:16px;font-size:.75rem;font-weight:600;cursor:pointer;color:#0f1111" data-name="'+p.name.replace(/'/g,"&#39;")+'" data-price="'+p.price+'" onclick="addToCart(this);return false">Add to Cart</button></span></a></div>';
   }).join("");
   updateVisibleHearts(); updateCompareChecks();
 }
@@ -821,6 +829,7 @@ function renderContentBody(body: string): string {
     rating: Number(p.rating ?? 0), reviews: Number(p.reviews ?? 0),
     img: Array.isArray(p.images) && p.images.length > 0 ? String(p.images[0]) : "",
     deal: p.dealType ? String(p.dealLabel ?? p.dealType) : null,
+    stockQty: Number(p.stockQty ?? 10), stockStatus: String(p.stockStatus ?? "instock"),
   })));
 
   pages.push({
@@ -866,7 +875,7 @@ function doSearch() {
       (p.rating > 0 ? '<span class="stars">' + "★".repeat(Math.floor(p.rating)) + '</span>' : '') +
       '<div class="pr"><span class="p">₹' + p.price.toLocaleString("en-IN") + '</span>' + mrp + '</div>' +
       discount + (p.deal ? '<span class="badge" style="background:#c45500">' + p.deal + '</span>' : '') +
-      '<span class="stock-ok" style="display:flex;align-items:center">In Stock<button class="btn-cart" style="margin-left:auto;padding:5px 10px;background:#ffd814;border:1px solid #fcd200;border-radius:12px;font-size:.7rem;font-weight:600;cursor:pointer;color:#0f1111" data-name="' + p.name.replace(/"/g,'&quot;') + '" data-price="' + p.price + '" onclick="addToCart(this);return false">Add</button></span></a></div>';
+      ''+(p.stockStatus==='outofstock'||(p.stockQty||10)<=0?'<span class="stock-no">Out of Stock</span>':(p.stockStatus==='low'||(p.stockQty||10)<=5?'<span class="stock-low">Only '+(p.stockQty||10)+' left</span>':'<span class="stock-ok">In Stock</span>'))+'<button class="btn-cart" style="margin-left:auto;padding:5px 10px;background:#ffd814;border:1px solid #fcd200;border-radius:12px;font-size:.7rem;font-weight:600;cursor:pointer;color:#0f1111" data-name="' + p.name.replace(/"/g,'&quot;') + '" data-price="' + p.price + '" onclick="addToCart(this);return false">Add</button></span></a></div>';
     }).join("");
   }
 }

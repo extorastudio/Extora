@@ -3294,3 +3294,24 @@ This caused ALL buttons (cart, search, login, reviews, newsletter) to silently f
 **Docker deploy:** 26 pages, 955 KB
 
 **CI all green:** Lint 16/16, Typecheck 20/20, Test 34/34 (all cached)
+
+
+### Phase 143: Stock Status Badges
+**Date:** June 19, 2026 | **Commit:** (upcoming)
+**Duration:** ~15 minutes
+
+**Stock status indicators on all product cards and detail pages:**
+- Green "In Stock" — stockQty > 5 with stockStatus "instock"
+- Orange "Only X left" — stockQty 1-5 or stockStatus "low"
+- Red "Out of Stock" / "Currently Unavailable" — stockQty 0 or stockStatus "outofstock"
+- Used `stockQty` and `stockStatus` fields from Product model (already defined in Prisma schema)
+
+**Applied to:**
+- Server-rendered product cards (homepage, FBT, Also Bought)
+- Client-rendered product cards (products, categories, deals, search pages)
+- Product detail pages (with larger "Currently Unavailable" text)
+- Product JSON data for client-side pages includes stock fields
+
+**Docker deploy:** 26 pages, 964 KB, 7 containers healthy
+
+**CI all green:** Lint 16/16, Typecheck 20/20, Test 34/34
