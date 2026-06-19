@@ -16,6 +16,7 @@ import MediaPage from "./pages/Media";
 import ThemeSettingsPage from "./pages/ThemeSettings";
 import OrdersPage from "./pages/Orders";
 import BuilderPage from "./pages/Builder";
+import AnalyticsDashboard from "./pages/Analytics";
 import { Package, Users2, Clock, FileText, ShoppingCart, TrendingUp, Globe } from "lucide-react";
 import { CardSkeleton } from "./components/ui/Skeleton";
 
@@ -159,6 +160,7 @@ const PAGE_MAP: Record<string, React.ComponentType> = {
   "builder-commerce": BuilderPage,
   media: MediaPage,
   orders: OrdersPage,
+  analytics: AnalyticsDashboard,
   services: ServicesPage,
   config: ConfigPage,
   themeSettings: ThemeSettingsPage,

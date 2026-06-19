@@ -885,4 +885,165 @@ export function registerAdminRoutes(server: FastifyInstance, prisma: PrismaClien
     } catch { /* email optional */ }
     return await reply.send({ data: { ...orderData, createdAt: new Date().toISOString() } });
   });
+
+  // ── ANALYTICS & REPORTS ──
+
+  // GET /api/v1/analytics/dashboard — dashboard summary stats
+  server.get("/api/v1/analytics/dashboard", async (request, reply) => {
+    await authenticate(request, reply, prisma);
+    const p = prisma as any;
+    let totalOrders = 0, totalRevenue = 0;
+    try {
+      const orderStats = await p.$queryRawUnsafe(`SELECT COUNT(*) as cnt, COALESCE(SUM(total),0) as rev FROM "Order"`) as any[];
+      totalOrders = Number(orderStats?.[0]?.cnt ?? 0);
+      totalRevenue = Number(orderStats?.[0]?.rev ?? 0);
+    } catch { /* Order table may not exist */ }
+    const [totalProducts, totalUsers, publishedProducts, outOfStockProducts, lowStockProducts] = await Promise.all([
+      p.product.count().catch(() => 0),
+      p.user.count().catch(() => 0),
+      p.product.count({ where: { status: "published" } }).catch(() => 0),
+      p.product.count({ where: { stockStatus: "outofstock" } }).catch(() => 0),
+      p.product.count({ where: { OR: [{ stockStatus: "low" }, { stockQty: { lte: 5, gt: 0 } }] } }).catch(() => 0),
+    ]);
+    return await reply.send({
+      success: true,
+      data: { totalProducts: totalProducts ?? 0, totalOrders, totalUsers: totalUsers ?? 0, totalRevenue,
+        publishedProducts: publishedProducts ?? 0, outOfStockProducts: outOfStockProducts ?? 0, lowStockProducts: lowStockProducts ?? 0 },
+    });
+  });
+
+  // GET /api/v1/analytics/top-products — best selling products
+  server.get("/api/v1/analytics/top-products", async (request, reply) => {
+    await authenticate(request, reply, prisma);
+    const limit = Math.min(Number((request.query as any).limit ?? 10), 50);
+    const p = prisma as any;
+
+    let orders: any[] = [];
+    try { orders = await p.$queryRawUnsafe(`SELECT * FROM "Order" ORDER BY "createdAt" DESC LIMIT 500`) as any[]; } catch { /* no orders */ }
+
+    const productSales: Record<string, { name: string; slug: string; price: number; qty: number; revenue: number; category: string; brand: string; rating: number; reviews: number }> = {};
+
+    for (const order of orders) {
+      let items: any[] = [];
+      try { items = typeof order.items === "string" ? JSON.parse(order.items) : (Array.isArray(order.items) ? order.items : []); } catch { continue; }
+      for (const item of items) {
+        const name = String(item.name ?? item.productId ?? "");
+        if (!productSales[name]) productSales[name] = { name, slug: item.slug ?? "", price: Number(item.price ?? 0), qty: 0, revenue: 0, category: item.category ?? "", brand: item.brand ?? "", rating: 0, reviews: 0 };
+        productSales[name].qty += Number(item.qty ?? 1);
+        productSales[name].revenue += Number(item.price ?? 0) * Number(item.qty ?? 1);
+      }
+    }
+
+    // Merge with product data for rating info
+    if (Object.keys(productSales).length > 0) {
+      const products = await p.product.findMany({ where: { status: "published" } }).catch(() => []) as any[];
+      for (const prod of products) {
+        const name = String(prod.name);
+        if (productSales[name]) {
+          productSales[name].rating = Number(prod.rating ?? 0);
+          productSales[name].reviews = Number(prod.reviews ?? 0);
+        }
+      }
+      const sorted = Object.values(productSales).sort((a, b) => b.revenue - a.revenue).slice(0, limit);
+      return await reply.send({ success: true, data: sorted });
+    }
+
+    // Fallback: use top rated products
+    const products = await p.product.findMany({ where: { status: "published" }, orderBy: { rating: "desc" }, take: limit }).catch(() => []) as any[];
+    return await reply.send({
+      success: true,
+      data: products.map((prod: any) => ({
+        name: prod.name, slug: prod.slug, price: Number(prod.price ?? 0),
+        qty: 0, revenue: 0, category: prod.category ?? "", brand: prod.brand ?? "",
+        rating: Number(prod.rating ?? 0), reviews: Number(prod.reviews ?? 0),
+      })),
+    });
+  });
+
+  // GET /api/v1/analytics/sales-summary — sales over time
+  server.get("/api/v1/analytics/sales-summary", async (request, reply) => {
+    await authenticate(request, reply, prisma);
+    const period = String((request.query as any).period ?? "daily");
+    const p = prisma as any;
+    let orders: any[] = [];
+    try { orders = await p.$queryRawUnsafe(`SELECT * FROM "Order" ORDER BY "createdAt" DESC LIMIT 365`) as any[]; } catch { /* no orders */ }
+
+    const buckets: Record<string, { orders: number; revenue: number }> = {};
+    for (const order of orders) {
+      const d = new Date(order.createdAt as string);
+      let key: string;
+      if (period === "weekly") { const start = new Date(d); start.setDate(d.getDate() - d.getDay()); key = start.toISOString().slice(0, 10); }
+      else if (period === "monthly") key = d.toISOString().slice(0, 7);
+      else key = d.toISOString().slice(0, 10);
+      if (!buckets[key]) buckets[key] = { orders: 0, revenue: 0 };
+      const b = buckets[key]!;
+      b.orders++;
+      b.revenue += Number(order.total ?? 0);
+    }
+    const data = Object.entries(buckets).sort(([a], [b]) => a.localeCompare(b)).slice(-30)
+      .map(([date, val]) => ({ date, orders: val.orders, revenue: val.revenue }));
+    return await reply.send({ success: true, data });
+  });
+
+  // GET /api/v1/analytics/category-sales — sales by category
+  server.get("/api/v1/analytics/category-sales", async (request, reply) => {
+    await authenticate(request, reply, prisma);
+    const p = prisma as any;
+    const products = await p.product.findMany({ where: { status: "published" } }).catch(() => []) as any[];
+    const categorySales: Record<string, { count: number; revenue: number }> = {};
+    for (const prod of products) {
+      const cat = String(prod.category ?? "Uncategorized");
+      if (!categorySales[cat]) categorySales[cat] = { count: 0, revenue: 0 };
+      categorySales[cat].count++;
+    }
+    // Add revenue from orders
+    const orders = await p.$queryRawUnsafe(`SELECT * FROM "Order" LIMIT 500`) as any[];
+    for (const order of orders) {
+      const items = (order.items && typeof order.items === "object" ? (Array.isArray(order.items) ? order.items : JSON.parse(String(order.items ?? "[]"))) : []) as any[];
+      for (const item of items) {
+        const cat = String(item.category ?? "Uncategorized");
+        if (!categorySales[cat]) categorySales[cat] = { count: 0, revenue: 0 };
+        categorySales[cat].revenue += Number(item.price ?? 0) * Number(item.qty ?? 1);
+      }
+    }
+    const data = Object.entries(categorySales).map(([category, val]) => ({ category, ...val }));
+    return await reply.send({ success: true, data });
+  });
+
+  // GET /api/v1/analytics/inventory-status — inventory overview
+  server.get("/api/v1/analytics/inventory-status", async (request, reply) => {
+    await authenticate(request, reply, prisma);
+    const p = prisma as any;
+    const [total, inStock, outOfStock, lowStock, totalStockValue] = await Promise.all([
+      p.product.count().catch(() => 0),
+      p.product.count({ where: { stockStatus: "instock", stockQty: { gt: 0 } } }).catch(() => 0),
+      p.product.count({ where: { stockStatus: "outofstock" } }).catch(() => 0),
+      p.product.count({ where: { OR: [{ stockStatus: "low" }, { stockQty: { lte: 5, gt: 0 } }] } }).catch(() => 0),
+      p.product.aggregate({ _sum: { price: true } }).catch(() => ({ _sum: { price: 0 } })),
+    ]);
+    return await reply.send({
+      success: true,
+      data: {
+        totalProducts: total ?? 0,
+        inStock: inStock ?? 0,
+        outOfStock: outOfStock ?? 0,
+        lowStock: lowStock ?? 0,
+        estimatedInventoryValue: ((totalStockValue as any)?._sum?.price ?? 0),
+      },
+    });
+  });
+
+  // GET /api/v1/analytics/recent-orders — recent orders list
+  server.get("/api/v1/analytics/recent-orders", async (request, reply) => {
+    await authenticate(request, reply, prisma);
+    const limit = Math.min(Number((request.query as any).limit ?? 20), 50);
+    const p = prisma as any;
+    const orders = await p.$queryRawUnsafe(`SELECT * FROM "Order" ORDER BY "createdAt" DESC LIMIT ${limit}`) as any[];
+    const data = orders.map((o: any) => ({
+      id: o.id, orderNumber: o.orderNumber, email: o.email, total: Number(o.total ?? 0),
+      status: o.status, items: typeof o.items === "string" ? JSON.parse(o.items).length : (Array.isArray(o.items) ? o.items.length : 0),
+      createdAt: o.createdAt,
+    }));
+    return await reply.send({ success: true, data });
+  });
 }

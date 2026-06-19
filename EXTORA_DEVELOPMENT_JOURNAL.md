@@ -3564,3 +3564,44 @@ This caused ALL buttons (cart, search, login, reviews, newsletter) to silently f
 **Docker deploy:** 34 pages, 2023 KB, 7 containers healthy
 
 **CI all green:** Lint 16/16, Typecheck 20/20, Test 34/34
+
+
+### Phase 154: Product Analytics & Reports Plugin + Admin Dashboard
+**Date:** June 19, 2026 | **Commit:** (upcoming)
+**Duration:** ~35 minutes
+
+**Plugin Created:** `@extora/product-analytics` (plugins/product-analytics/)
+- Full extora.json manifest with hooks, permissions, API endpoints
+- Plugin source (src/index.ts) extending BasePlugin with onInstall/onActivate hooks
+
+**Analytics API Routes (6 endpoints in admin-routes.ts):**
+- `GET /api/v1/analytics/dashboard` — KPI summary (products, orders, users, revenue, stock status)
+- `GET /api/v1/analytics/top-products` — best selling by revenue, fallback to top-rated
+- `GET /api/v1/analytics/sales-summary?period=daily|weekly|monthly` — revenue trend chart data
+- `GET /api/v1/analytics/category-sales` — sales breakdown by product category
+- `GET /api/v1/analytics/inventory-status` — in stock, OOS, low stock, est. value
+- `GET /api/v1/analytics/recent-orders` — latest orders with status badges
+
+**Studio Analytics Dashboard (apps/studio/src/pages/Analytics.tsx):**
+- Full admin page at `/admin-panel/#/analytics`
+- KPI cards: Total Revenue, Orders, Products, Inventory Value
+- Revenue trend bar chart (daily/weekly/monthly toggle)
+- Top Products table (by sales, with fallback to top-rated)
+- Category breakdown with percentage bars
+- Inventory health cards (In Stock, Low, OOS, Est. Value)
+- Recent Orders table with color-coded status badges
+- Loading skeletons on initial fetch
+- Refresh button for real-time updates
+
+**Technical: Order table via raw SQL (not in Prisma schema)**
+- All order queries use `$queryRawUnsafe` since Order table created via raw SQL in entrypoint
+- Category statistics enriched from Product model joins
+
+**Studio Integration:**
+- Analytics nav item added to DashboardLayout sidebar (TrendingUp icon)
+- Page registered in App.tsx PAGE_MAP
+- Analytics page accessible at #/analytics hash route
+
+**Docker deploy:** 34 pages, 2023 KB, 7 containers healthy
+
+**CI all green:** Lint 16/16, Typecheck 20/20, Test 34/34

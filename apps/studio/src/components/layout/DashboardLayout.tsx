@@ -6,7 +6,7 @@ import {
   HardDrive, FileText, Image, Activity, LogOut, Menu, X, Package,
   ShoppingCart, ShoppingBag, Globe, CheckCircle, AlertCircle, Loader2,
   ChevronDown, ChevronRight, FolderTree, Shield, Tags, Grid3X3, MessageSquare,
-  PanelTop, Type,
+  PanelTop, Type, TrendingUp,
 } from "lucide-react";
 
 interface NavItem {
@@ -30,6 +30,7 @@ const navItems: NavItem[] = [
     ],
   },
   { id: "orders", label: "Orders", icon: ShoppingCart },
+  { id: "analytics", label: "Analytics", icon: TrendingUp },
   { id: "content", label: "Content", icon: FileText },
   { id: "builder", label: "Builder", icon: Layout,
     children: [

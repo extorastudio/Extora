@@ -1,0 +1,20 @@
+{
+  "name": "@extora/product-analytics",
+  "version": "1.0.0",
+  "type": "plugin",
+  "title": "Product Analytics & Reports",
+  "description": "Amazon-style product analytics dashboard with sales reports, inventory analysis, top products, revenue charts, and performance metrics",
+  "author": { "name": "Extora Team", "email": "plugins@extora.dev" },
+  "license": "MIT",
+  "keywords": ["analytics", "reports", "products", "sales", "inventory", "dashboard"],
+  "categories": ["analytics", "commerce"],
+  "extora": { "core": ">=0.3.0" },
+  "entry": { "server": "./src/index.ts" },
+  "permissions": ["db:read", "db:write"],
+  "dependencies": { "@extora/commerce": ">=0.0.0" },
+  "hooks": {
+    "actions": ["analytics.product_view", "analytics.product_purchase"],
+    "filters": ["analytics.get_dashboard_stats"]
+  },
+  "api": { "rest": { "endpoints": ["/api/v1/analytics/*"] } }
+}
