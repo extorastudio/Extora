@@ -411,15 +411,16 @@ export function registerAdminRoutes(server: FastifyInstance, prisma: PrismaClien
 
   server.get("/api/v1/commerce/orders", async (request: FastifyRequest, reply: FastifyReply) => {
     await authenticate(request, reply, prisma);
-    const list = await prisma.auditLog.findMany({
-      where: { action: "site.publish" },
-      orderBy: { createdAt: "desc" },
-      take: 20,
-      select: { id: true, action: true, resource: true, outcome: true, details: true, createdAt: true },
-    });
-    return await reply.send({
-      data: list.map((r) => ({ ...r, createdAt: r.createdAt.toISOString() })),
-    });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const list = await (prisma as any).$queryRawUnsafe(
+      `SELECT id, "orderNumber", "customerEmail", total, status, "createdAt" FROM "Order" ORDER BY "createdAt" DESC LIMIT 50`,
+    );
+    const orders = (list as any[]).map((r: any) => ({
+      id: String(r.id), orderNumber: String(r.orderNumber), customerEmail: String(r.customerEmail),
+      total: Number(r.total), status: String(r.status), items: 1,
+      createdAt: r.createdAt instanceof Date ? r.createdAt.toISOString() : String(r.createdAt),
+    }));
+    return await reply.send({ data: orders });
   });
 
   // =========================================================================
@@ -764,26 +765,31 @@ export function registerAdminRoutes(server: FastifyInstance, prisma: PrismaClien
     }
     const body = request.body as Record<string, unknown> | undefined;
     const total = cart.items.reduce((s, i) => s + i.price * i.qty, 0);
-    const order = {
+    const orderData = {
       id: `order_${Date.now()}`,
       orderNumber: `EXT-${String(Date.now()).slice(-6)}`,
       customerEmail: String(body?.email ?? "customer@example.com"),
       items: cart.items,
       total,
       status: "confirmed",
-      createdAt: new Date().toISOString(),
     };
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (prisma as any).$queryRawUnsafe(
+      `INSERT INTO "Order" (id, "orderNumber", "customerEmail", items, total, status, "createdAt") VALUES ($1, $2, $3, $4::jsonb, $5, $6, NOW())`,
+      orderData.id, orderData.orderNumber, orderData.customerEmail, JSON.stringify(orderData.items), orderData.total, orderData.status,
+    );
 
     await prisma.auditLog.create({
       data: {
         action: "order.placed",
-        resource: `order:${order.id}`,
+        resource: `order:${orderData.id}`,
         outcome: "success",
         details: { total, items: cart.items.length } as any,
       },
     });
 
     carts.delete(userId);
-    return await reply.send({ data: order });
+    return await reply.send({ data: { ...orderData, createdAt: new Date().toISOString() } });
   });
 }

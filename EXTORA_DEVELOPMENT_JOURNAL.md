@@ -2860,3 +2860,17 @@ All CI green: lint 16/16, typecheck 20/20, test 34/34
 - Hash change listener syncs the active category tab
 
 **717+ tests pass. 193+ commits. 359+ files.**
+
+
+### Phase 119: Real Order Storage in PostgreSQL
+**Date:** June 19, 2026 | **Commit:** `(pending)`
+**Duration:** ~20 minutes
+
+**Orders now stored in PostgreSQL Order table:**
+- Order model with id, orderNumber, customerEmail, items (JSONB), total, status, createdAt
+- Checkout inserts into Order table with JSONB cast
+- Orders API reads from Order table (not audit logs)
+- Orders page shows real order data from DB
+- Tested: checkout creates order EXT-693614, ₹16,098 → listed in Orders
+
+**717+ tests pass. 194+ commits. 360+ files.**
