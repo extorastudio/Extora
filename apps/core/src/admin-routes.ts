@@ -849,6 +849,27 @@ export function registerAdminRoutes(server: FastifyInstance, prisma: PrismaClien
     });
 
     carts.delete(userId);
+    // Send order confirmation email
+    try {
+      const emailHtml = `<h2>Order Confirmed — ${orderData.orderNumber}</h2><p>Thank you for your order!</p><table><tr><td>Order</td><td>${orderData.orderNumber}</td></tr><tr><td>Total</td><td>₹${total.toLocaleString("en-IN")}</td></tr><tr><td>Items</td><td>${cart.items.length}</td></tr></table><p>We'll notify you when your order ships.</p>`;
+      const emailBody = JSON.stringify({
+        from: "noreply@extora.dev",
+        subject: `Order Confirmed — ${orderData.orderNumber}`,
+        html: emailHtml,
+      });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await Promise.race([
+        fetch(`${process.env.SMTP_HOST ? `http://${process.env.SMTP_HOST}:8025` : "http://mailhog:8025"}/api/v1/messages`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            to: [orderData.customerEmail],
+            ...JSON.parse(emailBody),
+          }),
+        }),
+        new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), 3000)),
+      ]).catch(() => {});
+    } catch { /* email optional */ }
     return await reply.send({ data: { ...orderData, createdAt: new Date().toISOString() } });
   });
 }

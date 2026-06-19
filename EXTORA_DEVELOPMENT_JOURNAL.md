@@ -3028,3 +3028,16 @@ all CI green (717+ tests, 195+ commits, 361+ files).
 - Sign Out button in card layout
 
 **717+ tests pass. 202+ commits. 368+ files.**
+
+
+### Phase 129: Order Confirmation Emails via MailHog
+**Date:** June 19, 2026 | **Commit:** `(pending)`
+**Duration:** ~15 minutes
+
+**Order confirmation emails sent on checkout:**
+- Email sent via HTTP to MailHog SMTP (mailhog:8025 API)
+- Contains: order number, total, item count, customer email
+- MailHog UI accessible at http://localhost:8025 (port now exposed)
+- 3-second timeout prevents blocking if email service is down
+
+**717+ tests pass. 203+ commits. 369+ files.**
