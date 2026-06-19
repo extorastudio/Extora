@@ -2474,3 +2474,41 @@ Each with inline CRUD via generic taxonomyCrud API factory.
 **Commits:** 178+ | **Files:** 340+
 
 
+
+
+### Phase 103: Orders Management + Dashboard Stats
+**Date:** June 16, 2026 | **Commits:** `47c0794` → `86cbb3d`
+**Duration:** ~60 minutes
+
+**Orders Management page:**
+- Stats bar: Total orders, revenue total, pending count, delivered count
+- Status filters: all, pending, confirmed, processing, shipped, delivered, cancelled
+- Color-coded status badges with Lucide icons (Clock/CheckCircle/Truck/XCircle)
+- Search by order number or customer email
+- Sample orders fallback when API returns empty data
+- Sidebar entry between Products and Content
+
+**Dashboard enhancement:**
+- Primary stats: Total Products (with published/draft split), Revenue from published products, Content pages, Active plugins
+- Secondary stats: Orders (7-day), Users, Uptime, Site Status (Live)
+- Quick Actions bar: Add Product, New Content, Upload Media, View Orders, Customize Theme
+- View Site link in header
+- Live data from /commerce/products, /content, /system/health APIs
+
+**Monitoring page enhanced:**
+- Service status grid: 5 services with connected/disconnected badges + latency (ms)
+- Color-coded: green borders for connected, red for disconnected
+- Memory usage bars with visual breakdown (heap used, heap total, RSS)
+- System info table: version, Node.js, platform, architecture
+
+**Files:**
+- `apps/studio/src/pages/Orders.tsx` — New page (180+ lines)
+- `apps/studio/src/App.tsx` — Dashboard rewrite with live stats
+- `apps/studio/src/pages/Monitoring.tsx` — Complete rewrite
+- `apps/studio/src/components/layout/DashboardLayout.tsx` — Added Orders nav item
+
+**Full end-to-end verification:**
+7 Docker containers healthy, 5/5 services connected, login successful,
+4 plugins activated, publish: 10 pages 96 KB, site/admin/api all 200 OK.
+
+**716+ tests pass. 180+ commits, 342+ files.**
