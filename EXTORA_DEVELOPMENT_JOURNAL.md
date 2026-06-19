@@ -3315,3 +3315,30 @@ This caused ALL buttons (cart, search, login, reviews, newsletter) to silently f
 **Docker deploy:** 26 pages, 964 KB, 7 containers healthy
 
 **CI all green:** Lint 16/16, Typecheck 20/20, Test 34/34
+
+
+### Phase 144: Image Gallery with Zoom + Multi-Image + Video Support
+**Date:** June 19, 2026 | **Commit:** (upcoming)
+**Duration:** ~30 minutes
+
+**Architecture decision — Amazon-style store layers:**
+- THEME: Gallery layout, zoom overlay, thumbnail nav, video player styling, stock badges
+- PLUGINS: Media Gallery (multi-upload/reorder), Image Zoom, Video Embed, Product Badges
+- CORE: File upload → MinIO/S3, images[]/videoUrl fields, publishing engine, admin CRUD
+
+**Image Gallery enhancements:**
+- **Zoom magnifier** on hover (Amazon-style): 120px lens with 400px result overlay
+- Zoom follows mouse, background-position calculated from natural image dimensions
+- **Thumbnail navigation**: click thumb → switches main image, active state with orange border
+- **Prev/Next arrows**: appear on hover, cycle through all images
+- 8 thumbnails shown (up from 5)
+
+**Video support:**
+- Self-hosted MP4 videos via `<video>` tag with controls
+- YouTube/Vimeo embedding via `<iframe>` (auto-detected from URL)
+- Video thumbnail in thumb strip with play icon overlay
+- Video panel replaces main image when selected
+
+**Docker deploy:** 26 pages, 1105 KB, 7 containers healthy
+
+**CI all green:** Lint 16/16, Typecheck 20/20, Test 34/34

@@ -37,11 +37,23 @@ body{font-family:Arial,Helvetica,sans-serif;color:#0f1111;background:#eaeded;lin
 .breadcrumb a:hover{color:#c7511f}
 
 .pdetail{margin:0 auto 20px;display:grid;grid-template-columns:1fr 1fr;gap:24px}
-.pdetail .gallery{display:flex;flex-direction:column;gap:8px}
-.pdetail .gallery .main-img{width:100%;aspect-ratio:1;object-fit:contain;background:white;border-radius:4px;border:1px solid #e7e7e7}
-.pdetail .thumbs{display:flex;gap:6px}
-.pdetail .thumbs img{width:50px;height:50px;object-fit:contain;border:1px solid #e7e7e7;border-radius:2px;cursor:pointer}
-.pdetail .thumbs img:hover{border-color:#febd69;box-shadow:0 0 0 2px #febd69}
+.pdetail .gallery{display:flex;flex-direction:column;gap:8px;position:relative}
+.pdetail .gallery .main-wrap{position:relative;overflow:hidden;cursor:zoom-in;background:white;border-radius:4px;border:1px solid #e7e7e7}
+.pdetail .gallery .main-img{width:100%;aspect-ratio:1;object-fit:contain;display:block;transition:opacity .2s}
+.pdetail .gallery .zoom-lens{position:absolute;border:2px solid #555;width:120px;height:120px;display:none;pointer-events:none;z-index:10;background:rgba(255,255,255,.2)}
+.pdetail .gallery .zoom-result{position:absolute;top:0;left:calc(100% + 16px);width:400px;height:400px;background-repeat:no-repeat;z-index:20;display:none;border:1px solid #e7e7e7;border-radius:4px;box-shadow:0 4px 16px rgba(0,0,0,.15)}
+.pdetail .gallery .gallery-nav{position:absolute;top:50%;transform:translateY(-50%);background:white;border:1px solid #ddd;border-radius:4px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:5;font-size:1.2rem;color:#555;box-shadow:0 1px 4px rgba(0,0,0,.1);opacity:0;transition:opacity .2s}
+.pdetail .gallery:hover .gallery-nav{opacity:1}
+.pdetail .gallery .gallery-nav.prev{left:8px}
+.pdetail .gallery .gallery-nav.next{right:8px}
+.pdetail .gallery .thumbs{display:flex;gap:6px;flex-wrap:wrap}
+.pdetail .gallery .thumbs img{width:50px;height:50px;object-fit:contain;border:1px solid #e7e7e7;border-radius:2px;cursor:pointer;transition:border-color .15s}
+.pdetail .gallery .thumbs img:hover{border-color:#febd69}
+.pdetail .gallery .thumbs img.active{border-color:#e77600;box-shadow:0 0 0 2px #e77600}
+.pdetail .gallery .thumbs .thumb-video{position:relative;cursor:pointer}
+.pdetail .gallery .thumbs .thumb-video::after{content:'▶';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:white;background:rgba(0,0,0,.6);border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:.6rem}
+.pdetail .gallery .video-wrap{width:100%;aspect-ratio:16/9;background:black;display:none;border-radius:4px;overflow:hidden}
+.pdetail .gallery .video-wrap video,.pdetail .gallery .video-wrap iframe{width:100%;height:100%;border:none}
 .pdetail h1{font-size:1.5rem;line-height:1.3;margin-bottom:8px}
 .pdetail .rating-row{display:flex;align-items:center;gap:8px;margin:8px 0;font-size:.85rem}
 .pdetail .rating-row .stars{color:#febd69}
@@ -411,6 +423,85 @@ window.onscroll = function() {
   if (btn) btn.style.display = window.scrollY > 400 ? "flex" : "none";
 };
 function scrollToTop() { window.scrollTo({ top: 0, behavior: "smooth" }); }
+// ── Product Image Gallery ──
+function switchImg(slug, idx, src) {
+  var main = document.getElementById("mainImg-"+slug);
+  var wrap = document.getElementById("mainWrap-"+slug);
+  var vid = document.getElementById("vidWrap-"+slug);
+  if (vid) vid.style.display = "none";
+  if (wrap) { wrap.style.display = "block"; wrap.style.cursor = "zoom-in"; }
+  if (main) { main.src = src; main.style.opacity = "1"; }
+  var thumbs = document.querySelectorAll("#thumbs-"+slug+" img");
+  thumbs.forEach(function(t,i){ t.classList.toggle("active", i===idx); });
+  var result = document.getElementById("zoomResult-"+slug);
+  if (result) result.style.backgroundImage = "url("+src+")";
+}
+var galleryImgs = {}; // slug -> [src1, src2, ...]
+var galleryIdx = {};
+function navGallery(slug, dir) {
+  if (!galleryImgs[slug]) {
+    var m = document.getElementById("mainImg-"+slug);
+    if (!m) return;
+    var imgs = [m.src];
+    var thumbs = document.querySelectorAll("#thumbs-"+slug+" img");
+    thumbs.forEach(function(t){ imgs.push(t.src); });
+    galleryImgs[slug] = imgs;
+    galleryIdx[slug] = 0;
+  }
+  var idx = (galleryIdx[slug]||0) + dir;
+  var imgs = galleryImgs[slug];
+  if (idx < 0) idx = imgs.length - 1;
+  if (idx >= imgs.length) idx = 0;
+  galleryIdx[slug] = idx;
+  var main = document.getElementById("mainImg-"+slug);
+  if (main) main.src = imgs[idx];
+  var result = document.getElementById("zoomResult-"+slug);
+  if (result) result.style.backgroundImage = "url("+imgs[idx]+")";
+  var thumbs = document.querySelectorAll("#thumbs-"+slug+" img");
+  thumbs.forEach(function(t,i){ t.classList.toggle("active", i===idx); });
+}
+function showVideo(slug) {
+  var wrap = document.getElementById("mainWrap-"+slug);
+  var vid = document.getElementById("vidWrap-"+slug);
+  if (wrap) { wrap.style.display = "none"; wrap.style.cursor = "default"; }
+  if (vid) vid.style.display = "block";
+}
+// ── Image Zoom (Amazon-style magnifier) ──
+function initZoom(slug) {
+  var wrap = document.getElementById("mainWrap-"+slug);
+  var img = document.getElementById("mainImg-"+slug);
+  var lens = document.getElementById("zoomLens-"+slug);
+  var result = document.getElementById("zoomResult-"+slug);
+  if (!wrap || !img || !lens || !result) return;
+  var zw = 400, zh = 400; // zoom result size
+  function moveZoom(e) {
+    var rect = img.getBoundingClientRect();
+    var x = e.clientX - rect.left;
+    var y = e.clientY - rect.top;
+    var lw = lens.offsetWidth, lh = lens.offsetHeight;
+    var lx = x - lw/2, ly = y - lh/2;
+    if (lx < 0) lx = 0; if (ly < 0) ly = 0;
+    if (lx > rect.width - lw) lx = rect.width - lw;
+    if (ly > rect.height - lh) ly = rect.height - lh;
+    lens.style.left = lx + "px";
+    lens.style.top = ly + "px";
+    var rx = (x / rect.width) * (img.naturalWidth * (zw/img.offsetWidth)) - zw/2;
+    var ry = (y / rect.height) * (img.naturalHeight * (zh/img.offsetHeight)) - zh/2;
+    result.style.backgroundPosition = "-"+rx+"px -"+ry+"px";
+    result.style.backgroundSize = (img.naturalWidth * (zw/img.offsetWidth)) + "px " + (img.naturalHeight * (zh/img.offsetHeight)) + "px";
+  }
+  wrap.addEventListener("mouseenter", function(){ lens.style.display="block"; result.style.display="block"; });
+  wrap.addEventListener("mousemove", moveZoom);
+  wrap.addEventListener("mouseleave", function(){ lens.style.display="none"; result.style.display="none"; });
+}
+document.addEventListener("DOMContentLoaded", function() {
+  // Initialize zoom for all product images
+  try {
+    var path = window.location.pathname;
+    var m = path.match(/product-([^.]+)/);
+    if (m) initZoom(m[1]);
+  } catch(e) {}
+});
 </script>
 <div class="compare-bar" id="compareBar" style="display:none">
 <div class="cb-items" id="compareItems"></div>
@@ -492,6 +583,17 @@ export async function publishSite(prisma: PrismaClient, logger: Logger): Promise
     const specs = (typeof p.specs === "object" && p.specs ? p.specs : {}) as Record<string, string>;
     const specRows = Object.entries(specs).map(([k, v]) => `<tr><td>${e(k)}</td><td>${e(v)}</td></tr>`).join("");
 
+    let videoHtml = "";
+    if (p.videoUrl) {
+      const vu = String(p.videoUrl);
+      if (vu.includes("youtube.com") || vu.includes("youtu.be")) {
+        const embedUrl = vu.replace("watch?v=","embed/").replace("youtu.be/","youtube.com/embed/");
+        videoHtml = `<div class="video-wrap" id="vidWrap-${e(p.slug)}"><iframe src="${e(embedUrl)}" allowfullscreen></iframe></div>`;
+      } else {
+        videoHtml = `<div class="video-wrap" id="vidWrap-${e(p.slug)}"><video src="${e(vu)}" controls></video></div>`;
+      }
+    }
+
     pages.push({
       slug: `product-${e(p.slug)}`,
       title: String(p.name),
@@ -499,8 +601,16 @@ export async function publishSite(prisma: PrismaClient, logger: Logger): Promise
       content: `<div class="breadcrumb"><a href="/">Home</a> › <a href="/products.html">Products</a> › <span style="color:#c45500">${e(p.name)}</span></div>
 <div class="container"><div class="pdetail">
 <div class="gallery">
-${imgs.length > 0 ? `<img src="${e(imgs[0])}" class="main-img" alt="${e(p.name)}">` : `<div class="main-img" style="display:flex;align-items:center;justify-content:center;color:#999;background:white">No Image</div>`}
-<div class="thumbs">${imgs.slice(0, 5).map((i) => `<img src="${e(i)}" alt="">`).join("")}</div>
+<div class="main-wrap" id="mainWrap-${e(p.slug)}">
+${imgs.length > 0 ? `<img src="${e(imgs[0])}" class="main-img" id="mainImg-${e(p.slug)}" alt="${e(p.name)}">` : `<div class="main-img" style="display:flex;align-items:center;justify-content:center;color:#999;background:white">No Image</div>`}
+${imgs.length > 0 ? `<div class="zoom-lens" id="zoomLens-${e(p.slug)}"></div><div class="zoom-result" id="zoomResult-${e(p.slug)}" style="background-image:url(${e(imgs[0])})"></div>` : ""}
+${imgs.length > 1 ? `<button class="gallery-nav prev" onclick="navGallery('${e(p.slug)}',-1)">‹</button><button class="gallery-nav next" onclick="navGallery('${e(p.slug)}',1)">›</button>` : ""}
+</div>
+${videoHtml}
+<div class="thumbs" id="thumbs-${e(p.slug)}">
+${imgs.slice(0, 8).map((img, idx) => `<img src="${e(img)}" class="${idx === 0 ? "active" : ""}" onclick="switchImg('${e(p.slug)}',${idx},'${e(img)}')" alt="">`).join("")}
+${p.videoUrl ? `<div class="thumb-video" onclick="showVideo('${e(p.slug)}')"><img src="${imgs.length > 0 ? e(imgs[0]) : ""}" alt="Video" style="opacity:.5"></div>` : ""}
+</div>
 </div>
 <div>
 <h1>${e(p.name)}</h1>
