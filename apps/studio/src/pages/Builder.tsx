@@ -104,7 +104,7 @@ export default function BuilderPage() {
     if (!pageTitle.trim()) { setMsg("Enter a page title"); return; }
     setSaving(true); setMsg("");
     try {
-      const slug = (pageSlug ?? pageTitle).toLowerCase().replace(/\s+/g, "-");
+      const slug = pageTitle.toLowerCase().replace(/\s+/g, "-");
       await apiClient.post("/content", { title: pageTitle, slug, body: JSON.stringify({ elements, v: "1.0" }), excerpt: `Built with Page Builder — ${elements.length} elements`, type: "page", status: "published" });
       setMsg(`Saved! Publish site to see it live`);
     } catch { setMsg("Save failed"); }

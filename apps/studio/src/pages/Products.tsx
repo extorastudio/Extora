@@ -77,6 +77,12 @@ export default function ProductsPage() {
   const [activeTab, setActiveTab] = useState("general");
   const [filterStatus, setFilterStatus] = useState("");
   const [subTab, setSubTab] = useState("products");
+
+  useEffect(() => {
+    const hash = window.location.hash.slice(2);
+    const validTabs = ["products", "categories", "brands", "tags", "attributes", "reviews"];
+    if (validTabs.includes(hash)) setSubTab(hash);
+  }, []);
   const [taxonomies, setTaxonomies] = useState<{ id: string; name: string; slug: string; description: string }[]>([]);
   const [taxLoading, setTaxLoading] = useState(false);
   const [taxEdit, setTaxEdit] = useState<{ id?: string; name: string; description: string } | null>(null);

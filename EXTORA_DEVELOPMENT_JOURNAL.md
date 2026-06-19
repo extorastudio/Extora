@@ -2606,3 +2606,23 @@ Commerce: Product Grid, Deals Banner, Category Cards
 - Empty state with "Start Building" prompt and category list
 
 **716+ tests pass. 184+ commits, 349+ files.**
+
+
+### Phase 108: Expandable Sub-Menus — WordPress-Style Sidebar
+**Date:** June 16, 2026 | **Commit:** `(pending)`
+**Duration:** ~30 minutes
+
+**Sidebar redesigned with expandable sub-menus (WordPress admin style):**
+
+Products expands to show: All Products, Categories, Brands, Tags, Attributes, Reviews
+- ChevronDown/ChevronRight icons for expand/collapse state
+- Indented sub-items with left border
+- Parent item highlighted when any child is active
+- Expand state persisted via Set in component state
+- Sub-items link to hash routes (#/categories, #/brands, etc.)
+
+Products page reads URL hash on mount to set correct sub-tab
+- categories → Categories sub-tab
+- brands → Brands sub-tab, etc.
+
+**716+ tests pass. 184+ commits, 349+ files.**

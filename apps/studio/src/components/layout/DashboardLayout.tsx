@@ -2,36 +2,32 @@ import { useState } from "react";
 import { useAuthStore } from "../../stores/auth-store";
 import apiClient from "../../api/client";
 import {
-  LayoutDashboard,
-  Layout,
-  Users,
-  Puzzle,
-  Palette,
-  Settings,
-  Server,
-  HardDrive,
-  FileText,
-  Image,
-  Activity,
-  LogOut,
-  Menu,
-  X,
-  Package,
-  ShoppingCart,
-  Globe,
-  CheckCircle,
-  AlertCircle,
-  Loader2,
+  LayoutDashboard, Layout, Users, Puzzle, Palette, Settings, Server,
+  HardDrive, FileText, Image, Activity, LogOut, Menu, X, Package,
+  ShoppingCart, Globe, CheckCircle, AlertCircle, Loader2,
+  ChevronDown, ChevronRight, FolderTree, Shield, Tags, Grid3X3, MessageSquare,
 } from "lucide-react";
 
-interface DashboardLayoutProps {
-  children: React.ReactNode;
-  currentPage: string;
+interface NavItem {
+  id: string;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  children?: NavItem[];
 }
 
-const navItems = [
+const navItems: NavItem[] = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { id: "products", label: "Products", icon: Package },
+  {
+    id: "products", label: "Products", icon: Package,
+    children: [
+      { id: "products", label: "All Products", icon: Package },
+      { id: "categories", label: "Categories", icon: FolderTree },
+      { id: "brands", label: "Brands", icon: Shield },
+      { id: "tags", label: "Tags", icon: Tags },
+      { id: "attributes", label: "Attributes", icon: Grid3X3 },
+      { id: "reviews", label: "Reviews", icon: MessageSquare },
+    ],
+  },
   { id: "orders", label: "Orders", icon: ShoppingCart },
   { id: "content", label: "Content", icon: FileText },
   { id: "builder", label: "Builder", icon: Layout },
@@ -44,6 +40,11 @@ const navItems = [
   { id: "config", label: "Configuration", icon: Settings },
 ];
 
+interface DashboardLayoutProps {
+  children: React.ReactNode;
+  currentPage: string;
+}
+
 const bottomNavItems = [
   { id: "monitoring", label: "Monitoring", icon: Activity },
   { id: "backups", label: "Backups", icon: HardDrive },
@@ -51,9 +52,25 @@ const bottomNavItems = [
 
 export default function DashboardLayout({ children, currentPage }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [expanded, setExpanded] = useState<Set<string>>(new Set(["products"]));
   const [publishing, setPublishing] = useState(false);
   const [publishMsg, setPublishMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const { user, logout } = useAuthStore();
+
+  const toggleExpanded = (id: string) => {
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const isActive = (id: string) => currentPage === id;
+
+  const isParentActive = (item: NavItem) => {
+    if (item.children) return item.children.some((c) => isActive(c.id));
+    return isActive(item.id);
+  };
 
   const handlePublish = async () => {
     setPublishing(true);
@@ -101,15 +118,53 @@ export default function DashboardLayout({ children, currentPage }: DashboardLayo
         <nav className="flex-1 space-y-0.5 overflow-y-auto p-2">
           {navItems.map((item) => {
             const Icon = item.icon;
-            const isActive = currentPage === item.id;
+            const active = isParentActive(item);
+            const isExpandable = !!item.children;
+
+            if (isExpandable) {
+              const open = expanded.has(item.id);
+              return (
+                <div key={item.id}>
+                  <button
+                    onClick={() => toggleExpanded(item.id)}
+                    className={`w-full flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                      active ? "bg-blue-600/20 text-blue-400" : "text-gray-400 hover:bg-gray-800 hover:text-gray-200"
+                    }`}
+                  >
+                    <Icon className="h-4 w-4 shrink-0" />
+                    <span className="flex-1 text-left">{item.label}</span>
+                    {open ? <ChevronDown className="h-3.5 w-3.5 shrink-0" /> : <ChevronRight className="h-3.5 w-3.5 shrink-0" />}
+                  </button>
+                  {open && item.children && (
+                    <div className="ml-4 mt-0.5 space-y-0.5 border-l border-gray-800 pl-2">
+                      {item.children.map((child) => {
+                        const ChildIcon = child.icon;
+                        const childActive = isActive(child.id);
+                        return (
+                          <a
+                            key={child.id}
+                            href={`#/${child.id}`}
+                            className={`flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm transition-colors ${
+                              childActive ? "bg-blue-600/20 text-blue-400 font-medium" : "text-gray-400 hover:bg-gray-800 hover:text-gray-200"
+                            }`}
+                          >
+                            <ChildIcon className="h-3.5 w-3.5 shrink-0" />
+                            {child.label}
+                          </a>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            }
+
             return (
               <a
                 key={item.id}
                 href={item.id === "dashboard" ? "#/" : `#/${item.id}`}
                 className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-                  isActive
-                    ? "bg-blue-600/20 text-blue-400"
-                    : "text-gray-400 hover:bg-gray-800 hover:text-gray-200"
+                  active ? "bg-blue-600/20 text-blue-400" : "text-gray-400 hover:bg-gray-800 hover:text-gray-200"
                 }`}
               >
                 <Icon className="h-4 w-4 shrink-0" />
