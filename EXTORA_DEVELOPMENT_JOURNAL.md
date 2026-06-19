@@ -3543,3 +3543,24 @@ This caused ALL buttons (cart, search, login, reviews, newsletter) to silently f
 **Docker deploy:** 34 pages, 2024 KB, 7 containers healthy
 
 **CI all green:** Lint 16/16, Typecheck 20/20, Test 34/34
+
+
+### Phase 153: Fix Image Zoom + Verify Video
+**Date:** June 19, 2026 | **Commit:** (upcoming)
+**Duration:** ~15 minutes
+
+**Image Zoom Fix:**
+- ROOT CAUSE: `.main-wrap{overflow:hidden}` was clipping the `zoom-result` div positioned at `left:calc(100% + 16px)` (to the right of main image)
+- Fix: Removed `overflow:hidden` from `.main-wrap` CSS
+- Zoom lens (120px) and result overlay (400px) now visible on hover
+- Mobile already disables zoom via `display:none!important` at 768px
+
+**Video Verification:**
+- Video file exists on MinIO (200 OK, 2.4MB, video/mp4)
+- `showVideo()` function hides main-wrap, shows video-wrap
+- Thumbnail click handler `onclick="showVideo('yoga-mat...')"` present
+- Both self-hosted `<video>` and YouTube `<iframe>` paths verified in HTML
+
+**Docker deploy:** 34 pages, 2023 KB, 7 containers healthy
+
+**CI all green:** Lint 16/16, Typecheck 20/20, Test 34/34

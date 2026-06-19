@@ -43,7 +43,7 @@ body{font-family:Arial,Helvetica,sans-serif;color:#0f1111;background:#eaeded;lin
 
 .pdetail{margin:0 auto 20px;display:grid;grid-template-columns:1fr 1fr;gap:24px}
 .pdetail .gallery{display:flex;flex-direction:column;gap:8px;position:relative}
-.pdetail .gallery .main-wrap{position:relative;overflow:hidden;cursor:zoom-in;background:white;border-radius:4px;border:1px solid #e7e7e7}
+.pdetail .gallery .main-wrap{position:relative;cursor:zoom-in;background:white;border-radius:4px;border:1px solid #e7e7e7}
 .pdetail .gallery .main-img{width:100%;aspect-ratio:1;object-fit:contain;display:block;transition:opacity .2s}
 .pdetail .gallery .zoom-lens{position:absolute;border:2px solid #555;width:120px;height:120px;display:none;pointer-events:none;z-index:10;background:rgba(255,255,255,.2)}
 .pdetail .gallery .zoom-result{position:absolute;top:0;left:calc(100% + 16px);width:400px;height:400px;background-repeat:no-repeat;z-index:20;display:none;border:1px solid #e7e7e7;border-radius:4px;box-shadow:0 4px 16px rgba(0,0,0,.15)}
