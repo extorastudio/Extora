@@ -704,6 +704,30 @@ export function registerAdminRoutes(server: FastifyInstance, prisma: PrismaClien
   });
 
   // =========================================================================
+  // Newsletter Subscribers
+  // =========================================================================
+
+  server.post("/api/v1/subscribers", async (request: FastifyRequest, reply: FastifyReply) => {
+    const body = request.body as Record<string, unknown> | undefined;
+    const email = String(body?.email ?? "");
+    if (!email.includes("@")) return reply.status(400).send({ code: "INVALID_EMAIL", message: "Valid email required" });
+    try {
+      await prisma.systemConfig.upsert({
+        where: { key: `subscriber:${email}` },
+        create: { key: `subscriber:${email}`, value: email },
+        update: { value: email },
+      });
+    } catch { /* already exists */ }
+    return await reply.send({ success: true, message: "Subscribed!" });
+  });
+
+  server.get("/api/v1/subscribers", async (request: FastifyRequest, reply: FastifyReply) => {
+    await authenticate(request, reply, prisma);
+    const subs = await prisma.systemConfig.findMany({ where: { key: { startsWith: "subscriber:" } } });
+    return await reply.send({ data: subs.map((s) => ({ email: s.value, subscribedAt: s.updatedAt })) });
+  });
+
+  // =========================================================================
   // Cart & Checkout
   // =========================================================================
 

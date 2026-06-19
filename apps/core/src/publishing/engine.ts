@@ -219,8 +219,11 @@ function subscribeNewsletter() {
   const email = document.getElementById("nlEmail")?.value;
   const msg = document.getElementById("nlMsg");
   if (email && email.includes("@")) {
-    localStorage.setItem("extora_subscriber", email);
-    if (msg) { msg.textContent = "Subscribed!"; setTimeout(() => { if (msg) msg.textContent = ""; }, 3000); }
+    fetch("/api/v1/subscribers", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({email}) })
+      .then(r => r.json()).then(() => {
+        localStorage.setItem("extora_subscriber", email);
+        if (msg) { msg.textContent = "Subscribed!"; setTimeout(() => { if (msg) msg.textContent = ""; }, 3000); }
+      }).catch(() => { if (msg) msg.textContent = "Error, try again"; });
   } else {
     if (msg) { msg.textContent = "Enter valid email"; }
   }

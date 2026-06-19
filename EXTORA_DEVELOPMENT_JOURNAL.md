@@ -2970,3 +2970,16 @@ all CI green (717+ tests, 195+ commits, 361+ files).
 - Orders page shows real order history from API
 
 **717+ tests pass. 198+ commits. 364+ files.**
+
+
+### Phase 125: Newsletter Subscriber API + Published Integration
+**Date:** June 19, 2026 | **Commit:** `(pending)`
+**Duration:** ~15 minutes
+
+**Subscriber API added:**
+- POST /api/v1/subscribers — public endpoint, stores email in SystemConfig
+- GET /api/v1/subscribers — admin-only, lists all subscribers
+- Published site footer calls real API on newsletter signup
+- Fallback error handling
+
+**717+ tests pass. 199+ commits. 365+ files.**
