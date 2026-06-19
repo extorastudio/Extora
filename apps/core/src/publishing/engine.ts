@@ -533,10 +533,22 @@ doSearch();
 </div>
 
 <div id="accountInfo" style="display:none">
-<h2 style="margin-bottom:8px">Welcome, <span id="accName"></span>!</h2>
-<p style="color:#565959;margin-bottom:16px" id="accEmail"></p>
+<h2 style="margin-bottom:4px">Welcome, <span id="accName"></span>!</h2>
+<p style="color:#565959;margin-bottom:20px" id="accEmail"></p>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+<div style="background:#f8f8f8;border-radius:8px;padding:16px">
+<h4 style="margin-bottom:8px">Profile</h4>
+<p style="color:#565959;font-size:.85rem" id="accRole"></p>
+</div>
+<div style="background:#f8f8f8;border-radius:8px;padding:16px">
+<h4 style="margin-bottom:8px">Recent Orders</h4>
+<div id="accOrders" style="font-size:.85rem;color:#565959">Loading...</div>
+</div>
+</div>
+<div style="margin-top:20px;display:flex;gap:10px">
 <button onclick="doLogout()" style="padding:8px 20px;background:white;border:1px solid #ddd;border-radius:8px;cursor:pointer">Sign Out</button>
-<a href="/orders.html" style="display:inline-block;margin-left:12px;color:#007185;text-decoration:none">View Orders</a>
+<a href="/orders.html" style="padding:8px 20px;background:#ffd814;border:1px solid #fcd200;border-radius:8px;text-decoration:none;color:#0f1111;font-weight:600;display:inline-block">View All Orders</a>
+</div>
 </div>
 
 <script>
@@ -558,6 +570,15 @@ function checkSession() {
           document.getElementById("accountInfo").style.display = "block";
           document.getElementById("accName").textContent = d.user.displayName;
           document.getElementById("accEmail").textContent = d.user.email;
+          document.getElementById("accRole").textContent = "Role: " + (d.user.role || "Customer");
+          // Fetch recent orders
+          fetch("/api/v1/commerce/orders", { headers: { Authorization: "Bearer " + token } })
+            .then(r => r.json()).then(od => {
+              const orders = od.data || [];
+              const el = document.getElementById("accOrders");
+              if (orders.length === 0) { el.innerHTML = "No orders yet"; return; }
+              el.innerHTML = orders.slice(0,3).map(o => '<div style="padding:4px 0;border-bottom:1px solid #e7e7e7"><strong>' + o.orderNumber + '</strong> — ₹' + (o.total||0).toLocaleString("en-IN") + ' <span style="color:#007600;font-size:.8rem">' + o.status + '</span></div>').join("");
+            }).catch(() => {});
         }
       }).catch(() => {});
   }

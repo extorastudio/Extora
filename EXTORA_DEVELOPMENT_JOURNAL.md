@@ -3015,3 +3015,16 @@ all CI green (717+ tests, 195+ commits, 361+ files).
 - Styled consistently with site theme
 
 **717+ tests pass. 201+ commits. 367+ files.**
+
+
+### Phase 128: Enhanced Account Page — Profile + Recent Orders
+**Date:** June 19, 2026 | **Commit:** `(pending)`
+**Duration:** ~15 minutes
+
+**Account page now shows when logged in:**
+- Profile card: display name, email, role
+- Recent Orders card: last 3 orders with number, total, status
+- View All Orders button
+- Sign Out button in card layout
+
+**717+ tests pass. 202+ commits. 368+ files.**
