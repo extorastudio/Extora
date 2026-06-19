@@ -237,7 +237,10 @@ async function checkout() {
     } catch { /* fall through to local checkout */ }
   }
 
-  document.querySelector("main").innerHTML = \`<div style="max-width:600px;margin:40px auto;text-align:center;background:white;border-radius:8px;padding:40px"><h2>Order Confirmed!</h2><p style="font-size:1.2rem;margin:16px 0">Order #\${orderNumber}</p><p>\${cart.length} items · ₹\${total.toLocaleString("en-IN")}</p><p style="color:#565959;margin-top:8px">Confirmation sent to \${email}</p><a href="/orders.html" style="display:inline-block;margin-top:16px;color:#007185;text-decoration:none">View Orders</a> · <a href="/index.html" style="color:#007185;text-decoration:none;margin-left:12px">Continue Shopping</a></div>\`;
+  // Show suggestions from product data
+  var recs = (typeof ALL_PRODUCTS !== "undefined" ? ALL_PRODUCTS : []).slice(0,4).map(function(p){return '<div class="product-card"><a href="/product-'+p.slug+'.html" style="text-decoration:none;color:inherit;display:flex;flex-direction:column;padding:16px;height:100%"><span class="pname">'+p.name+'</span><span class="stock-ok">₹'+p.price.toLocaleString("en-IN")+'</span></a></div>'}).join("");
+  var recHTML = recs ? '<div class="section-header" style="margin-top:32px"><h2>You Might Also Like</h2></div><div class="products-grid">'+recs+'</div>' : '';
+  document.querySelector("main").innerHTML = \`<div style="max-width:600px;margin:40px auto;text-align:center;background:white;border-radius:8px;padding:40px"><h2>Order Confirmed!</h2><p style="font-size:1.2rem;margin:16px 0">Order #\${orderNumber}</p><p>\${cart.length} items · ₹\${total.toLocaleString("en-IN")}</p><p style="color:#565959;margin-top:8px">Confirmation sent to \${email}</p><a href="/orders.html" style="display:inline-block;margin-top:16px;color:#007185;text-decoration:none">View Orders</a> · <a href="/index.html" style="color:#007185;text-decoration:none;margin-left:12px">Continue Shopping</a></div>\${recHTML}\`;
   localStorage.removeItem("extora_cart");
   updateCartCount();
 }
@@ -1055,6 +1058,28 @@ function renderCompare() {
 }
 renderCompare();
 </script>
+</div>`,
+  });
+
+  // ── 404 NOT FOUND ──
+  pages.push({
+    slug: "404", title: "Page Not Found", description: "We can't find that page",
+    content: `<div class="page-content" style="text-align:center;padding:60px 32px">
+<div style="font-size:5rem;color:#ddd;margin-bottom:16px">404</div>
+<h1 style="margin-bottom:8px">Page Not Found</h1>
+<p style="color:#565959;font-size:1.1rem;margin-bottom:24px">Sorry, the page you're looking for doesn't exist or has been moved.</p>
+<div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+<a href="/index.html" style="background:#ffd814;border:1px solid #fcd200;padding:12px 32px;border-radius:24px;text-decoration:none;color:#0f1111;font-weight:600">Go to Homepage</a>
+<a href="/products.html" style="background:white;border:1px solid #ddd;padding:12px 32px;border-radius:24px;text-decoration:none;color:#007185;font-weight:600">Browse Products</a>
+<a href="/search.html" style="background:white;border:1px solid #ddd;padding:12px 32px;border-radius:24px;text-decoration:none;color:#007185;font-weight:600">Search</a>
+</div>
+<div style="margin-top:32px;padding:16px;background:#f8f8f8;border-radius:8px;max-width:400px;margin-left:auto;margin-right:auto">
+<p style="color:#565959;font-size:.85rem">Try searching for what you need:</p>
+<div style="display:flex;gap:8px;margin-top:8px">
+<input type="text" id="errSearch" placeholder="Search products..." style="flex:1;padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:.9rem" onkeydown="if(event.key==='Enter')location.href='/search.html?q='+encodeURIComponent(this.value)">
+<button onclick="var q=document.getElementById('errSearch').value;if(q)location.href='/search.html?q='+encodeURIComponent(q)" style="padding:8px 20px;background:#ffd814;border:1px solid #fcd200;border-radius:8px;font-weight:600;cursor:pointer">Go</button>
+</div>
+</div>
 </div>`,
   });
 

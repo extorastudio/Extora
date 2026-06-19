@@ -3274,3 +3274,23 @@ This caused ALL buttons (cart, search, login, reviews, newsletter) to silently f
 **Docker deploy:** 25 pages, 909 KB
 
 **CI all green:** Lint 16/16, Typecheck 20/20, Test 34/34
+
+
+### Phase 142: 404 Page + Order Confirmation Recommendations
+**Date:** June 19, 2026 | **Commit:** (upcoming)
+**Duration:** ~15 minutes
+
+**404 Not Found page:**
+- Friendly design with "404" heading, explanation text
+- Three action buttons: Go to Homepage, Browse Products, Search
+- Inline search box on the 404 page itself
+- Styled with centered layout and subtle background
+
+**You Might Also Like after checkout:**
+- 4 product cards shown below order confirmation
+- Uses global ALL_PRODUCTS data (first 4 products as suggestions)
+- Wrapped in products-grid for consistent styling
+
+**Docker deploy:** 26 pages, 955 KB
+
+**CI all green:** Lint 16/16, Typecheck 20/20, Test 34/34 (all cached)
