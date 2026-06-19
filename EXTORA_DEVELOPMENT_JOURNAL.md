@@ -3892,3 +3892,46 @@ Docker deploy: 34 pages. CI all green.
 **Docker deploy:** 34 pages (active), 7 pages (inactive), 7 containers healthy
 
 **CI all green**
+
+
+### Phase 164: All Plugins Gating — Auth, SEO, CMS, Commerce
+**Date:** June 19, 2026 | **Commit:** (upcoming)
+**Duration:** ~20 minutes
+
+**All plugin states now reflected on published site + admin:**
+
+**Auth Plugin:**
+- Disabled → Account page NOT generated, login/register hidden on published site
+- `AUTH_ACTIVE = false` flag in footer JS
+- Account/Orders nav links hidden via JS
+- Admin: Users still visible (core feature, not auth-dependent)
+
+**SEO Plugin:**
+- Disabled → SEO meta tags NOT injected into HTML
+- `SEO_ACTIVE = false` flag in footer JS
+- seoMetaMap built only when isSeoActive
+- Admin: SEO tab still shows in editor (within form, always available)
+
+**CMS Plugin:**
+- Disabled → Content entries loop skipped, Builder pages hidden
+- `CMS_ACTIVE = false` flag in footer JS
+
+**Commerce Plugin:**
+- Disabled → Products, categories, brands, deals pages all skipped
+- `COMMERCE_ACTIVE = false` flag in footer JS
+- Cart/wishlist/orders nav links hidden
+
+**All flags now embedded in every page:**
+```js
+var COMMERCE_ACTIVE = true/false;
+var CMS_ACTIVE = true/false;
+var AUTH_ACTIVE = true/false;
+var SEO_ACTIVE = true/false;
+```
+
+**Verified:**
+- Auth disabled → 33 pages (account removed), `AUTH_ACTIVE=false`
+- SEO disabled → SEO meta absent from product pages
+- Admin sidebar menus dynamic per plugin state
+
+**Docker deploy:** 34 pages (active), 33 pages (auth disabled)

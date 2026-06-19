@@ -12,11 +12,13 @@ const e = (s: any) => String(s ?? "").replaceAll("&", "&amp;").replaceAll("<", "
 const stars = (n: number) => "★".repeat(Math.floor(n)) + "☆".repeat(5 - Math.floor(n));
 const rupee = (n: number) => "₹" + n.toLocaleString("en-IN");
 
-function layout(site: { name: string }, body: string, pageTitle: string, allProducts?: any[], pluginState?: { commerce: boolean; cms: boolean }, seoMeta?: { title?: string; description?: string; keywords?: string; ogTitle?: string; ogDescription?: string; ogImage?: string; noIndex?: boolean }): string {
+function layout(site: { name: string }, body: string, pageTitle: string, allProducts?: any[], pluginState?: { commerce: boolean; cms: boolean; auth: boolean; seo: boolean }, seoMeta?: { title?: string; description?: string; keywords?: string; ogTitle?: string; ogDescription?: string; ogImage?: string; noIndex?: boolean }): string {
   const productJson = allProducts ? JSON.stringify(allProducts) : "[]";
   const cs = pluginState?.commerce ?? true;
   const cms = pluginState?.cms ?? true;
-  const seo = seoMeta ?? {};
+  const authActive = pluginState?.auth ?? true;
+  const seoActive = pluginState?.seo ?? true;
+  const seo = seoActive && seoMeta ? seoMeta : {};
   const seoTitle = seo.title || pageTitle;
   const seoDesc = seo.description || "";
   const seoKeywords = seo.keywords || "";
@@ -260,9 +262,18 @@ footer .inner{grid-template-columns:repeat(2,1fr)}
 <script>
 var COMMERCE_ACTIVE = ${cs};
 var CMS_ACTIVE = ${cms};
+var AUTH_ACTIVE = ${authActive};
+var SEO_ACTIVE = ${seoActive};
 if (!COMMERCE_ACTIVE) {
   document.querySelectorAll(".nav-r a").forEach(function(a) {
     if (a.textContent.includes("Wishlist") || a.textContent.includes("Cart") || a.href.includes("orders.html")) a.style.display = "none";
+  });
+}
+if (!AUTH_ACTIVE) {
+  var accEl = document.getElementById("headerAccount");
+  if (accEl) accEl.innerHTML = "Account";
+  document.querySelectorAll(".nav-r a").forEach(function(a) {
+    if (a.href.includes("account.html") || a.href.includes("orders.html")) a.style.display = "none";
   });
 }
 function getCart() { try { return JSON.parse(localStorage.getItem("extora_cart") || "[]"); } catch { return []; } }
@@ -751,14 +762,16 @@ export async function publishSite(prisma: PrismaClient, logger: Logger): Promise
   const site = { name: siteName };
 
   // ── Check active plugins for gating ──
-  let isCommerceActive = true, isCmsActive = true;
+  let isCommerceActive = true, isCmsActive = true, isAuthActive = true, isSeoActive = true;
   try {
     const plugs = await (prisma as any).plugin.findMany({ where: { isActive: true } });
     const names = plugs.map((p: any) => p.name ?? "");
     isCommerceActive = names.some((n: string) => n.includes("commerce"));
     isCmsActive = names.some((n: string) => n.includes("cms"));
+    isAuthActive = names.some((n: string) => n.includes("auth"));
+    isSeoActive = names.some((n: string) => n.includes("seo"));
   } catch { /* plugin table optional */ }
-  const pluginState = { commerce: isCommerceActive, cms: isCmsActive };
+  const pluginState = { commerce: isCommerceActive, cms: isCmsActive, auth: isAuthActive, seo: isSeoActive };
 
   // If commerce disabled, clear products + categories so no commerce pages are generated
   const products = isCommerceActive ? rawProducts : [];
@@ -1296,8 +1309,8 @@ doSearch();
 </script>`,
   });
 
-  // ── CUSTOMER ACCOUNT PAGE ──
-  if (isCommerceActive) pages.push({
+   // ── CUSTOMER ACCOUNT PAGE ──
+  if (isAuthActive) pages.push({
     slug: "account", title: "My Account", description: "Sign in or create an account",
     content: `<div class="page-content" style="max-width:500px;margin:40px auto">
 <div style="display:flex;gap:0;margin-bottom:24px">
@@ -1520,12 +1533,14 @@ renderCompare();
     category: String(p.category ?? ""), price: Number(p.price ?? 0),
   }));
 
-  // Fetch SEO meta for product pages
+  // Fetch SEO meta for product pages (only if SEO plugin active)
   const seoMetaMap: Record<string, any> = {};
-  try {
-    const metas = await (prisma as any).seoMeta.findMany() ?? [];
-    for (const m of metas) seoMetaMap[`${m.resourceType}_${m.resourceId}`] = m;
-  } catch { /* SEO table optional */ }
+  if (isSeoActive) {
+    try {
+      const metas = await (prisma as any).seoMeta.findMany() ?? [];
+      for (const m of metas) seoMetaMap[`${m.resourceType}_${m.resourceId}`] = m;
+    } catch { /* SEO table optional */ }
+  }
 
   let totalSize = 0;
   for (const page of pages) {
