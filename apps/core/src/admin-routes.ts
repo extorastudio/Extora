@@ -701,4 +701,89 @@ export function registerAdminRoutes(server: FastifyInstance, prisma: PrismaClien
       return reply.status(500).send({ code: "UPLOAD_FAILED", message });
     }
   });
+
+  // =========================================================================
+  // Cart & Checkout
+  // =========================================================================
+
+  const carts = new Map<string, { items: { productId: string; name: string; price: number; qty: number; image: string }[]; updatedAt: string }>();
+
+  server.get("/api/v1/commerce/cart", async (request: FastifyRequest, reply: FastifyReply) => {
+    await authenticate(request, reply, prisma);
+    const userId = ((request as unknown as Record<string, string>).userId) ?? "anonymous";
+    const cart = carts.get(userId) ?? { items: [], updatedAt: new Date().toISOString() };
+    const total = cart.items.reduce((s, i) => s + i.price * i.qty, 0);
+    return await reply.send({ data: { ...cart, total, itemCount: cart.items.length } });
+  });
+
+  server.post("/api/v1/commerce/cart/add", async (request: FastifyRequest, reply: FastifyReply) => {
+    await authenticate(request, reply, prisma);
+    const userId = ((request as unknown as Record<string, string>).userId) ?? "anonymous";
+    const body = request.body as Record<string, unknown> | undefined;
+    if (!body?.productId) return reply.status(400).send({ code: "BAD_REQUEST", message: "productId required" });
+
+    const cart = carts.get(userId) ?? { items: [], updatedAt: "" };
+    const existing = cart.items.find((i) => i.productId === String(body.productId));
+    if (existing) {
+      existing.qty += Number(body.qty ?? 1);
+    } else {
+      cart.items.push({
+        productId: String(body.productId),
+        name: String(body.name ?? "Product"),
+        price: Number(body.price ?? 0),
+        qty: Number(body.qty ?? 1),
+        image: String(body.image ?? ""),
+      });
+    }
+    cart.updatedAt = new Date().toISOString();
+    carts.set(userId, cart);
+    const total = cart.items.reduce((s, i) => s + i.price * i.qty, 0);
+    return await reply.send({ data: { ...cart, total, itemCount: cart.items.length } });
+  });
+
+  server.post("/api/v1/commerce/cart/remove", async (request: FastifyRequest, reply: FastifyReply) => {
+    await authenticate(request, reply, prisma);
+    const userId = ((request as unknown as Record<string, string>).userId) ?? "anonymous";
+    const body = request.body as Record<string, unknown> | undefined;
+    const cart = carts.get(userId);
+    if (cart) {
+      cart.items = cart.items.filter((i) => i.productId !== String(body?.productId));
+      cart.updatedAt = new Date().toISOString();
+      carts.set(userId, cart);
+    }
+    const c = carts.get(userId) ?? { items: [], updatedAt: "" };
+    return await reply.send({ data: { ...c, total: c.items.reduce((s, i) => s + i.price * i.qty, 0), itemCount: c.items.length } });
+  });
+
+  server.post("/api/v1/commerce/checkout", async (request: FastifyRequest, reply: FastifyReply) => {
+    await authenticate(request, reply, prisma);
+    const userId = ((request as unknown as Record<string, string>).userId) ?? "anonymous";
+    const cart = carts.get(userId);
+    if (!cart || cart.items.length === 0) {
+      return reply.status(400).send({ code: "EMPTY_CART", message: "Cart is empty" });
+    }
+    const body = request.body as Record<string, unknown> | undefined;
+    const total = cart.items.reduce((s, i) => s + i.price * i.qty, 0);
+    const order = {
+      id: `order_${Date.now()}`,
+      orderNumber: `EXT-${String(Date.now()).slice(-6)}`,
+      customerEmail: String(body?.email ?? "customer@example.com"),
+      items: cart.items,
+      total,
+      status: "confirmed",
+      createdAt: new Date().toISOString(),
+    };
+
+    await prisma.auditLog.create({
+      data: {
+        action: "order.placed",
+        resource: `order:${order.id}`,
+        outcome: "success",
+        details: { total, items: cart.items.length } as any,
+      },
+    });
+
+    carts.delete(userId);
+    return await reply.send({ data: order });
+  });
 }

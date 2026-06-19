@@ -2732,3 +2732,25 @@ Products page reads URL hash on mount to set correct sub-tab
 - Tested: 4-element page with hero, heading, 2-column layout, and button — all rendered correctly
 
 **717+ tests pass. 188+ commits. 354+ files.**
+
+
+### Phase 114: Shopping Cart + Checkout API
+**Date:** June 19, 2026 | **Commit:** `(pending)`
+**Duration:** ~20 minutes
+
+**Cart and checkout system implemented:**
+- POST /api/v1/commerce/cart/add — Add product to cart (productId, name, price, qty, image)
+- GET /api/v1/commerce/cart — View cart with items, total, item count
+- POST /api/v1/commerce/cart/remove — Remove item from cart
+- POST /api/v1/commerce/checkout — Place order (email, items, auto-clears cart)
+
+**Features:**
+- In-memory cart storage per user
+- Quantity increments for duplicate products
+- Orders logged in AuditLog with total and item count
+- Cart auto-clears after successful checkout
+- Order number format: EXT-XXXXXX
+
+**Tested:** Add to cart (₹2,499), checkout creates order EXT-036427, cart clears.
+
+**717+ tests pass. 189+ commits. 355+ files.**
