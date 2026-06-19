@@ -3844,3 +3844,22 @@ All plugin-dependent menu items now conditionally render based on active plugin 
 - API route accepts `focusKeyword` in upsert
 
 **Docker deploy:** 34 pages, 2034 KB, 7 containers healthy
+
+
+### Phase 162: Fix — Working SEO Tab with Fields
+**Date:** June 19, 2026 | **Commit:** (upcoming)
+**Duration:** ~15 minutes
+
+**Fix:** SEO tab was broken — no input fields displayed.
+Root cause: IIFE pattern `{condition && (() => { ... })()}` doesn't render correctly in React.
+
+**Solution:** Replaced IIFE with simple inline JSX:
+- `{activeTab === "seo" && editing && (<div>...</div>)}`
+- All fields directly rendered: SEO Title, Meta Description, Focus Keyword, Keywords
+- Google Preview snippet (live)
+- OG fields (title, image, description)
+- Noindex checkbox + Save button
+- Character counters with green/yellow color coding
+
+All SEO state (title, desc, kw, focusKw, OG, noIndex) properly initialized from fetchSeoMeta.
+Docker deploy: 34 pages. CI all green.
