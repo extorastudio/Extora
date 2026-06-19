@@ -244,6 +244,67 @@ ${specRows ? `<h4 style="margin:16px 0 8px">Technical Specifications</h4><table 
   for (const entry of contentEntries) pages.push({ slug: String(entry.slug), title: String(entry.title), description: String(entry.excerpt ?? "").slice(0, 160), content: `<div class="page-content"><h1>${e(entry.title)}</h1>${String(entry.body)}</div>` });
   if (!pages.some((p) => p.slug === "about")) pages.push({ slug: "about", title: "About", description: "About us", content: `<div class="page-content"><h1>About ${e(siteName)}</h1><p>Your trusted online store built with Extora Studio.</p></div>` });
 
+  // ── SEARCH RESULTS PAGE ──
+  const productJson = JSON.stringify(products.map((p: any) => ({
+    id: String(p.id ?? ""), name: String(p.name ?? ""), price: Number(p.price ?? 0),
+    mrp: p.mrp ? Number(p.mrp) : null, slug: String(p.slug ?? ""),
+    category: String(p.category ?? ""), brand: String(p.brand ?? ""),
+    rating: Number(p.rating ?? 0), reviews: Number(p.reviews ?? 0),
+    img: Array.isArray(p.images) && p.images.length > 0 ? String(p.images[0]) : "",
+    deal: p.dealType ? String(p.dealLabel ?? p.dealType) : null,
+  })));
+
+  pages.push({
+    slug: "search", title: "Search Products", description: "Find products",
+    content: `<div class="page-content">
+<h1>Search Products</h1>
+<div style="margin-bottom:20px;display:flex;gap:8px">
+<input type="text" id="searchInput" placeholder="Search by name, category, brand..." style="flex:1;padding:12px 16px;border:1px solid #ddd;border-radius:8px;font-size:1rem;outline:none" onkeyup="doSearch()" />
+<button onclick="doSearch()" style="padding:12px 24px;background:#ffd814;border:1px solid #fcd200;border-radius:8px;font-weight:600;cursor:pointer;white-space:nowrap">Search</button>
+</div>
+<div id="searchResults" class="products-grid"></div>
+<p id="noResults" style="display:none;text-align:center;padding:40px;color:#565959">No products found. Try a different search term.</p>
+</div>
+<script>
+const ALL_PRODUCTS = ${productJson};
+const params = new URLSearchParams(window.location.search);
+const q = params.get("q");
+if (q) { document.getElementById("searchInput").value = q; }
+
+function doSearch() {
+  const query = document.getElementById("searchInput").value.toLowerCase().trim();
+  const container = document.getElementById("searchResults");
+  const noRes = document.getElementById("noResults");
+  if (!query) { container.innerHTML = ""; noRes.style.display = "none"; return; }
+
+  const matches = ALL_PRODUCTS.filter(p =>
+    p.name.toLowerCase().includes(query) ||
+    p.category.toLowerCase().includes(query) ||
+    p.brand.toLowerCase().includes(query)
+  );
+
+  if (matches.length === 0) {
+    container.innerHTML = "";
+    noRes.style.display = "block";
+  } else {
+    noRes.style.display = "none";
+    container.innerHTML = matches.map(p => {
+      const mrp = p.mrp && p.mrp > p.price ? '<span class="mrp" style="font-size:.8rem;color:#565959;text-decoration:line-through">₹' + p.mrp.toLocaleString("en-IN") + '</span>' : '';
+      const discount = p.mrp && p.mrp > p.price ? '<span class="badge">-' + Math.round((1-p.price/p.mrp)*100) + '%</span>' : '';
+      return '<div class="product-card"><a href="/product-' + p.slug + '.html" style="text-decoration:none;color:inherit;display:flex;flex-direction:column;padding:16px;height:100%">' +
+      (p.img ? '<div class="img-wrap"><img src="' + p.img + '" alt="" loading="lazy"></div>' : '<div class="img-wrap"><span style="color:#999">No Image</span></div>') +
+      '<span class="pname">' + p.name + '</span>' +
+      (p.rating > 0 ? '<span class="stars">' + "★".repeat(Math.floor(p.rating)) + '</span>' : '') +
+      '<div class="pr"><span class="p">₹' + p.price.toLocaleString("en-IN") + '</span>' + mrp + '</div>' +
+      discount + (p.deal ? '<span class="badge" style="background:#c45500">' + p.deal + '</span>' : '') +
+      '<span class="stock-ok">In Stock</span></a></div>';
+    }).join("");
+  }
+}
+doSearch();
+</script>`,
+  });
+
   // ── WRITE FILES ──
   let totalSize = 0;
   for (const page of pages) {
