@@ -3783,3 +3783,33 @@ All plugin-dependent menu items now conditionally render based on active plugin 
 **Docker deploy:** 34 pages, 2034 KB, 7 containers healthy
 
 **CI all green:** Lint 16/16, Typecheck 20/20, Test 34/34
+
+
+### Phase 160: [Studio] SEO Tab in Product Editor — Rank Math Style
+**Date:** June 19, 2026 | **Commit:** (upcoming)
+**Duration:** ~20 minutes
+
+**Layer:** Studio (Product editor) + Plugin (SEO)
+
+**Rank Math / Yoast-style SEO integration in product editor:**
+- "SEO" tab added to product editor TABS (8 tabs → 9 tabs)
+- Google snippet preview (title, URL, description) rendered in real-time
+- Meta title input with character counter (X/60)
+- Meta description textarea with counter (X/160)
+- Keywords input (comma separated)
+- Open Graph section: OG title, OG description, OG image URL
+- Noindex checkbox to hide from search engines
+- "Save SEO Settings" button with success feedback
+- SEO meta auto-loaded when product is opened for editing
+- SEO state reset when closing editor or switching products
+
+**Technical:**
+- `fetchSeoMeta(slug)` fetches from `GET /api/v1/seo/meta`
+- `saveSeoMeta()` upserts via `POST /api/v1/seo/meta`
+- `useEffect` watches `editing?.slug` to auto-fetch SEO data
+- `ProductData` interface extended with `slug: string`
+- `EMPTY_PRODUCT` updated with `slug: ""`
+
+**Docker deploy:** 34 pages, 2034 KB, 7 containers healthy
+
+**CI all green:** Lint 16/16, Typecheck 20/20, Test 34/34

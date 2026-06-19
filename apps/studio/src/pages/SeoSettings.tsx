@@ -66,7 +66,7 @@ export default function SeoSettingsPage() {
         setSeoList((prev) => ({ ...prev, [meta.resourceId]: meta }));
         setTimeout(() => { setEditing(null); setMsg(""); }, 1500);
       } else {
-        setMsg("Error: " + (d.message ?? "Unknown"));
+        setMsg(`Error: ${d.message ?? "Unknown"}`);
       }
     } catch { setMsg("Network error"); }
     setSaving(false);
@@ -78,7 +78,7 @@ export default function SeoSettingsPage() {
     (p.category ?? "").toLowerCase().includes(search.toLowerCase())
   );
 
-  const hasMeta = (slug: string) => String((seoList[slug]?.title || seoList[slug]?.description) ?? "").length > 0;
+  const hasMeta = (slug: string) => ((seoList[slug]?.title ?? seoList[slug]?.description) ?? "").length > 0;
 
   return (
     <div className="space-y-6">

@@ -3,12 +3,13 @@ import apiClient from "../api/client";
 import {
   Package, Plus, Save, Trash2, RefreshCw, Send, Image, Settings, Upload,
   Truck, Layers, Link2, Tag, DollarSign, Box, FolderTree,
-  Tags, Shield, Grid3X3, MessageSquare
+  Tags, Shield, Grid3X3, MessageSquare, Globe
 } from "lucide-react";
 import { TableSkeleton } from "../components/ui/Skeleton";
 
 interface ProductData {
   id?: string;
+  slug: string;
   name: string;
   type: string;
   status: string;
@@ -43,6 +44,7 @@ interface ProductData {
 }
 
 const EMPTY_PRODUCT: ProductData = {
+  slug: "",
   name: "", type: "simple", status: "draft", description: "", shortDesc: "",
   sku: "", price: 0, regularPrice: 0, salePrice: null, costPrice: null,
   category: "General", categories: [], tags: [], images: [], videoUrl: "", brand: "",
@@ -60,6 +62,7 @@ const TABS = [
   { id: "linked", icon: Link2, label: "Linked" },
   { id: "deals", icon: Tag, label: "Deals" },
   { id: "advanced", icon: Layers, label: "Advanced" },
+  { id: "seo", icon: Globe, label: "SEO" },
 ];
 
 const STATUS_OPTIONS = [
@@ -77,6 +80,39 @@ export default function ProductsPage() {
   const [activeTab, setActiveTab] = useState("general");
   const [filterStatus, setFilterStatus] = useState("");
   const [subTab, setSubTab] = useState("products");
+  const [seoTitle, setSeoTitle] = useState("");
+  const [seoDesc, setSeoDesc] = useState("");
+  const [seoKeywords, setSeoKeywords] = useState("");
+  const [seoOgTitle, setSeoOgTitle] = useState("");
+  const [seoOgDesc, setSeoOgDesc] = useState("");
+  const [seoOgImage, setSeoOgImage] = useState("");
+  const [seoNoIndex, setSeoNoIndex] = useState(false);
+  const [seoSaving, setSeoSaving] = useState(false);
+  const [seoMsg, setSeoMsg] = useState("");
+
+  const fetchSeoMeta = async (slug: string) => {
+    if (!slug) return;
+    try {
+      const r = await apiClient.get(`/seo/meta?resourceType=product&resourceId=${encodeURIComponent(slug)}`);
+      const d = (r.data)?.data ?? r.data ?? {};
+      if (d?.title !== undefined) {
+        setSeoTitle(d.title ?? ""); setSeoDesc(d.description ?? ""); setSeoKeywords(d.keywords ?? "");
+        setSeoOgTitle(d.ogTitle ?? ""); setSeoOgDesc(d.ogDescription ?? ""); setSeoOgImage(d.ogImage ?? "");
+        setSeoNoIndex(!!d.noIndex);
+      } else { resetSeo(); }
+    } catch { resetSeo(); }
+  };
+  const resetSeo = () => { setSeoTitle(""); setSeoDesc(""); setSeoKeywords(""); setSeoOgTitle(""); setSeoOgDesc(""); setSeoOgImage(""); setSeoNoIndex(false); };
+  const saveSeoMeta = async () => {
+    if (!editing) return;
+    setSeoSaving(true); setSeoMsg("");
+    try {
+      await apiClient.post("/seo/meta", { resourceType: "product", resourceId: editing.slug, title: seoTitle, description: seoDesc, keywords: seoKeywords, ogTitle: seoOgTitle, ogDescription: seoOgDesc, ogImage: seoOgImage, noIndex: seoNoIndex });
+      setSeoMsg("SEO saved ✓");
+      setTimeout(() => setSeoMsg(""), 2000);
+    } catch { setSeoMsg("Failed to save"); }
+    setSeoSaving(false);
+  };
 
   useEffect(() => {
     const syncTab = () => {
@@ -89,6 +125,7 @@ export default function ProductsPage() {
     window.addEventListener("hashchange", syncTab);
     return () => window.removeEventListener("hashchange", syncTab);
   }, []);
+  useEffect(() => { if (editing) { void fetchSeoMeta(editing.slug); } else { resetSeo(); } }, [editing?.slug]);
   const [taxonomies, setTaxonomies] = useState<{ id: string; name: string; slug: string; description: string }[]>([]);
   const [taxLoading, setTaxLoading] = useState(false);
   const [taxEdit, setTaxEdit] = useState<{ id?: string; name: string; description: string } | null>(null);
@@ -726,7 +763,93 @@ export default function ProductsPage() {
                               <img src={product.images[0]} alt="" className="h-10 w-10 rounded-lg object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
                             ) : (
                               <Package className="h-5 w-5 text-gray-500" />
-                            )}
+            )}
+
+            {/* SEO Tab — Rank Math style */}
+            {activeTab === "seo" && (
+              <div className="grid grid-cols-1 gap-4">
+                <div className="flex items-center gap-2 mb-1">
+                  <Globe className="h-4 w-4 text-green-400" />
+                  <span className="text-sm font-semibold text-white">Search Engine Optimization</span>
+                  <span className="text-xs text-gray-500">— Edit how this product appears in search results</span>
+                </div>
+
+                {/* Snippet Preview */}
+                <div className="rounded-lg border border-gray-600 bg-gray-900/50 p-4">
+                  <h4 className="text-xs text-gray-500 uppercase tracking-wider mb-2">Google Preview</h4>
+                  <div className="space-y-0.5">
+                    <div className="text-blue-400 text-sm font-medium" style={{fontFamily: "Arial, sans-serif"}}>
+                      {seoTitle || editing?.name} {seoTitle ? "" : "— Extora.in"}
+                    </div>
+                    <div className="text-green-700 text-xs" style={{fontFamily: "Arial, sans-serif"}}>
+                      https://extora.in/product-{editing?.slug || "..."}
+                    </div>
+                    <div className="text-gray-300 text-xs leading-relaxed" style={{fontFamily: "Arial, sans-serif"}}>
+                      {seoDesc || editing?.description?.slice(0, 156) || "No description set..."}
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs text-gray-400 mb-1">Meta Title <span className="text-gray-600">({(seoTitle || "").length}/60)</span></label>
+                  <input type="text" value={seoTitle} onChange={e => setSeoTitle(e.target.value)}
+                    placeholder={`${editing?.name || "Product"} — Buy Online at Best Price | Extora`}
+                    className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none" />
+                </div>
+
+                <div>
+                  <label className="block text-xs text-gray-400 mb-1">Meta Description <span className="text-gray-600">({(seoDesc || "").length}/160)</span></label>
+                  <textarea rows={3} value={seoDesc} onChange={e => setSeoDesc(e.target.value)}
+                    placeholder="Buy {product} online at best price. ✓ Free Delivery ✓ COD Available ✓ Easy Returns. Shop now!"
+                    className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none resize-y" />
+                </div>
+
+                <div>
+                  <label className="block text-xs text-gray-400 mb-1">Keywords (comma separated)</label>
+                  <input type="text" value={seoKeywords} onChange={e => setSeoKeywords(e.target.value)}
+                    placeholder="buy online, best price, free delivery, discount"
+                    className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none" />
+                </div>
+
+                <div className="border-t border-gray-700 pt-3">
+                  <h4 className="text-xs text-gray-500 uppercase tracking-wider mb-3">Social Media (Open Graph)</h4>
+                  <div className="grid grid-cols-2 gap-3 mb-2">
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-1">OG Title</label>
+                      <input type="text" value={seoOgTitle} onChange={e => setSeoOgTitle(e.target.value)} placeholder="Same as meta title"
+                        className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none" />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-1">OG Image URL</label>
+                      <input type="text" value={seoOgImage} onChange={e => setSeoOgImage(e.target.value)} placeholder="https://..."
+                        className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none" />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-400 mb-1">OG Description</label>
+                    <textarea rows={2} value={seoOgDesc} onChange={e => setSeoOgDesc(e.target.value)} placeholder="Same as meta description"
+                      className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none resize-y" />
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-4 pt-2">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" checked={seoNoIndex} onChange={e => setSeoNoIndex(e.target.checked)} className="accent-red-500" />
+                    <span className="text-sm text-gray-300">Noindex — Hide this product from search engines</span>
+                  </label>
+                </div>
+
+                <div className="flex items-center gap-3 pt-3 border-t border-gray-700">
+                  <button onClick={() => void saveSeoMeta()} disabled={seoSaving}
+                    className="rounded-lg bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-500 disabled:opacity-50">
+                    {seoSaving ? "Saving..." : "Save SEO Settings"}
+                  </button>
+                  {seoMsg && <span className="text-sm text-green-400">{seoMsg}</span>}
+                </div>
+              </div>
+            )}
+
+
                           </div>
                           <div>
                             <p className="font-medium text-white">{product.name}</p>
