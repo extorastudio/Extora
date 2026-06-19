@@ -3162,3 +3162,29 @@ This caused ALL buttons (cart, search, login, reviews, newsletter) to silently f
 **Docker rebuild + deployment:** 7 containers healthy, site published (23 pages, 500 KB)
 
 **CI all green:** Lint 16/16, Typecheck 20/20, Test 34/34
+
+
+### Phase 137: Search Autocomplete + Wishlist
+**Date:** June 19, 2026 | **Commit:** (upcoming)
+**Duration:** ~35 minutes
+
+**Search Autocomplete (global on all pages):**
+- Top nav search bar now functional: Enter/Go navigates to /search.html?q=term
+- Autocomplete dropdown with matching product names, categories, prices
+- Highlighted matching text in suggestions
+- ALL_PRODUCTS index embedded in footer JS (compact: name, slug, category, price)
+- Search page retains full product data (img, mrp, brand, rating, reviews, deal)
+- Keyboard support: Escape to close, Enter to search
+
+**Wishlist (localStorage-based):**
+- Heart button on all product cards (♡/♥ toggle)
+- `toggleWishlist(el)` — add/remove with visual feedback
+- `showWishlist()` — modal overlay with View/Remove buttons
+- Wishlist page at /wishlist.html
+- Wishlist count badge in header (next to Cart)
+- State persisted in localStorage as `extora_wishlist`
+- Hearts auto-initialized on page load via `updateVisibleHearts()`
+
+**Docker rebuild + deployment:** 7 containers healthy, 24 pages, 666 KB
+
+**CI all green:** Lint 16/16, Typecheck 20/20, Test 34/34

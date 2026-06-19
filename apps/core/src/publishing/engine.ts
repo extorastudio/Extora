@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/restrict-template-expressions, @typescript-eslint/no-base-to-string */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { existsSync } from "node:fs";
@@ -12,7 +12,8 @@ const e = (s: any) => String(s ?? "").replaceAll("&", "&amp;").replaceAll("<", "
 const stars = (n: number) => "★".repeat(Math.floor(n)) + "☆".repeat(5 - Math.floor(n));
 const rupee = (n: number) => "₹" + n.toLocaleString("en-IN");
 
-function layout(site: { name: string }, body: string, pageTitle: string): string {
+function layout(site: { name: string }, body: string, pageTitle: string, allProducts?: any[]): string {
+  const productJson = allProducts ? JSON.stringify(allProducts) : "[]";
   return `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>${e(pageTitle)} — ${e(site.name)}</title><meta name="generator" content="Extora"><style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:Arial,Helvetica,sans-serif;color:#0f1111;background:#eaeded;line-height:1.5}
@@ -92,6 +93,14 @@ body{font-family:Arial,Helvetica,sans-serif;color:#0f1111;background:#eaeded;lin
 .product-card .badge{display:inline-block;background:#cc0c39;color:white;font-size:.7rem;padding:2px 6px;border-radius:2px;margin-bottom:4px}
 .product-card .stock-ok{color:#007600;font-size:.75rem;margin-top:auto}
 
+.search-suggestions{position:absolute;top:100%;left:0;right:0;background:white;border:1px solid #ddd;border-top:none;border-radius:0 0 4px 4px;box-shadow:0 4px 12px rgba(0,0,0,.12);z-index:1000;display:none;max-height:300px;overflow-y:auto}
+.search-suggestions .sug-item{padding:10px 16px;cursor:pointer;font-size:.9rem;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;gap:8px}
+.search-suggestions .sug-item:hover{background:#f3f8ff}
+.search-suggestions .sug-item .sug-name{flex:1;color:#0f1111}
+.search-suggestions .sug-item .sug-cat{color:#565959;font-size:.8rem}
+.search-suggestions .sug-item .sug-price{color:#b12704;font-weight:600;font-size:.85rem}
+.search-suggestions .sug-highlight{font-weight:700;color:#c7511f}
+
 .section-header{display:flex;align-items:baseline;gap:12px;padding:20px 15px 8px}
 .section-header h2{font-size:1.3rem;color:#0f1111}
 .section-header a{font-size:.85rem;color:#007185;text-decoration:none}
@@ -110,7 +119,7 @@ footer .bt{grid-column:1/-1;text-align:center;color:#999;font-size:.75rem;paddin
 </style></head><body>
 <header><div class="top-nav"><div class="inner">
 <a href="/index.html" class="logo">extora<span style="color:white">.in</span></a>
-<div class="search"><input placeholder="Search..."><button>Go</button></div>
+<div class="search"><div class="search-wrap"><input id="navSearch" placeholder="Search..." autocomplete="off" onkeyup="navSuggest(event)" onfocus="navSuggest(event)" onblur="setTimeout(()=>{const s=document.getElementById('navSuggestions');if(s)s.style.display='none'},200)"><div id="navSuggestions" class="search-suggestions"></div></div><button onclick="navGo()">Go</button></div>
 <div class="nav-r" style="position:relative">
 <a href="/account.html" id="headerAccount">Sign In</a>
 <div id="accountDropdown" style="display:none;position:absolute;top:100%;right:0;background:white;border:1px solid #ddd;border-radius:4px;box-shadow:0 4px 12px rgba(0,0,0,.15);min-width:180px;z-index:100;padding:8px 0">
@@ -120,6 +129,7 @@ footer .bt{grid-column:1/-1;text-align:center;color:#999;font-size:.75rem;paddin
 <a href="#" onclick="doHeaderLogout();return false" style="display:block;padding:8px 16px;color:#cc0c39;text-decoration:none;font-size:.85rem">Sign Out</a>
 </div>
 <a href="/orders.html">Orders</a>
+<a href="#" style="font-weight:700" onclick="showWishlist();return false">Wishlist <span id="wishCount"></span></a>
 <a href="#" style="font-weight:700" onclick="showCart();return false">Cart <span id="cartCount"></span></a>
 </div>
 </div></div>
@@ -203,6 +213,8 @@ document.addEventListener("click", function(e) {
 });
 document.addEventListener("DOMContentLoaded", function() {
   updateCartCount();
+  updateWishCount();
+  updateVisibleHearts();
   trackPageView();
   const token = localStorage.getItem("at");
   const accEl = document.getElementById("headerAccount");
@@ -261,6 +273,66 @@ function showRecentlyViewed(viewed) {
   const pdetail = document.querySelector(".pdetail");
   if (pdetail) { pdetail.parentElement?.appendChild(container); pdetail.parentElement?.appendChild(grid); }
 }
+// ── Global Product Index (for search autocomplete) ──
+var ALL_PRODUCTS = ${productJson};
+function navSuggest(e) {
+  const input = document.getElementById("navSearch");
+  const sug = document.getElementById("navSuggestions");
+  if (!input || !sug) return;
+  const q = input.value.toLowerCase().trim();
+  if (q.length < 1 || e.key === "Escape") { sug.style.display = "none"; return; }
+  if (e.key === "Enter") { navGo(); return; }
+  const matches = ALL_PRODUCTS.filter(function(p) { return p.name.toLowerCase().indexOf(q) !== -1; }).slice(0, 6);
+  if (matches.length === 0) { sug.style.display = "none"; return; }
+  sug.innerHTML = matches.map(function(p) {
+    var idx = p.name.toLowerCase().indexOf(q);
+    if (idx === -1) return '<div class="sug-item" onclick="location.href=\\'/product-'+p.slug+'.html\\'"><span class="sug-name">'+p.name+'</span><span class="sug-cat">'+p.category+'</span><span class="sug-price">₹'+p.price.toLocaleString("en-IN")+'</span></div>';
+    var highlighted = p.name.substring(0,idx) + '<span class="sug-highlight">' + p.name.substring(idx,idx+q.length) + '</span>' + p.name.substring(idx+q.length);
+    return '<div class="sug-item" onclick="location.href=\\'/product-'+p.slug+'.html\\'">' +
+      '<span class="sug-name">'+highlighted+'</span>' +
+      '<span class="sug-cat">'+p.category+'</span>' +
+      '<span class="sug-price">₹'+p.price.toLocaleString("en-IN")+'</span></div>';
+  }).join("");
+  sug.style.display = "block";
+}
+function navGo() {
+  const input = document.getElementById("navSearch");
+  if (input && input.value.trim()) location.href = "/search.html?q=" + encodeURIComponent(input.value.trim());
+}
+// ── Wishlist ──
+function getWishlist() { try { return JSON.parse(localStorage.getItem("extora_wishlist") || "[]"); } catch { return []; } }
+function saveWishlist(w) { localStorage.setItem("extora_wishlist", JSON.stringify(w)); updateWishCount(); }
+function updateWishCount() { const w = getWishlist(); const el = document.getElementById("wishCount"); if (el) el.textContent = w.length || ""; }
+function toggleWishlist(el) {
+  const slug = el.getAttribute("data-slug");
+  const name = el.getAttribute("data-name");
+  const w = getWishlist();
+  const idx = w.findIndex(function(i) { return i.slug === slug; });
+  if (idx === -1) { w.push({ slug: slug, name: name }); el.textContent = "♥"; el.classList.add("active"); }
+  else { w.splice(idx, 1); el.textContent = "♡"; el.classList.remove("active"); }
+  saveWishlist(w);
+}
+function showWishlist() {
+  const w = getWishlist();
+  if (w.length === 0) { alert("Your wishlist is empty"); return; }
+  var items = w.map(function(i, idx) {
+    return '<div style="display:flex;align-items:center;gap:12px;padding:12px;border-bottom:1px solid #e7e7e7">' +
+      '<span style="flex:1;color:#0f1111">' + i.name + '</span>' +
+      '<a href="/product-' + i.slug + '.html" style="color:#007185;text-decoration:none;font-size:.85rem">View</a>' +
+      '<button onclick="removeWish(' + idx + ')" style="background:none;border:1px solid #ddd;color:#cc0c39;padding:4px 10px;border-radius:4px;cursor:pointer;font-size:.8rem">Remove</button></div>';
+  }).join("");
+  document.querySelector("main").innerHTML = '<div style="max-width:800px;margin:20px auto;background:white;border-radius:8px;padding:24px"><h2>My Wishlist (' + w.length + ')</h2><div style="margin:16px 0">' + items + '</div></div>';
+}
+function removeWish(idx) { var w = getWishlist(); w.splice(idx, 1); saveWishlist(w); showWishlist(); updateVisibleHearts(); }
+function updateVisibleHearts() {
+  var w = getWishlist();
+  var slugs = w.map(function(i) { return i.slug; });
+  var hearts = document.querySelectorAll(".wishlist-btn");
+  hearts.forEach(function(h) {
+    if (slugs.indexOf(h.getAttribute("data-slug")) !== -1) { h.textContent = "♥"; h.classList.add("active"); }
+    else { h.textContent = "♡"; h.classList.remove("active"); }
+  });
+}
 </script>
 </body></html>`;
 }
@@ -273,6 +345,7 @@ function productCard(p: any): string {
   const rating = Number(p.rating ?? 0);
   return `<div class="product-card">
 <a href="/product-${e(p.slug)}.html">
+<span class="wishlist-btn" data-slug="${e(p.slug)}" data-name="${e(p.name)}" onclick="toggleWishlist(this);event.preventDefault();event.stopPropagation()">♡</span>
 <div class="img-wrap">${img ? `<img src="${e(img)}" alt="" loading="lazy">` : "No Image"}</div>
 <span class="pname">${e(p.name)}</span>
 ${rating > 0 ? `<span class="stars">${stars(rating)}</span>` : ""}
@@ -673,10 +746,38 @@ if (token) {
 </div>`,
   });
 
+  // ── WISHLIST PAGE ──
+  pages.push({
+    slug: "wishlist", title: "My Wishlist", description: "Saved products",
+    content: `<div class="page-content">
+<h1>My Wishlist</h1>
+<div id="wishlistContent"><p style="color:#565959">Loading wishlist...</p></div>
+<script>
+function renderWishlist() {
+  var w = getWishlist();
+  var el = document.getElementById("wishlistContent");
+  if (w.length === 0) { el.innerHTML = '<p style="color:#565959;text-align:center;padding:40px">Your wishlist is empty. <a href="/index.html" style="color:#007185">Start browsing</a></p>'; return; }
+  el.innerHTML = w.map(function(i, idx) {
+    return '<div style="display:flex;align-items:center;gap:16px;padding:16px;border-bottom:1px solid #e7e7e7">' +
+      '<span style="flex:1;font-size:1rem;color:#0f1111">' + i.name + '</span>' +
+      '<a href="/product-' + i.slug + '.html" style="background:#ffd814;border:1px solid #fcd200;padding:8px 20px;border-radius:20px;text-decoration:none;color:#0f1111;font-weight:600;font-size:.85rem">View</a>' +
+      '<button onclick="removeWish(' + idx + ');renderWishlist()" style="background:none;border:1px solid #ddd;color:#cc0c39;padding:6px 14px;border-radius:4px;cursor:pointer">Remove</button>' +
+      '</div>';
+  }).join("");
+}
+renderWishlist();
+</script>
+</div>`,
+  });
+
   // ── WRITE FILES ──
+  const allProducts = products.map((p: any) => ({
+    name: String(p.name ?? ""), slug: String(p.slug ?? ""),
+    category: String(p.category ?? ""), price: Number(p.price ?? 0),
+  }));
   let totalSize = 0;
   for (const page of pages) {
-    const html = layout(site, page.content, page.title);
+    const html = layout(site, page.content, page.title, allProducts);
     const fileName = page.slug === "index" ? "index.html" : `${page.slug}.html`;
     await writeFile(join(outputDir, fileName), html, "utf-8");
     totalSize += Buffer.byteLength(html, "utf-8");

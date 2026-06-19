@@ -569,7 +569,7 @@ export function registerAdminRoutes(server: FastifyInstance, prisma: PrismaClien
       const body = request.body as Record<string, unknown> | undefined;
       if (!body?.name) return reply.status(400).send({ code: "BAD_REQUEST", message: "Name required" });
       const slug = String(body.slug ?? String(body.name)).toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+       
       const data: Record<string, unknown> = { name: String(body.name), slug, description: String(body.description ?? "") };
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const item = await (prisma as any)[model].create({ data });
@@ -870,7 +870,7 @@ export function registerAdminRoutes(server: FastifyInstance, prisma: PrismaClien
         subject: `Order Confirmed — ${orderData.orderNumber}`,
         html: emailHtml,
       });
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+       
       await Promise.race([
         fetch(`${process.env.SMTP_HOST ? `http://${process.env.SMTP_HOST}:8025` : "http://mailhog:8025"}/api/v1/messages`, {
           method: "POST",
