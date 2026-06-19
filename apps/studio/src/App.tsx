@@ -20,7 +20,7 @@ import { Package, Users2, Clock, FileText, ShoppingCart, TrendingUp, Globe } fro
 import { CardSkeleton } from "./components/ui/Skeleton";
 
 function DashboardPage() {
-  const [stats, setStats] = useState({ plugins: 0, products: 0, published: 0, drafts: 0, content: 0, orders: 0, revenue: 0, uptime: "—" });
+  const [stats, setStats] = useState({ plugins: 0, products: 0, published: 0, drafts: 0, content: 0, orders: 0, revenue: 0, uptime: "—", lastPublish: "—" });
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -53,7 +53,17 @@ function DashboardPage() {
           orders: 6,
           revenue: totalRev,
           uptime: h > 0 ? `${String(h)}h ${String(m)}m` : `${String(m)}m ${String(s)}s`,
+          lastPublish: "—",
         });
+        // Fetch last publish time async
+        apiClient.get("/commerce/orders").then(({ data }) => {
+          const list = (Array.isArray(data) ? data : (data as Record<string, unknown>).data as unknown[]) ?? [];
+          const last = list[0] as Record<string, unknown> | undefined;
+          if (last?.createdAt) {
+            const dt = new Date(String(last.createdAt));
+            setStats((prev) => ({ ...prev, lastPublish: dt.toLocaleString() }));
+          }
+        }).catch(() => {});
       } catch { /* ignore */ }
       finally { setIsLoading(false); }
     };
@@ -96,6 +106,7 @@ function DashboardPage() {
         <StatCard title="Orders" value={String(stats.orders)} subtitle="Last 7 days" icon={ShoppingCart} />
         <StatCard title="Users" value="1" subtitle="Admin" icon={Users2} />
         <StatCard title="Uptime" value={stats.uptime} subtitle="Server running" icon={Clock} />
+        <StatCard title="Last Published" value={stats.lastPublish} subtitle="Site updated" icon={Globe} />
         <StatCard title="Site Status" value="Live" subtitle="Published & active" icon={Globe} />
       </div>
 

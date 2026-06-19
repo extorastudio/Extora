@@ -2831,3 +2831,15 @@ All CI green: lint 16/16, typecheck 20/20, test 34/34
 - Action feedback messages
 
 **717+ tests pass. 191+ commits. 357+ files.**
+
+
+### Phase 117: Dashboard — Last Published Timestamp
+**Date:** June 19, 2026 | **Commit:** `(pending)`
+**Duration:** ~10 minutes
+
+**Dashboard now shows when the site was last published:**
+- "Last Published" stat card with actual timestamp from audit logs
+- Fetched async from /commerce/orders (publish audit entries)
+- Shows "—" until data loads, then date/time
+
+**717+ tests pass. 192+ commits. 358+ files.**
