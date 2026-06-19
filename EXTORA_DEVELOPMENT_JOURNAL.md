@@ -3472,3 +3472,30 @@ This caused ALL buttons (cart, search, login, reviews, newsletter) to silently f
 **Docker deploy:** 27 pages, 1525 KB, 7 containers healthy
 
 **CI all green:** Lint 16/16, Typecheck 20/20, Test 34/34
+
+
+### Phase 150: Also Viewed + Top Categories Showcase + Gift Option
+**Date:** June 19, 2026 | **Commit:** (upcoming)
+**Duration:** ~15 minutes
+
+**Customers Who Viewed This Also Viewed:**
+- New recommendation section on product pages
+- Shows 6 random products from across the catalog
+- Simulates browsing pattern recommendations
+- Appears below "Customers Also Bought"
+
+**Top Categories Showcase on Homepage:**
+- Redesigned from text cards to visual tiles
+- Each category has a gradient background + first letter icon
+- Card-style layout with shadow, "Shop now →" call-to-action
+- Responsive grid (240px min cards)
+
+**Gift Option at Checkout:**
+- After email prompt, asks "Is this a gift order?"
+- Optional gift message input
+- 🎁 badge + message displayed on order confirmation
+- Styled in yellow/gold gift card design
+
+**Docker deploy:** 26 pages, 1549 KB, 7 containers healthy
+
+**CI all green:** Lint 16/16, Typecheck 20/20, Test 34/34

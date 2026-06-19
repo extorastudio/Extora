@@ -289,6 +289,9 @@ async function checkout() {
   const token = localStorage.getItem("at");
   const email = prompt("Enter your email for order confirmation:");
   if (!email) return;
+  const isGift = confirm("Is this a gift order?");
+  var giftMsg = "";
+  if (isGift) giftMsg = prompt("Enter gift message (optional):") || "";
 
   // Try API checkout if logged in
   let orderNumber = "EXT-" + Date.now().toString().slice(-6);
@@ -308,7 +311,8 @@ async function checkout() {
   // Show suggestions from product data
   var recs = (typeof ALL_PRODUCTS !== "undefined" ? ALL_PRODUCTS : []).slice(0,4).map(function(p){return '<div class="product-card"><a href="/product-'+p.slug+'.html" style="text-decoration:none;color:inherit;display:flex;flex-direction:column;padding:16px;height:100%"><span class="pname">'+p.name+'</span><span class="stock-ok">₹'+p.price.toLocaleString("en-IN")+'</span></a></div>'}).join("");
   var recHTML = recs ? '<div class="section-header" style="margin-top:32px"><h2>You Might Also Like</h2></div><div class="products-grid">'+recs+'</div>' : '';
-  document.querySelector("main").innerHTML = \`<div style="max-width:600px;margin:40px auto;text-align:center;background:white;border-radius:8px;padding:40px"><h2>Order Confirmed!</h2><p style="font-size:1.2rem;margin:16px 0">Order #\${orderNumber}</p><p>\${cart.length} items · ₹\${total.toLocaleString("en-IN")}</p><p style="color:#565959;margin-top:8px">Confirmation sent to \${email}</p><a href="/orders.html" style="display:inline-block;margin-top:16px;color:#007185;text-decoration:none">View Orders</a> · <a href="/index.html" style="color:#007185;text-decoration:none;margin-left:12px">Continue Shopping</a></div>\${recHTML}\`;
+  var giftBadge = giftMsg ? '<div style="margin:12px auto;max-width:400px;background:#fff8e1;border:1px solid #ffe082;border-radius:8px;padding:12px;text-align:left"><span style="color:#f57f17;font-weight:600;font-size:.85rem">🎁 Gift Order</span><p style="color:#555;font-size:.85rem;margin:4px 0 0">Message: '+giftMsg+'</p></div>' : (isGift ? '<p style="color:#f57f17;font-size:.85rem">🎁 This is a gift order</p>' : '');
+  document.querySelector("main").innerHTML = \`<div style="max-width:600px;margin:40px auto;text-align:center;background:white;border-radius:8px;padding:40px"><h2>Order Confirmed!</h2><p style="font-size:1.2rem;margin:16px 0">Order #\${orderNumber}</p><p>\${cart.length} items · ₹\${total.toLocaleString("en-IN")}</p>\${giftBadge}<p style="color:#565959;margin-top:8px">Confirmation sent to \${email}</p><a href="/orders.html" style="display:inline-block;margin-top:16px;color:#007185;text-decoration:none">View Orders</a> · <a href="/index.html" style="color:#007185;text-decoration:none;margin-left:12px">Continue Shopping</a></div>\${recHTML}\`;
   localStorage.removeItem("extora_cart");
   updateCartCount();
 }
@@ -736,7 +740,7 @@ export async function publishSite(prisma: PrismaClient, logger: Logger): Promise
   hpSections.push(`<div class="section-header"><h2>Trending Products</h2><a href="/products.html">See all</a></div><div class="products-grid">${trending.slice(0, 8).map(productCard).join("")}</div>`);
   const featured = products.slice(0, 12);
   hpSections.push(`<div class="section-header"><h2>Featured Products</h2></div><div class="products-grid">${featured.map(productCard).join("")}</div>`);
-  if (categories.length) hpSections.push(`<div class="section-header"><h2>Shop by Category</h2></div><div style="max-width:1500px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;padding:0 15px 20px">${categories.slice(0, 6).map((c: any) => `<div style="background:white;padding:20px;border-radius:4px"><h3>${e(c.name)}</h3><p style="color:#565959;font-size:.85rem">${e(c.description)}</p><a href="/category-${e(c.slug)}.html" style="color:#007185;font-size:.85rem;text-decoration:none">Shop now</a></div>`).join("")}</div>`);
+  if (categories.length) hpSections.push(`<div class="section-header"><h2>Top Categories</h2><a href="/products.html">See all</a></div><div style="max-width:1500px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px;padding:0 15px 20px">${categories.slice(0, 6).map((c: any) => `<div style="background:white;border-radius:8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.08);transition:box-shadow .2s"><div style="height:160px;background:linear-gradient(135deg,#f0f4ff,#e8f0fe);display:flex;align-items:center;justify-content:center;font-size:3rem">${e(c.name).charAt(0).toUpperCase()}</div><div style="padding:16px"><h3 style="font-size:.95rem;margin:0 0 4px">${e(c.name)}</h3><p style="color:#565959;font-size:.8rem;margin:0 0 12px">${e(c.description).slice(0,60) || "Browse products"}</p><a href="/category-${e(c.slug)}.html" style="color:#007185;font-size:.85rem;text-decoration:none;font-weight:600">Shop now →</a></div></div>`).join("")}</div>`);
   // Recently Viewed (client-side render)
   hpSections.push(`<div id="homeRecentlyViewed"></div><script>try{var v=JSON.parse(localStorage.getItem("extora_viewed")||"[]");if(v.length>0){document.getElementById("homeRecentlyViewed").innerHTML='<div class="section-header"><h2>Recently Viewed</h2></div><div class="products-grid">'+v.slice(0,6).map(function(x){return'<div class="product-card"><a href="'+x.url+'" style="text-decoration:none;color:inherit;display:flex;flex-direction:column;padding:16px;height:100%"><span class="pname">'+x.name+'</span><span class="stock-ok">View Again</span></a></div>'}).join("")+'</div>'}}catch(e){}</script>`);
   pages.push({ slug: "index", title: siteName, description: "Online Shopping", content: `<div style="background:linear-gradient(180deg,#3a5a8c 0,#131921 350px,#eaeded 350px);padding:30px 15px 60px"><div style="max-width:1500px;margin:0 auto"><h1 style="font-size:2rem;color:white;text-shadow:0 1px 2px rgba(0,0,0,.3)">${e(siteName)}</h1><p style="color:rgba(255,255,255,.9);font-size:1.1rem">Great products, great prices</p></div></div>${hpSections.join("")}` });
@@ -894,6 +898,9 @@ fetch("/api/v1/reviews/${e(p.id)}").then(r => r.json()).then(d => {
 
 <div class="section-header"><h2>Customers Also Bought</h2></div>
 <div class="products-grid">${products.filter((x: any) => x.id !== p.id && String(x.category) === String(p.category)).sort((a: any, b: any) => ((b.rating ?? 0) * (b.reviews ?? 1)) - ((a.rating ?? 0) * (a.reviews ?? 1))).slice(0, 6).map(productCard).join("")}</div>
+
+<div class="section-header"><h2>Customers Who Viewed This Also Viewed</h2></div>
+<div class="products-grid">${products.filter((x: any) => x.id !== p.id).sort(() => Math.random() - 0.5).slice(0, 6).map(productCard).join("")}</div>
 </div>`,
     });
   }
