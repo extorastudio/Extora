@@ -3211,3 +3211,22 @@ This caused ALL buttons (cart, search, login, reviews, newsletter) to silently f
 **Docker deploy:** 25 pages, 804 KB, 7 containers healthy
 
 **CI all green:** Lint 16/16, Typecheck 20/20, Test 34/34
+
+
+### Phase 139: Sort Dropdowns on Products, Categories, Deals Pages
+**Date:** June 19, 2026 | **Commit:** (upcoming)
+**Duration:** ~30 minutes
+
+**Sort/Filter dropdowns added to product listing pages:**
+- Products page: sort by Featured, Price Low→High, Price High→Low, Rating, Newest, Biggest Discount
+- Category pages: same sort options, scoped to category
+- Deals page: sort by Price Low→High, Price High→Low, Biggest Discount, Rating
+
+**All listing pages now client-side rendered:**
+- Product JSON data embedded in each page for client-side sorting
+- Non-TS-interpolated template literals eliminated
+- Proper `$` escaping: `${productJson2}` for server interpolation, no `\$` needed since embedded JS uses string concatenation
+
+**Docker rebuild + deployment:** 25 pages, 843 KB, 7 containers healthy
+
+**CI all green:** Lint 16/16, Typecheck 20/20, Test 34/34

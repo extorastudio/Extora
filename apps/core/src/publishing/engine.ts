@@ -546,12 +546,156 @@ fetch("/api/v1/reviews/${e(p.id)}").then(r => r.json()).then(d => {
   }
 
   // ── CATEGORY, DEALS, PRODUCTS LISTING ──
+  const productJson2 = JSON.stringify(products.map((p: any) => ({
+    id: String(p.id ?? ""), name: String(p.name ?? ""), price: Number(p.price ?? 0),
+    mrp: p.mrp ? Number(p.mrp) : null, slug: String(p.slug ?? ""),
+    category: String(p.category ?? ""), brand: String(p.brand ?? ""),
+    rating: Number(p.rating ?? 0), reviews: Number(p.reviews ?? 0),
+    img: Array.isArray(p.images) && p.images.length > 0 ? String(p.images[0]) : "",
+    deal: p.dealType ? String(p.dealLabel ?? p.dealType) : null,
+    discountPercent: Number(p.discountPercent ?? 0), createdAt: String(p.createdAt ?? ""),
+  })));
+
+
   for (const cat of categories) {
-    const cp = products.filter((x: any) => String(x.category) === String(cat.name));
-    pages.push({ slug: `category-${e(cat.slug)}`, title: String(cat.name), description: String(cat.description ?? ""), content: `<div class="section-header"><h2>${e(cat.name)}</h2></div>${cp.length ? `<div class="products-grid">${cp.map(productCard).join("")}</div>` : '<p style="text-align:center;padding:60px">No products</p>'}` });
+    const catSlug = e(cat.slug); const catName = e(cat.name);
+    pages.push({ slug: `category-${catSlug}`, title: String(cat.name), description: String(cat.description ?? ""),
+      content: `<div class="page-content">
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px">
+<h1 style="margin:0">${catName}</h1>
+<div style="display:flex;align-items:center;gap:8px">
+<span style="color:#565959;font-size:.85rem" id="resultCount"></span>
+<select id="sortSelect" onchange="sortCategory()" style="padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:.85rem;background:white;cursor:pointer">
+<option value="default">Sort by: Featured</option>
+<option value="priceAsc">Price: Low to High</option>
+<option value="priceDesc">Price: High to Low</option>
+<option value="rating">Rating: High to Low</option>
+<option value="newest">Newest First</option>
+<option value="discount">Biggest Discount</option>
+</select>
+</div>
+</div>
+<div id="productsGrid" class="products-grid"></div>
+</div>
+<script>
+var PRODUCTS = ${productJson2};
+var CATEGORY = "${catName}";
+function sortCategory() {
+  var sort = document.getElementById("sortSelect").value;
+  var list = PRODUCTS.filter(function(p){return p.category === CATEGORY});
+  if (sort === "priceAsc") list.sort(function(a,b){return a.price - b.price});
+  else if (sort === "priceDesc") list.sort(function(a,b){return b.price - a.price});
+  else if (sort === "rating") list.sort(function(a,b){return (b.rating||0) - (a.rating||0)});
+  else if (sort === "newest") list.sort(function(a,b){return (b.createdAt||"").localeCompare(a.createdAt||"")});
+  else if (sort === "discount") list.sort(function(a,b){return (b.discountPercent||0) - (a.discountPercent||0)});
+  document.getElementById("resultCount").textContent = list.length + " products";
+  document.getElementById("productsGrid").innerHTML = list.length === 0 ? '<p style="text-align:center;padding:60px;color:#565959;grid-column:1/-1">No products in this category yet.</p>' : list.map(function(p){
+    var mrp = p.mrp && p.mrp > p.price ? '<span class="mrp" style="font-size:.8rem;color:#565959;text-decoration:line-through">&#' + '8377;' + p.mrp.toLocaleString("en-IN") + '</span>' : '';
+    var discount = p.mrp && p.mrp > p.price ? '<span class="badge">-' + Math.round((1-p.price/p.mrp)*100) + '%</span>' : '';
+    return '<div class="product-card"><a href="/product-'+p.slug+'.html" style="text-decoration:none;color:inherit;display:flex;flex-direction:column;padding:16px;height:100%">' +
+    '<span class="wishlist-btn" data-slug="'+p.slug+'" data-name="'+p.name.replace(/'/g,"&#39;")+'" onclick="toggleWishlist(this);event.preventDefault();event.stopPropagation()">♡</span>' +
+    '<span class="compare-check" onclick="toggleCompare(this);event.preventDefault();event.stopPropagation()" data-slug="'+p.slug+'" data-name="'+p.name.replace(/'/g,"&#39;")+'" data-price="'+p.price+'" data-category="'+p.category+'" data-brand="'+(p.brand||"")+'" data-img="'+p.img+'" data-rating="'+(p.rating||0)+'" data-reviews="'+(p.reviews||0)+'">◻</span>' +
+    (p.img ? '<div class="img-wrap"><img src="'+p.img+'" alt="" loading="lazy"></div>' : '<div class="img-wrap">No Image</div>') +
+    '<span class="pname">'+p.name+'</span>' +
+    (p.rating > 0 ? '<span class="stars">'+"★".repeat(Math.floor(p.rating))+"☆".repeat(5-Math.floor(p.rating))+'</span>' : '') +
+    '<div class="pr"><span class="p">&#' + '8377;' + p.price.toLocaleString("en-IN") + '</span>'+mrp+'</div>'+discount+
+    (p.deal ? '<span class="badge" style="background:#c45500">'+p.deal+'</span>' : '') +
+    '<span class="stock-ok" style="display:flex;align-items:center">In Stock<button class="btn-cart" style="margin-left:auto;padding:6px 12px;background:#ffd814;border:1px solid #fcd200;border-radius:16px;font-size:.75rem;font-weight:600;cursor:pointer;color:#0f1111" data-name="'+p.name.replace(/'/g,"&#39;")+'" data-price="'+p.price+'" onclick="addToCart(this);return false">Add to Cart</button></span></a></div>';
+  }).join("");
+  updateVisibleHearts(); updateCompareChecks();
+}
+sortCategory();
+</script>` });
   }
-  if (deals.length) pages.push({ slug: "deals", title: "Today's Deals", description: "Limited time offers", content: `<div class="section-header"><h2>Today's Deals</h2></div><div class="products-grid">${deals.map(productCard).join("")}</div>` });
-  pages.push({ slug: "products", title: "All Products", description: "Browse all", content: `<div class="section-header"><h2>All Products</h2></div><div class="products-grid">${products.map(productCard).join("")}</div>` });
+  if (deals.length) pages.push({ slug: "deals", title: "Today's Deals", description: "Limited time offers",
+    content: `<div class="page-content">
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px">
+<h1 style="margin:0">Today's Deals</h1>
+<div style="display:flex;align-items:center;gap:8px">
+<span style="color:#565959;font-size:.85rem" id="resultCount"></span>
+<select id="sortSelect" onchange="sortDeals()" style="padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:.85rem;background:white;cursor:pointer">
+<option value="priceAsc">Price: Low to High</option>
+<option value="priceDesc">Price: High to Low</option>
+<option value="discount">Biggest Discount</option>
+<option value="rating">Rating</option>
+</select>
+</div>
+</div>
+<div id="productsGrid" class="products-grid"></div>
+</div>
+<script>
+var PRODUCTS = ${productJson2};
+function sortDeals() {
+  var sort = document.getElementById("sortSelect").value;
+  var list = PRODUCTS.filter(function(p){return p.deal});
+  if (sort === "priceAsc") list.sort(function(a,b){return a.price - b.price});
+  else if (sort === "priceDesc") list.sort(function(a,b){return b.price - a.price});
+  else if (sort === "discount") list.sort(function(a,b){return (b.discountPercent||0) - (a.discountPercent||0)});
+  else if (sort === "rating") list.sort(function(a,b){return (b.rating||0) - (a.rating||0)});
+  document.getElementById("resultCount").textContent = list.length + " deals";
+  document.getElementById("productsGrid").innerHTML = list.map(function(p){
+    var mrp = p.mrp && p.mrp > p.price ? '<span class="mrp" style="font-size:.8rem;color:#565959;text-decoration:line-through">&#' + '8377;' + p.mrp.toLocaleString("en-IN") + '</span>' : '';
+    var discount = p.mrp && p.mrp > p.price ? '<span class="badge">-' + Math.round((1-p.price/p.mrp)*100) + '%</span>' : '';
+    return '<div class="product-card"><a href="/product-'+p.slug+'.html" style="text-decoration:none;color:inherit;display:flex;flex-direction:column;padding:16px;height:100%">' +
+    '<span class="wishlist-btn" data-slug="'+p.slug+'" data-name="'+p.name.replace(/'/g,"&#39;")+'" onclick="toggleWishlist(this);event.preventDefault();event.stopPropagation()">♡</span>' +
+    '<span class="compare-check" onclick="toggleCompare(this);event.preventDefault();event.stopPropagation()" data-slug="'+p.slug+'" data-name="'+p.name.replace(/'/g,"&#39;")+'" data-price="'+p.price+'" data-category="'+p.category+'" data-brand="'+(p.brand||"")+'" data-img="'+p.img+'" data-rating="'+(p.rating||0)+'" data-reviews="'+(p.reviews||0)+'">◻</span>' +
+    (p.img ? '<div class="img-wrap"><img src="'+p.img+'" alt="" loading="lazy"></div>' : '<div class="img-wrap">No Image</div>') +
+    '<span class="pname">'+p.name+'</span>' +
+    (p.rating > 0 ? '<span class="stars">'+"★".repeat(Math.floor(p.rating))+"☆".repeat(5-Math.floor(p.rating))+'</span>' : '') +
+    '<div class="pr"><span class="p">&#' + '8377;' + p.price.toLocaleString("en-IN") + '</span>'+mrp+'</div>'+discount+
+    '<span class="badge" style="background:#c45500">'+p.deal+'</span>' +
+    '<span class="stock-ok" style="display:flex;align-items:center">In Stock<button class="btn-cart" style="margin-left:auto;padding:6px 12px;background:#ffd814;border:1px solid #fcd200;border-radius:16px;font-size:.75rem;font-weight:600;cursor:pointer;color:#0f1111" data-name="'+p.name.replace(/'/g,"&#39;")+'" data-price="'+p.price+'" onclick="addToCart(this);return false">Add</button></span></a></div>';
+  }).join("");
+  updateVisibleHearts(); updateCompareChecks();
+}
+sortDeals();
+</script>` });
+  pages.push({ slug: "products", title: "All Products", description: "Browse all",
+    content: `<div class="page-content">
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px">
+<h1 style="margin:0">All Products</h1>
+<div style="display:flex;align-items:center;gap:8px">
+<span style="color:#565959;font-size:.85rem" id="resultCount"></span>
+<select id="sortSelect" onchange="sortProducts()" style="padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:.85rem;background:white;cursor:pointer">
+<option value="default">Sort by: Featured</option>
+<option value="priceAsc">Price: Low to High</option>
+<option value="priceDesc">Price: High to Low</option>
+<option value="rating">Rating: High to Low</option>
+<option value="newest">Newest First</option>
+<option value="discount">Biggest Discount</option>
+</select>
+</div>
+</div>
+<div id="productsGrid" class="products-grid"></div>
+</div>
+<script>
+var PRODUCTS = ${productJson2};
+function sortProducts() {
+  var sort = document.getElementById("sortSelect").value;
+  var list = PRODUCTS.slice();
+  if (sort === "priceAsc") list.sort(function(a,b){return a.price - b.price});
+  else if (sort === "priceDesc") list.sort(function(a,b){return b.price - a.price});
+  else if (sort === "rating") list.sort(function(a,b){return (b.rating||0) - (a.rating||0)});
+  else if (sort === "newest") list.sort(function(a,b){return (b.createdAt||"").localeCompare(a.createdAt||"")});
+  else if (sort === "discount") list.sort(function(a,b){return (b.discountPercent||0) - (a.discountPercent||0)});
+  document.getElementById("resultCount").textContent = list.length + " products";
+  document.getElementById("productsGrid").innerHTML = list.map(function(p){
+    var mrp = p.mrp && p.mrp > p.price ? '<span class="mrp" style="font-size:.8rem;color:#565959;text-decoration:line-through">&#' + '8377;' + p.mrp.toLocaleString("en-IN") + '</span>' : '';
+    var discount = p.mrp && p.mrp > p.price ? '<span class="badge">-' + Math.round((1-p.price/p.mrp)*100) + '%</span>' : '';
+    return '<div class="product-card"><a href="/product-'+p.slug+'.html" style="text-decoration:none;color:inherit;display:flex;flex-direction:column;padding:16px;height:100%">' +
+    '<span class="wishlist-btn" data-slug="'+p.slug+'" data-name="'+p.name.replace(/'/g,"&#39;")+'" onclick="toggleWishlist(this);event.preventDefault();event.stopPropagation()">♡</span>' +
+    '<span class="compare-check" onclick="toggleCompare(this);event.preventDefault();event.stopPropagation()" data-slug="'+p.slug+'" data-name="'+p.name.replace(/'/g,"&#39;")+'" data-price="'+p.price+'" data-category="'+p.category+'" data-brand="'+(p.brand||"")+'" data-img="'+p.img+'" data-rating="'+(p.rating||0)+'" data-reviews="'+(p.reviews||0)+'">◻</span>' +
+    (p.img ? '<div class="img-wrap"><img src="'+p.img+'" alt="" loading="lazy"></div>' : '<div class="img-wrap">No Image</div>') +
+    '<span class="pname">'+p.name+'</span>' +
+    (p.rating > 0 ? '<span class="stars">'+"★".repeat(Math.floor(p.rating))+"☆".repeat(5-Math.floor(p.rating))+'</span>' : '') +
+    '<div class="pr"><span class="p">&#' + '8377;' + p.price.toLocaleString("en-IN") + '</span>'+mrp+'</div>'+discount+
+    (p.deal ? '<span class="badge" style="background:#c45500">'+p.deal+'</span>' : '') +
+    '<span class="stock-ok" style="display:flex;align-items:center">In Stock<button class="btn-cart" style="margin-left:auto;padding:6px 12px;background:#ffd814;border:1px solid #fcd200;border-radius:16px;font-size:.75rem;font-weight:600;cursor:pointer;color:#0f1111" data-name="'+p.name.replace(/'/g,"&#39;")+'" data-price="'+p.price+'" onclick="addToCart(this);return false">Add to Cart</button></span></a></div>';
+  }).join("");
+  updateVisibleHearts(); updateCompareChecks();
+}
+sortProducts();
+</script>` });
 
   function renderBuilderElement(el: any): string {
   const c = el.content ?? {};
