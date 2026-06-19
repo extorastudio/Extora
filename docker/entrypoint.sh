@@ -34,9 +34,16 @@ npx tsx prisma/seed.ts 2>/dev/null || echo "  Seed skipped (may already exist)"
 echo "Setting up MinIO bucket..."
 for i in 1 2 3 4 5 6 7 8 9 10; do
   if curl -sf http://minio:9000/minio/health/live > /dev/null 2>&1; then
-    mc alias set local http://minio:9000 minioadmin minioadmin 2>/dev/null || true
-    mc mb local/extora 2>/dev/null || true
-    mc anonymous set public local/extora 2>/dev/null || true
+    # Create bucket via MinIO API
+    curl -sf -X PUT http://minio:9000/extora \
+      -H "Authorization: Basic $(echo -n 'minioadmin:minioadmin' | base64)" \
+      > /dev/null 2>&1 || true
+    # Set public policy
+    curl -sf -X PUT "http://minio:9000/extora?policy=" \
+      -H "Authorization: Basic $(echo -n 'minioadmin:minioadmin' | base64)" \
+      -H "Content-Type: application/json" \
+      -d '{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Principal":{"AWS":["*"]},"Action":["s3:GetObject"],"Resource":["arn:aws:s3:::extora/*"]}]}' \
+      > /dev/null 2>&1 || true
     echo "  MinIO bucket ready"
     break
   fi
