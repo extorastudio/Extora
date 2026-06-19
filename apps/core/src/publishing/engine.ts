@@ -16,6 +16,11 @@ function layout(site: { name: string }, body: string, pageTitle: string, allProd
   const productJson = allProducts ? JSON.stringify(allProducts) : "[]";
   return `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>${e(pageTitle)} — ${e(site.name)}</title><meta name="generator" content="Extora"><style>
 *{box-sizing:border-box;margin:0;padding:0}
+.announce-bar{background:#232f3e;color:white;text-align:center;padding:8px 16px;font-size:.82rem;position:relative;display:flex;align-items:center;justify-content:center;gap:12px}
+.announce-bar .announce-close{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:rgba(255,255,255,.6);cursor:pointer;font-size:1.1rem;padding:2px 6px}
+.announce-bar .announce-close:hover{color:white}
+.announce-bar a{color:#febd69;text-decoration:underline}
+.save-tag{display:inline-block;background:#cc0c39;color:white;font-size:.7rem;padding:2px 6px;border-radius:3px;font-weight:600;vertical-align:middle;margin-left:6px}
 body{font-family:Arial,Helvetica,sans-serif;color:#0f1111;background:#eaeded;line-height:1.5}
 .top-nav{background:#131921;color:white;font-size:14px}
 .top-nav .inner{max-width:1500px;margin:0 auto;display:flex;align-items:center;gap:16px;padding:10px 15px}
@@ -206,6 +211,10 @@ footer .inner{grid-template-columns:repeat(2,1fr)}
 .back-to-top{width:36px;height:36px;bottom:16px;right:12px}
 }
 </style></head><body>
+<div class="announce-bar" id="announceBar">
+<span>🚀 Free shipping on orders above ₹499 | <a href="/deals.html">Today's Deals</a> — Up to 60% off</span>
+<button class="announce-close" onclick="document.getElementById('announceBar').style.display='none';sessionStorage.setItem('extora_announce','closed')" title="Close">✕</button>
+</div>
 <header><div class="top-nav"><div class="inner">
 <a href="/index.html" class="logo">extora<span style="color:white">.in</span></a>
 <div class="search"><div class="search-wrap"><input id="navSearch" placeholder="Search..." autocomplete="off" onkeyup="navSuggest(event)" onfocus="navSuggest(event)" onblur="setTimeout(()=>{const s=document.getElementById('navSuggestions');if(s)s.style.display='none'},200)"><div id="navSuggestions" class="search-suggestions"></div></div><button onclick="navGo()">Go</button></div>
@@ -308,6 +317,11 @@ document.addEventListener("click", function(e) {
   if (btn) { e.preventDefault(); addToCart(btn); }
 });
 document.addEventListener("DOMContentLoaded", function() {
+  // Show announcement bar if not previously closed this session
+  if (sessionStorage.getItem("extora_announce") === "closed") {
+    var bar = document.getElementById("announceBar");
+    if (bar) bar.style.display = "none";
+  }
   updateCartCount();
   updateWishCount();
   updateVisibleHearts();
@@ -694,7 +708,7 @@ function productCard(p: any): string {
 <div class="img-wrap">${img ? `<img src="${e(img)}" alt="" loading="lazy">` : "No Image"}</div>
 <span class="pname">${e(p.name)}</span>
 ${rating > 0 ? `<span class="stars">${stars(rating)}</span>` : ""}
-<div class="pr"><span class="p">${rupee(price)}</span>${mrp && mrp > price ? `<span class="mrp">${rupee(mrp)}</span>` : ""}</div>
+<div class="pr"><span class="p">${rupee(price)}</span>${mrp && mrp > price ? `<span class="mrp">${rupee(mrp)}</span> <span class="save-tag">Save ${rupee(mrp - price)}</span>` : ""}</div>
 ${discount > 0 ? `<span class="badge">-${discount}%</span>` : ""}
 ${p.dealType ? `<span class="badge" style="background:#c45500">${e(p.dealLabel ?? p.dealType)}</span>` : ""}
 <span style="display:flex;align-items:center;margin-top:auto">${stockHtml}${stockStatus === "outofstock" || stockQty <= 0 ? `<button class="btn-cart" style="margin-left:auto;padding:6px 12px;background:#eee;border:1px solid #ccc;border-radius:16px;font-size:.75rem;cursor:pointer;color:#888" onclick="notifyMe('${e(p.slug)}','${e(p.name)}');event.preventDefault();event.stopPropagation()">Notify Me</button>` : `<button class="btn-cart" style="margin-left:auto;padding:6px 12px;background:#ffd814;border:1px solid #fcd200;border-radius:16px;font-size:.75rem;font-weight:600;cursor:pointer;color:#0f1111" data-name="${e(p.name)}" data-price="${price}" onclick="addToCart(this);return false">Add to Cart</button>`}</span>

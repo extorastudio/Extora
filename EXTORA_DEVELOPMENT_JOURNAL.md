@@ -3450,3 +3450,25 @@ This caused ALL buttons (cart, search, login, reviews, newsletter) to silently f
 **Docker deploy:** 26 pages, 1434 KB, 7 containers healthy
 
 **CI all green:** Lint 16/16, Typecheck 20/20, Test 34/34
+
+
+### Phase 149: Announcement Bar + Save Amount Tags
+**Date:** June 19, 2026 | **Commit:** (upcoming)
+**Duration:** ~15 minutes
+
+**Top Announcement Bar:**
+- Dark bar (#232f3e) above header with rotating message
+- "Free shipping on orders above ₹499 | Today's Deals — Up to 60% off"
+- Dismiss button (✕) that hides bar for session (sessionStorage)
+- Reappears on next browser session
+- Styled with link to deals page in gold (#febd69)
+
+**You Save ₹X Tags:**
+- Red "Save ₹2,500" tag on discounted product cards
+- Shows absolute savings amount (MRP - Sale Price)
+- Compact badge styling, displayed next to MRP
+- Server-rendered on all product cards (homepage, FBT, also bought)
+
+**Docker deploy:** 27 pages, 1525 KB, 7 containers healthy
+
+**CI all green:** Lint 16/16, Typecheck 20/20, Test 34/34
