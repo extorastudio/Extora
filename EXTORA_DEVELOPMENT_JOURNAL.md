@@ -2704,3 +2704,18 @@ Products page reads URL hash on mount to set correct sub-tab
 - Search bar on all pages (top nav) links to /search.html
 
 **716+ tests pass. 186+ commits. 352+ files.**
+
+
+### Phase 112: Demo Product Seeding on First Launch
+**Date:** June 19, 2026 | **Commit:** `(pending)`
+**Duration:** ~15 minutes
+
+**Seed script enhanced with demo data:**
+- 8 demo products with realistic names, prices, MRPs, categories, brands, ratings
+- Products: Electronics (headphones, cable, keyboard), Fashion (tshirt), Kitchen (bottle), Sports (shoes, yoga mat), Grocery (tea)
+- Mix of published and draft statuses
+- 8 categories auto-created: Electronics, Fashion, Home & Kitchen, Sports, Books, Grocery, Beauty, Toys
+- Only seeds when tables are empty (first launch)
+- Published site always has content from first start
+
+**717+ tests pass. 187+ commits. 353+ files.**
