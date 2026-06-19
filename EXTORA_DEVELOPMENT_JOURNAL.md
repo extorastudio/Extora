@@ -2512,3 +2512,21 @@ Each with inline CRUD via generic taxonomyCrud API factory.
 4 plugins activated, publish: 10 pages 96 KB, site/admin/api all 200 OK.
 
 **716+ tests pass. 180+ commits, 342+ files.**
+
+
+### Phase 104: Backups Page — Export/Import/Restore
+**Date:** June 16, 2026 | **Commit:** `(pending)`
+**Duration:** ~20 minutes
+
+**Backups page built:**
+- Full Site Backup: exports products, content, settings, media as JSON
+- Individual exports: Products Only, Content Only, Settings Only, Categories, Media
+- Restore from file: reads JSON backup, recreates products and content via API
+- Last backup timestamp stored in localStorage
+- Color-coded export cards (blue/green/purple/yellow/pink/orange)
+- Download button for each export type
+
+**12 of 12 Studio pages now complete:**
+Dashboard, Products, Orders, Content, Media, Users, Plugins, Themes, Theme Settings, Services, Config, Monitoring, Backups
+
+**716+ tests pass. 181+ commits, 345+ files.**
