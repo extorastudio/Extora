@@ -3959,3 +3959,28 @@ var SEO_ACTIVE = true/false;
 **Note:** Plugin management endpoints (activate/deactivate) use core `authenticate()` which works independently of Auth plugin state, preventing deadlock.
 
 **Docker deploy:** CI all green
+
+
+### Phase 166: Recommendation Engine Plugin Gating
+**Date:** June 19, 2026 | **Commit:** (upcoming)
+**Duration:** ~15 minutes
+
+**Recommendations plugin disabled now hides ALL recommendation sections:**
+
+**Server-side gating (publishing engine):**
+- Trending Products homepage section → `${isRecsActive ? ... : ""}`
+- FBT (Frequently Bought Together) on product pages → gated
+- Customers Also Bought on product pages → gated
+- Customers Who Viewed This Also Viewed on product pages → gated
+
+**Client-side gating (footer JS):**
+- Cart empty state: Trending suggestions hidden
+- Wishlist empty state: Trending suggestions hidden
+- Cart cross-sell: "Customers Also Bought" hidden
+- All guarded with `RECS_ACTIVE &&` check in JS
+
+**RECS_ACTIVE flag added to plugin state:**
+- Plugins checked: commerce, cms, auth, seo, **recommendations**
+- Flag embedded: `var RECS_ACTIVE = true/false`
+
+**Verified:** isRecsActive=false → all 6 recommendation sections removed from both server HTML and client JS

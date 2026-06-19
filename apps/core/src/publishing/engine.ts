@@ -12,12 +12,13 @@ const e = (s: any) => String(s ?? "").replaceAll("&", "&amp;").replaceAll("<", "
 const stars = (n: number) => "★".repeat(Math.floor(n)) + "☆".repeat(5 - Math.floor(n));
 const rupee = (n: number) => "₹" + n.toLocaleString("en-IN");
 
-function layout(site: { name: string }, body: string, pageTitle: string, allProducts?: any[], pluginState?: { commerce: boolean; cms: boolean; auth: boolean; seo: boolean }, seoMeta?: { title?: string; description?: string; keywords?: string; ogTitle?: string; ogDescription?: string; ogImage?: string; noIndex?: boolean }): string {
+function layout(site: { name: string }, body: string, pageTitle: string, allProducts?: any[], pluginState?: { commerce: boolean; cms: boolean; auth: boolean; seo: boolean; recs: boolean }, seoMeta?: { title?: string; description?: string; keywords?: string; ogTitle?: string; ogDescription?: string; ogImage?: string; noIndex?: boolean }): string {
   const productJson = allProducts ? JSON.stringify(allProducts) : "[]";
   const cs = pluginState?.commerce ?? true;
   const cms = pluginState?.cms ?? true;
   const authActive = pluginState?.auth ?? true;
   const seoActive = pluginState?.seo ?? true;
+  const recsActive = pluginState?.recs ?? true;
   const seo = seoActive && seoMeta ? seoMeta : {};
   const seoTitle = seo.title || pageTitle;
   const seoDesc = seo.description || "";
@@ -264,6 +265,7 @@ var COMMERCE_ACTIVE = ${cs};
 var CMS_ACTIVE = ${cms};
 var AUTH_ACTIVE = ${authActive};
 var SEO_ACTIVE = ${seoActive};
+var RECS_ACTIVE = ${recsActive};
 if (!COMMERCE_ACTIVE) {
   document.querySelectorAll(".nav-r a").forEach(function(a) {
     if (a.textContent.includes("Wishlist") || a.textContent.includes("Cart") || a.href.includes("orders.html")) a.style.display = "none";
@@ -300,13 +302,13 @@ function removeFromCart(idx) { const c = getCart(); c.splice(idx,1); saveCart(c)
 function showCart() {
   const cart = getCart();
   if (cart.length === 0) {
-    var recs = (typeof ALL_PRODUCTS !== "undefined" ? ALL_PRODUCTS.slice(0,4) : []).map(function(p){return '<div class="product-card"><a href="/product-'+p.slug+'.html" style="text-decoration:none;color:inherit;display:flex;flex-direction:column;padding:16px;height:100%"><span class="pname">'+p.name+'</span><span class="stock-ok">₹'+p.price.toLocaleString("en-IN")+'</span></a></div>'}).join("");
+    var recs = (typeof ALL_PRODUCTS !== "undefined" && typeof RECS_ACTIVE !== "undefined" && RECS_ACTIVE ? ALL_PRODUCTS.slice(0,4) : []).map(function(p){return '<div class="product-card"><a href="/product-'+p.slug+'.html" style="text-decoration:none;color:inherit;display:flex;flex-direction:column;padding:16px;height:100%"><span class="pname">'+p.name+'</span><span class="stock-ok">₹'+p.price.toLocaleString("en-IN")+'</span></a></div>'}).join("");
     document.querySelector("main").innerHTML = '<div style="max-width:800px;margin:20px auto;background:white;border-radius:8px;padding:24px;text-align:center"><h2>Your Cart is Empty</h2><p style="color:#565959;margin:12px 0">Browse our trending products</p><a href="/products.html" style="display:inline-block;padding:12px 32px;background:#ffd814;border:1px solid #fcd200;border-radius:24px;text-decoration:none;color:#0f1111;font-weight:600;margin-bottom:20px">Shop Now</a>'+(recs?'<div class="section-header"><h2>Trending</h2></div><div class="products-grid">'+recs+'</div>':'')+'</div>';
     return;
   }
   const total = cart.reduce((s,i) => s + i.price * i.qty, 0);
   const items = cart.map((i, idx) => \`<tr><td>\${i.name}</td><td>₹\${i.price.toLocaleString("en-IN")}</td><td>\${i.qty}</td><td>₹\${(i.price*i.qty).toLocaleString("en-IN")}</td><td><button onclick="removeFromCart(\${idx})" style="background:#cc0c39;color:white;border:none;padding:4px 8px;border-radius:4px;cursor:pointer">Remove</button></td></tr>\`).join("");
-  const html = \`<div style="max-width:800px;margin:20px auto;background:white;border-radius:8px;padding:24px"><h2>Shopping Cart</h2><table style="width:100%;border-collapse:collapse;margin:16px 0"><thead><tr style="background:#f0f2f2"><th style="text-align:left;padding:8px">Product</th><th>Price</th><th>Qty</th><th>Total</th><th></th></tr></thead><tbody>\${items}</tbody><tfoot><tr style="font-weight:700;font-size:1.1rem"><td colspan="3" style="text-align:right;padding:12px">Total:</td><td style="padding:12px">₹\${total.toLocaleString("en-IN")}</td><td></td></tr></tfoot></table><button onclick="checkout()" style="padding:12px 32px;background:#ffd814;border:1px solid #fcd200;border-radius:20px;font-size:1rem;cursor:pointer;font-weight:600">Proceed to Checkout</button>\${typeof ALL_PRODUCTS !== "undefined" ? \`<div class="section-header" style="margin-top:24px;padding-left:0"><h2>Customers Also Bought</h2></div><div class="products-grid">\${ALL_PRODUCTS.slice(0,4).map(function(p){return \`<div class="product-card"><a href="/product-\${p.slug}.html" style="text-decoration:none;color:inherit;display:flex;flex-direction:column;padding:16px;height:100%"><span class="pname">\${p.name}</span><span class="stock-ok">₹\${p.price.toLocaleString("en-IN")}</span></a></div>\`;}).join("")}</div>\` : ""}</div>\`;
+  const html = \`<div style="max-width:800px;margin:20px auto;background:white;border-radius:8px;padding:24px"><h2>Shopping Cart</h2><table style="width:100%;border-collapse:collapse;margin:16px 0"><thead><tr style="background:#f0f2f2"><th style="text-align:left;padding:8px">Product</th><th>Price</th><th>Qty</th><th>Total</th><th></th></tr></thead><tbody>\${items}</tbody><tfoot><tr style="font-weight:700;font-size:1.1rem"><td colspan="3" style="text-align:right;padding:12px">Total:</td><td style="padding:12px">₹\${total.toLocaleString("en-IN")}</td><td></td></tr></tfoot></table><button onclick="checkout()" style="padding:12px 32px;background:#ffd814;border:1px solid #fcd200;border-radius:20px;font-size:1rem;cursor:pointer;font-weight:600">Proceed to Checkout</button>\${typeof ALL_PRODUCTS !== "undefined" && typeof RECS_ACTIVE !== "undefined" && RECS_ACTIVE ? \`<div class="section-header" style="margin-top:24px;padding-left:0"><h2>Customers Also Bought</h2></div><div class="products-grid">\${ALL_PRODUCTS.slice(0,4).map(function(p){return \`<div class="product-card"><a href="/product-\${p.slug}.html" style="text-decoration:none;color:inherit;display:flex;flex-direction:column;padding:16px;height:100%"><span class="pname">\${p.name}</span><span class="stock-ok">₹\${p.price.toLocaleString("en-IN")}</span></a></div>\`;}).join("")}</div>\` : ""}</div>\`;
   document.querySelector("main").innerHTML = html;
 }
 async function checkout() {
@@ -459,7 +461,7 @@ function toggleWishlist(el) {
 function showWishlist() {
   const w = getWishlist();
   if (w.length === 0) {
-    var recs = (typeof ALL_PRODUCTS !== "undefined" ? ALL_PRODUCTS.slice(0,4) : []).map(function(p){return '<div class="product-card"><a href="/product-'+p.slug+'.html" style="text-decoration:none;color:inherit;display:flex;flex-direction:column;padding:16px;height:100%"><span class="pname">'+p.name+'</span><span class="stock-ok">₹'+p.price.toLocaleString("en-IN")+'</span></a></div>'}).join("");
+    var recs = (typeof ALL_PRODUCTS !== "undefined" && typeof RECS_ACTIVE !== "undefined" && RECS_ACTIVE ? ALL_PRODUCTS.slice(0,4) : []).map(function(p){return '<div class="product-card"><a href="/product-'+p.slug+'.html" style="text-decoration:none;color:inherit;display:flex;flex-direction:column;padding:16px;height:100%"><span class="pname">'+p.name+'</span><span class="stock-ok">₹'+p.price.toLocaleString("en-IN")+'</span></a></div>'}).join("");
     document.querySelector("main").innerHTML = '<div style="max-width:800px;margin:20px auto;background:white;border-radius:8px;padding:24px;text-align:center"><h2>Your Wishlist is Empty</h2><p style="color:#565959;margin:12px 0">Save your favorite items</p><a href="/products.html" style="display:inline-block;padding:12px 32px;background:#ffd814;border:1px solid #fcd200;border-radius:24px;text-decoration:none;color:#0f1111;font-weight:600;margin-bottom:20px">Discover Products</a>'+(recs?'<div class="section-header"><h2>Trending</h2></div><div class="products-grid">'+recs+'</div>':'')+'</div>';
     return;
   }
@@ -762,7 +764,7 @@ export async function publishSite(prisma: PrismaClient, logger: Logger): Promise
   const site = { name: siteName };
 
   // ── Check active plugins for gating ──
-  let isCommerceActive = true, isCmsActive = true, isAuthActive = true, isSeoActive = true;
+  let isCommerceActive = true, isCmsActive = true, isAuthActive = true, isSeoActive = true, isRecsActive = true;
   try {
     const plugs = await (prisma as any).plugin.findMany({ where: { isActive: true } });
     const names = plugs.map((p: any) => p.name ?? "");
@@ -770,8 +772,9 @@ export async function publishSite(prisma: PrismaClient, logger: Logger): Promise
     isCmsActive = names.some((n: string) => n.includes("cms"));
     isAuthActive = names.some((n: string) => n.includes("auth"));
     isSeoActive = names.some((n: string) => n.includes("seo"));
+    isRecsActive = names.some((n: string) => n.includes("recommendations"));
   } catch { /* plugin table optional */ }
-  const pluginState = { commerce: isCommerceActive, cms: isCmsActive, auth: isAuthActive, seo: isSeoActive };
+  const pluginState = { commerce: isCommerceActive, cms: isCmsActive, auth: isAuthActive, seo: isSeoActive, recs: isRecsActive };
 
   // If commerce disabled, clear products + categories so no commerce pages are generated
   const products = isCommerceActive ? rawProducts : [];
@@ -781,9 +784,11 @@ export async function publishSite(prisma: PrismaClient, logger: Logger): Promise
   // ── HOMEPAGE ──
   const hpSections: string[] = [];
   if (deals.length > 0) hpSections.push(`<div class="section-header"><h2>Today's Deals <span class="deal-timer" id="hpDealTimer">Ends in: <span class="time-box" id="hpTimerH">00</span>h <span class="time-box" id="hpTimerM">00</span>m <span class="time-box" id="hpTimerS">00</span>s</span></h2><a href="/deals.html">See all</a></div><div class="products-grid">${deals.slice(0, 6).map(productCard).join("")}</div>`);
-  // Trending: sort by rating * reviews (popularity score)
-  const trending = [...products].sort((a: any, b: any) => ((b.rating ?? 0) * (b.reviews ?? 1)) - ((a.rating ?? 0) * (a.reviews ?? 1)));
-  hpSections.push(`<div class="section-header"><h2>Trending Products</h2><a href="/products.html">See all</a></div><div class="products-grid">${trending.slice(0, 8).map(productCard).join("")}</div>`);
+  // Trending: sort by rating * reviews (popularity score) — only if recommendations active
+  if (isRecsActive) {
+    const trending = [...products].sort((a: any, b: any) => ((b.rating ?? 0) * (b.reviews ?? 1)) - ((a.rating ?? 0) * (a.reviews ?? 1)));
+    hpSections.push(`<div class="section-header"><h2>Trending Products</h2><a href="/products.html">See all</a></div><div class="products-grid">${trending.slice(0, 8).map(productCard).join("")}</div>`);
+  }
   const featured = products.slice(0, 12);
   hpSections.push(`<div class="section-header"><h2>Featured Products</h2></div><div class="products-grid">${featured.map(productCard).join("")}</div>`);
   if (categories.length) hpSections.push(`<div class="section-header"><h2>Top Categories</h2><a href="/products.html">See all</a></div><div style="max-width:1500px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px;padding:0 15px 20px">${categories.slice(0, 6).map((c: any) => `<div style="background:white;border-radius:8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.08);transition:box-shadow .2s"><div style="height:160px;background:linear-gradient(135deg,#f0f4ff,#e8f0fe);display:flex;align-items:center;justify-content:center;font-size:3rem">${e(c.name).charAt(0).toUpperCase()}</div><div style="padding:16px"><h3 style="font-size:.95rem;margin:0 0 4px">${e(c.name)}</h3><p style="color:#565959;font-size:.8rem;margin:0 0 12px">${e(c.description).slice(0,60) || "Browse products"}</p><a href="/category-${e(c.slug)}.html" style="color:#007185;font-size:.85rem;text-decoration:none;font-weight:600">Shop now →</a></div></div>`).join("")}</div>`);
@@ -940,14 +945,14 @@ fetch("/api/v1/reviews/${e(p.id)}").then(r => r.json()).then(d => {
 <p id="qaMsg-${e(p.slug)}" style="font-size:.85rem;margin:8px 0 0;color:#007600"></p>
 </div>
 
-<div class="section-header"><h2>Frequently Bought Together</h2></div>
-<div class="products-grid">${(function() { const upsellIds: string[] = Array.isArray(p.upSellIds) ? p.upSellIds.map(String).filter(Boolean) : []; const crossSellIds: string[] = Array.isArray(p.crossSellIds) ? p.crossSellIds.map(String).filter(Boolean) : []; const fbt: any[] = []; for (const id of [...upsellIds, ...crossSellIds]) { const found = products.find((x: any) => String(x.id) === id || String(x.slug) === id); if (found) fbt.push(found); } if (fbt.length < 4) { for (const x of products) { if (x.id !== p.id && String(x.category) === String(p.category) && !fbt.find((f: any) => f.id === x.id)) { fbt.push(x); if (fbt.length >= 4) break; } } } return fbt.slice(0, 4).map(productCard).join(""); })()}</div>
+${isRecsActive ? `<div class="section-header"><h2>Frequently Bought Together</h2></div>
+<div class="products-grid">${(function() { const upsellIds: string[] = Array.isArray(p.upSellIds) ? p.upSellIds.map(String).filter(Boolean) : []; const crossSellIds: string[] = Array.isArray(p.crossSellIds) ? p.crossSellIds.map(String).filter(Boolean) : []; const fbt: any[] = []; for (const id of [...upsellIds, ...crossSellIds]) { const found = products.find((x: any) => String(x.id) === id || String(x.slug) === id); if (found) fbt.push(found); } if (fbt.length < 4) { for (const x of products) { if (x.id !== p.id && String(x.category) === String(p.category) && !fbt.find((f: any) => f.id === x.id)) { fbt.push(x); if (fbt.length >= 4) break; } } } return fbt.slice(0, 4).map(productCard).join(""); })()}</div>` : ""}
 
-<div class="section-header"><h2>Customers Also Bought</h2></div>
-<div class="products-grid">${products.filter((x: any) => x.id !== p.id && String(x.category) === String(p.category)).sort((a: any, b: any) => ((b.rating ?? 0) * (b.reviews ?? 1)) - ((a.rating ?? 0) * (a.reviews ?? 1))).slice(0, 6).map(productCard).join("")}</div>
+${isRecsActive ? `<div class="section-header"><h2>Customers Also Bought</h2></div>
+<div class="products-grid">${products.filter((x: any) => x.id !== p.id && String(x.category) === String(p.category)).sort((a: any, b: any) => ((b.rating ?? 0) * (b.reviews ?? 1)) - ((a.rating ?? 0) * (a.reviews ?? 1))).slice(0, 6).map(productCard).join("")}</div>` : ""}
 
-<div class="section-header"><h2>Customers Who Viewed This Also Viewed</h2></div>
-<div class="products-grid">${products.filter((x: any) => x.id !== p.id).sort(() => Math.random() - 0.5).slice(0, 6).map(productCard).join("")}</div>
+${isRecsActive ? `<div class="section-header"><h2>Customers Who Viewed This Also Viewed</h2></div>
+<div class="products-grid">${products.filter((x: any) => x.id !== p.id).sort(() => Math.random() - 0.5).slice(0, 6).map(productCard).join("")}</div>` : ""}
 </div>`,
     });
   }
