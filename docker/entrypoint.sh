@@ -13,6 +13,19 @@ npx prisma generate --schema=prisma/schema.prisma
 echo "Syncing database schema..."
 npx prisma db push --schema=prisma/schema.prisma --accept-data-loss 2>/dev/null || true
 
+# Ensure critical tables exist (not in Prisma schema yet)
+echo "Creating runtime tables..."
+node -e "
+const {PrismaClient}=require('@prisma/client');
+(async()=>{
+  const p=new PrismaClient();
+  await p.\$connect();
+  await p.\$executeRawUnsafe('CREATE TABLE IF NOT EXISTS \"Order\" (id TEXT PRIMARY KEY, \"orderNumber\" TEXT UNIQUE, \"customerEmail\" TEXT DEFAULT \\'\\', items JSONB DEFAULT \\'[]\\', total FLOAT DEFAULT 0, status TEXT DEFAULT \\'confirmed\\', \"createdAt\" TIMESTAMP DEFAULT now())');
+  console.log('  Runtime tables ready');
+  await p.\$disconnect();
+})().catch(()=>console.log('  Tables already exist'));
+"
+
 # Seed admin user
 echo "Seeding default data..."
 npx tsx prisma/seed.ts 2>/dev/null || echo "  Seed skipped (may already exist)"

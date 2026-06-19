@@ -2874,3 +2874,16 @@ All CI green: lint 16/16, typecheck 20/20, test 34/34
 - Tested: checkout creates order EXT-693614, ₹16,098 → listed in Orders
 
 **717+ tests pass. 194+ commits. 360+ files.**
+
+
+### Phase 120: All 7 Plugins Registered + Order Table Auto-Creation
+**Date:** June 19, 2026 | **Commit:** `(pending)`
+**Duration:** ~15 minutes
+
+**Analytics plugin fixed:** extora.json had wrong name ("@extora/seo" instead of "@extora/analytics"), causing registration failure. Fixed manifest — now all 7 plugins register correctly.
+
+**Order table auto-created on Docker start:** Entrypoint runs raw SQL to ensure Order table exists before server starts.
+
+**All 7 plugins:** auth, cms, commerce, forms, seo, recommendations, analytics — all registered.
+
+**717+ tests pass. 195+ commits. 361+ files.**

@@ -1,1 +1,19 @@
-{"name":"@extora/seo","version":"0.0.0","type":"plugin","title":"Extora SEO","extora":{"core":">=1.0.0"},"permissions":[],"entry":{"server":"dist/index.js"}}
+{
+  "name": "@extora/analytics",
+  "version": "0.0.0",
+  "type": "plugin",
+  "title": "Extora Analytics",
+  "description": "Visitor tracking, page views, event analytics, and reporting dashboard",
+  "author": { "name": "Extora Team", "email": "plugins@extora.dev" },
+  "license": "MIT",
+  "keywords": ["analytics", "tracking", "reports", "metrics"],
+  "categories": ["analytics"],
+  "extora": { "core": ">=0.3.0" },
+  "entry": { "server": "./src/index.ts" },
+  "permissions": ["db:read", "db:write"],
+  "dependencies": {},
+  "hooks": {
+    "actions": ["page.viewed", "product.clicked"],
+    "filters": ["analytics.get_stats"]
+  }
+}
