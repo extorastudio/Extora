@@ -198,6 +198,7 @@ document.addEventListener("click", function(e) {
 });
 document.addEventListener("DOMContentLoaded", function() {
   updateCartCount();
+  trackPageView();
   const token = localStorage.getItem("at");
   const accEl = document.getElementById("headerAccount");
   const dropdown = document.getElementById("accountDropdown");
@@ -227,6 +228,33 @@ function subscribeNewsletter() {
   } else {
     if (msg) { msg.textContent = "Enter valid email"; }
   }
+}
+
+// Recently Viewed Products
+function trackPageView() {
+  const isProduct = window.location.pathname.includes("product-");
+  if (!isProduct) return;
+  const nameEl = document.querySelector(".pdetail h1, .product-detail h1");
+  if (!nameEl) return;
+  const name = nameEl.textContent.trim();
+  let viewed = [];
+  try { viewed = JSON.parse(localStorage.getItem("extora_viewed") || "[]"); } catch { viewed = []; }
+  viewed = viewed.filter((v: any) => v.name !== name);
+  viewed.unshift({ name, url: window.location.pathname, time: Date.now() });
+  if (viewed.length > 8) viewed.pop();
+  localStorage.setItem("extora_viewed", JSON.stringify(viewed));
+  showRecentlyViewed(viewed);
+}
+function showRecentlyViewed(viewed: any[]) {
+  if (viewed.length < 2) return;
+  const container = document.createElement("div");
+  container.className = "section-header";
+  container.innerHTML = '<h2>Recently Viewed</h2>';
+  const grid = document.createElement("div");
+  grid.className = "products-grid";
+  grid.innerHTML = viewed.slice(1, 5).map((v: any) => '<div class="product-card"><a href="' + v.url + '" style="text-decoration:none;color:inherit;display:flex;flex-direction:column;padding:16px;height:100%"><span class="pname">' + v.name + '</span><span class="stock-ok">View Again</span></a></div>').join("");
+  const pdetail = document.querySelector(".pdetail");
+  if (pdetail) { pdetail.parentElement?.appendChild(container); pdetail.parentElement?.appendChild(grid); }
 }
 </script>
 </body></html>`;
