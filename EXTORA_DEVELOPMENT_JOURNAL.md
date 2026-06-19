@@ -2956,3 +2956,17 @@ all CI green (717+ tests, 195+ commits, 361+ files).
 - Styled with Amazon-like orange button (#febd69)
 
 **717+ tests pass. 197+ commits. 363+ files.**
+
+
+### Phase 124: Published Site Checkout → API Sync
+**Date:** June 19, 2026 | **Commit:** `(pending)`
+**Duration:** ~15 minutes
+
+**Published site checkout now syncs with real API when logged in:**
+- Syncs localStorage cart items to /api/v1/commerce/cart/add for each item
+- Calls /api/v1/commerce/checkout with customer email
+- Gets real orderNumber from API response
+- Falls back to localStorage-only if not logged in or API fails
+- Orders page shows real order history from API
+
+**717+ tests pass. 198+ commits. 364+ files.**

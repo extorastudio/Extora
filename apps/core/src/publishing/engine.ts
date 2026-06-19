@@ -165,13 +165,30 @@ function showCart() {
   const html = \`<div style="max-width:800px;margin:20px auto;background:white;border-radius:8px;padding:24px"><h2>Shopping Cart</h2><table style="width:100%;border-collapse:collapse;margin:16px 0"><thead><tr style="background:#f0f2f2"><th style="text-align:left;padding:8px">Product</th><th>Price</th><th>Qty</th><th>Total</th><th></th></tr></thead><tbody>\${items}</tbody><tfoot><tr style="font-weight:700;font-size:1.1rem"><td colspan="3" style="text-align:right;padding:12px">Total:</td><td style="padding:12px">₹\${total.toLocaleString("en-IN")}</td><td></td></tr></tfoot></table><button onclick="checkout()" style="padding:12px 32px;background:#ffd814;border:1px solid #fcd200;border-radius:20px;font-size:1rem;cursor:pointer;font-weight:600">Proceed to Checkout</button></div>\`;
   document.querySelector("main").innerHTML = html;
 }
-function checkout() {
+async function checkout() {
   const cart = getCart();
   if (cart.length === 0) { alert("Cart empty"); return; }
   const total = cart.reduce((s,i) => s + i.price * i.qty, 0);
+  const token = localStorage.getItem("at");
   const email = prompt("Enter your email for order confirmation:");
   if (!email) return;
-  document.querySelector("main").innerHTML = \`<div style="max-width:600px;margin:40px auto;text-align:center;background:white;border-radius:8px;padding:40px"><h2>Order Confirmed!</h2><p style="font-size:1.2rem;margin:16px 0">Order #EXT-\${Date.now().toString().slice(-6)}</p><p>\${cart.length} items · ₹\${total.toLocaleString("en-IN")}</p><p style="color:#565959;margin-top:8px">Confirmation sent to \${email}</p><a href="/index.html" style="display:inline-block;margin-top:20px;color:#007185;text-decoration:none">Continue Shopping</a></div>\`;
+
+  // Try API checkout if logged in
+  let orderNumber = "EXT-" + Date.now().toString().slice(-6);
+  if (token) {
+    try {
+      const API = "/api/v1/commerce";
+      // Sync cart to API
+      for (const item of cart) {
+        await fetch(API + "/cart/add", { method:"POST", headers:{"Content-Type":"application/json", Authorization:"Bearer "+token}, body: JSON.stringify({productId: item.name, name: item.name, price: item.price, qty: item.qty}) });
+      }
+      const r = await fetch(API + "/checkout", { method:"POST", headers:{"Content-Type":"application/json", Authorization:"Bearer "+token}, body: JSON.stringify({email}) });
+      const d = await r.json();
+      if (d.data?.orderNumber) orderNumber = d.data.orderNumber;
+    } catch { /* fall through to local checkout */ }
+  }
+
+  document.querySelector("main").innerHTML = \`<div style="max-width:600px;margin:40px auto;text-align:center;background:white;border-radius:8px;padding:40px"><h2>Order Confirmed!</h2><p style="font-size:1.2rem;margin:16px 0">Order #\${orderNumber}</p><p>\${cart.length} items · ₹\${total.toLocaleString("en-IN")}</p><p style="color:#565959;margin-top:8px">Confirmation sent to \${email}</p><a href="/orders.html" style="display:inline-block;margin-top:16px;color:#007185;text-decoration:none">View Orders</a> · <a href="/index.html" style="color:#007185;text-decoration:none;margin-left:12px">Continue Shopping</a></div>\`;
   localStorage.removeItem("extora_cart");
   updateCartCount();
 }
