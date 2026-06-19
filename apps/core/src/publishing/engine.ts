@@ -157,12 +157,12 @@ function addToCart(el) {
   if (token) fetch("/api/v1/commerce/cart/add", { method:"POST", headers:{"Content-Type":"application/json", Authorization:"Bearer "+token}, body: JSON.stringify({productId: name, name, price, qty: 1}) }).catch(() => {});
   return false;
 }
-function removeFromCart(name) { saveCart(getCart().filter(i => i.name !== name)); location.reload(); }
+function removeFromCart(idx) { const c = getCart(); c.splice(idx,1); saveCart(c); showCart(); }
 function showCart() {
   const cart = getCart();
   if (cart.length === 0) { alert("Your cart is empty"); return; }
   const total = cart.reduce((s,i) => s + i.price * i.qty, 0);
-  const items = cart.map(i => \`<tr><td>\${i.name}</td><td>₹\${i.price.toLocaleString("en-IN")}</td><td>\${i.qty}</td><td>₹\${(i.price*i.qty).toLocaleString("en-IN")}</td><td><button onclick="removeFromCart('\${i.name.replace(/'/g,\\"\\\\'")}')" style="background:#cc0c39;color:white;border:none;padding:4px 8px;border-radius:4px;cursor:pointer">Remove</button></td></tr>\`).join("");
+  const items = cart.map((i, idx) => \`<tr><td>\${i.name}</td><td>₹\${i.price.toLocaleString("en-IN")}</td><td>\${i.qty}</td><td>₹\${(i.price*i.qty).toLocaleString("en-IN")}</td><td><button onclick="removeFromCart(\${idx})" style="background:#cc0c39;color:white;border:none;padding:4px 8px;border-radius:4px;cursor:pointer">Remove</button></td></tr>\`).join("");
   const html = \`<div style="max-width:800px;margin:20px auto;background:white;border-radius:8px;padding:24px"><h2>Shopping Cart</h2><table style="width:100%;border-collapse:collapse;margin:16px 0"><thead><tr style="background:#f0f2f2"><th style="text-align:left;padding:8px">Product</th><th>Price</th><th>Qty</th><th>Total</th><th></th></tr></thead><tbody>\${items}</tbody><tfoot><tr style="font-weight:700;font-size:1.1rem"><td colspan="3" style="text-align:right;padding:12px">Total:</td><td style="padding:12px">₹\${total.toLocaleString("en-IN")}</td><td></td></tr></tfoot></table><button onclick="checkout()" style="padding:12px 32px;background:#ffd814;border:1px solid #fcd200;border-radius:20px;font-size:1rem;cursor:pointer;font-weight:600">Proceed to Checkout</button></div>\`;
   document.querySelector("main").innerHTML = html;
 }
@@ -240,20 +240,20 @@ function trackPageView() {
   const name = nameEl.textContent.trim();
   let viewed = [];
   try { viewed = JSON.parse(localStorage.getItem("extora_viewed") || "[]"); } catch { viewed = []; }
-  viewed = viewed.filter((v: any) => v.name !== name);
+  viewed = viewed.filter((v) => v.name !== name);
   viewed.unshift({ name, url: window.location.pathname, time: Date.now() });
   if (viewed.length > 8) viewed.pop();
   localStorage.setItem("extora_viewed", JSON.stringify(viewed));
   showRecentlyViewed(viewed);
 }
-function showRecentlyViewed(viewed: any[]) {
+function showRecentlyViewed(viewed) {
   if (viewed.length < 2) return;
   const container = document.createElement("div");
   container.className = "section-header";
   container.innerHTML = '<h2>Recently Viewed</h2>';
   const grid = document.createElement("div");
   grid.className = "products-grid";
-  grid.innerHTML = viewed.slice(1, 5).map((v: any) => '<div class="product-card"><a href="' + v.url + '" style="text-decoration:none;color:inherit;display:flex;flex-direction:column;padding:16px;height:100%"><span class="pname">' + v.name + '</span><span class="stock-ok">View Again</span></a></div>').join("");
+  grid.innerHTML = viewed.slice(1, 5).map((v) => '<div class="product-card"><a href="' + v.url + '" style="text-decoration:none;color:inherit;display:flex;flex-direction:column;padding:16px;height:100%"><span class="pname">' + v.name + '</span><span class="stock-ok">View Again</span></a></div>').join("");
   const pdetail = document.querySelector(".pdetail");
   if (pdetail) { pdetail.parentElement?.appendChild(container); pdetail.parentElement?.appendChild(grid); }
 }
