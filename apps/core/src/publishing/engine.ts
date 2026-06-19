@@ -279,7 +279,7 @@ ${rating > 0 ? `<span class="stars">${stars(rating)}</span>` : ""}
 <div class="pr"><span class="p">${rupee(price)}</span>${mrp && mrp > price ? `<span class="mrp">${rupee(mrp)}</span>` : ""}</div>
 ${discount > 0 ? `<span class="badge">-${discount}%</span>` : ""}
 ${p.dealType ? `<span class="badge" style="background:#c45500">${e(p.dealLabel ?? p.dealType)}</span>` : ""}
-<span class="stock-ok">In Stock</span>
+<span class="stock-ok" style="display:flex;align-items:center">In Stock<button class="btn-cart" style="margin-left:auto;padding:6px 12px;background:#ffd814;border:1px solid #fcd200;border-radius:16px;font-size:.75rem;font-weight:600;cursor:pointer;color:#0f1111" onclick="event.preventDefault()">Add to Cart</button></span>
 </a>
 </div>`;
 }
