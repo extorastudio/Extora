@@ -111,7 +111,7 @@ footer .bt{grid-column:1/-1;text-align:center;color:#999;font-size:.75rem;paddin
 <header><div class="top-nav"><div class="inner">
 <a href="/index.html" class="logo">extora<span style="color:white">.in</span></a>
 <div class="search"><input placeholder="Search..."><button>Go</button></div>
-<div class="nav-r"><a href="#">Account</a><a href="#">Orders</a><a href="#" style="font-weight:700">Cart</a></div>
+<div class="nav-r"><a href="#">Account</a><a href="#">Orders</a><a href="#" style="font-weight:700" onclick="showCart();return false">Cart <span id="cartCount"></span></a></div>
 </div></div>
 <nav class="sub-nav"><div class="inner">
 <a href="/index.html">All</a><a href="/products.html">Best Sellers</a><a href="/deals.html">Today's Deals</a><a href="/about.html">About</a></div></nav>
@@ -124,6 +124,47 @@ footer .bt{grid-column:1/-1;text-align:center;color:#999;font-size:.75rem;paddin
 <div><h4>Help</h4><a href="#">Customer Service</a><a href="#">Returns</a></div>
 <div class="bt">&copy; 2026 ${e(site.name)}. Published with Extora.</div>
 </div></footer>
+<script>
+function getCart() { try { return JSON.parse(localStorage.getItem("extora_cart") || "[]"); } catch { return []; } }
+function saveCart(c) { localStorage.setItem("extora_cart", JSON.stringify(c)); updateCartCount(); }
+function updateCartCount() { const c = getCart(); const count = c.reduce((s,i) => s + i.qty, 0); const el = document.getElementById("cartCount"); if (el) el.textContent = count || ""; }
+function addToCart(el) {
+  const card = el.closest(".product-card") || el.closest(".pdetail");
+  if (!card) return;
+  const nameEl = card.querySelector(".pname, h1"); const priceEl = card.querySelector(".price, .p");
+  const name = nameEl ? nameEl.textContent.trim() : "Product";
+  const priceText = priceEl ? priceEl.textContent.replace(/[₹$,]/g,"") : "0";
+  const price = parseFloat(priceText) || 0;
+  const cart = getCart(); const existing = cart.find(i => i.name === name);
+  if (existing) existing.qty++; else cart.push({ name, price, qty: 1 });
+  saveCart(cart); el.textContent = "Added!"; el.style.background = "#007600"; el.style.color = "white";
+  setTimeout(() => { el.textContent = "Add to Cart"; el.style.background = ""; el.style.color = ""; }, 1500);
+}
+function removeFromCart(name) { saveCart(getCart().filter(i => i.name !== name)); location.reload(); }
+function showCart() {
+  const cart = getCart();
+  if (cart.length === 0) { alert("Your cart is empty"); return; }
+  const total = cart.reduce((s,i) => s + i.price * i.qty, 0);
+  const items = cart.map(i => \`<tr><td>\${i.name}</td><td>₹\${i.price.toLocaleString("en-IN")}</td><td>\${i.qty}</td><td>₹\${(i.price*i.qty).toLocaleString("en-IN")}</td><td><button onclick="removeFromCart('\${i.name.replace(/'/g,\\"\\\\'")}')" style="background:#cc0c39;color:white;border:none;padding:4px 8px;border-radius:4px;cursor:pointer">Remove</button></td></tr>\`).join("");
+  const html = \`<div style="max-width:800px;margin:20px auto;background:white;border-radius:8px;padding:24px"><h2>Shopping Cart</h2><table style="width:100%;border-collapse:collapse;margin:16px 0"><thead><tr style="background:#f0f2f2"><th style="text-align:left;padding:8px">Product</th><th>Price</th><th>Qty</th><th>Total</th><th></th></tr></thead><tbody>\${items}</tbody><tfoot><tr style="font-weight:700;font-size:1.1rem"><td colspan="3" style="text-align:right;padding:12px">Total:</td><td style="padding:12px">₹\${total.toLocaleString("en-IN")}</td><td></td></tr></tfoot></table><button onclick="checkout()" style="padding:12px 32px;background:#ffd814;border:1px solid #fcd200;border-radius:20px;font-size:1rem;cursor:pointer;font-weight:600">Proceed to Checkout</button></div>\`;
+  document.querySelector("main").innerHTML = html;
+}
+function checkout() {
+  const cart = getCart();
+  if (cart.length === 0) { alert("Cart empty"); return; }
+  const total = cart.reduce((s,i) => s + i.price * i.qty, 0);
+  const email = prompt("Enter your email for order confirmation:");
+  if (!email) return;
+  document.querySelector("main").innerHTML = \`<div style="max-width:600px;margin:40px auto;text-align:center;background:white;border-radius:8px;padding:40px"><h2>Order Confirmed!</h2><p style="font-size:1.2rem;margin:16px 0">Order #EXT-\${Date.now().toString().slice(-6)}</p><p>\${cart.length} items · ₹\${total.toLocaleString("en-IN")}</p><p style="color:#565959;margin-top:8px">Confirmation sent to \${email}</p><a href="/index.html" style="display:inline-block;margin-top:20px;color:#007185;text-decoration:none">Continue Shopping</a></div>\`;
+  localStorage.removeItem("extora_cart");
+  updateCartCount();
+}
+document.addEventListener("click", function(e) {
+  const btn = e.target.closest(".btn-cart, .add-cart");
+  if (btn) { e.preventDefault(); addToCart(btn); }
+});
+document.addEventListener("DOMContentLoaded", updateCartCount);
+</script>
 </body></html>`;
 }
 

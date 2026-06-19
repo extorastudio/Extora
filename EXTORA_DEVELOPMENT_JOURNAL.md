@@ -2754,3 +2754,19 @@ Products page reads URL hash on mount to set correct sub-tab
 **Tested:** Add to cart (₹2,499), checkout creates order EXT-036427, cart clears.
 
 **717+ tests pass. 189+ commits. 355+ files.**
+
+
+### Phase 115: Working Cart on Published Site (localStorage + JS)
+**Date:** June 19, 2026 | **Commit:** `(pending)`
+**Duration:** ~20 minutes
+
+**Add to Cart buttons now functional on published Amazon-style pages:**
+- Click "Add to Cart" → stored in localStorage, badge shows "Added!" feedback
+- Cart count updates in header (live counter)
+- Click "Cart" in header → modal shows all items with prices, quantities
+- Remove individual items from cart
+- "Proceed to Checkout" → collects email, shows order confirmation
+- Clear cart after successful checkout
+- All functionality via embedded JavaScript (no page reload needed)
+
+**717+ tests pass. 190+ commits. 356+ files.**
