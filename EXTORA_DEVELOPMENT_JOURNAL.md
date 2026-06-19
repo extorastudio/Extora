@@ -3499,3 +3499,28 @@ This caused ALL buttons (cart, search, login, reviews, newsletter) to silently f
 **Docker deploy:** 26 pages, 1549 KB, 7 containers healthy
 
 **CI all green:** Lint 16/16, Typecheck 20/20, Test 34/34
+
+
+### Phase 151: Brand Pages + Low Stock Urgency + Cart Cross-sell
+**Date:** June 19, 2026 | **Commit:** (upcoming)
+**Duration:** ~20 minutes
+
+**Brand Pages:**
+- Auto-generated page for each unique brand (e.g., /brand-keycraft.html)
+- Same layout as category pages with sort dropdown + product grid
+- Products filtered client-side by brand name
+- 8 brand pages auto-discovered from published products
+
+**Low Stock Urgency:**
+- "Only X left — order soon" for stockQty 1-3 (extra urgency text)
+- "Only X left" for stockQty 4-5
+- Applied to product cards + product detail pages
+
+**Cart Cross-sell:**
+- "Customers Also Bought" product grid below cart items
+- 4 product recommendations from global ALL_PRODUCTS data
+- Appears in cart modal when products are in cart
+
+**Docker deploy:** 34 pages, 2022 KB, 7 containers healthy
+
+**CI all green:** Lint 16/16, Typecheck 20/20, Test 34/34

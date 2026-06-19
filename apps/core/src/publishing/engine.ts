@@ -279,7 +279,7 @@ function showCart() {
   }
   const total = cart.reduce((s,i) => s + i.price * i.qty, 0);
   const items = cart.map((i, idx) => \`<tr><td>\${i.name}</td><td>₹\${i.price.toLocaleString("en-IN")}</td><td>\${i.qty}</td><td>₹\${(i.price*i.qty).toLocaleString("en-IN")}</td><td><button onclick="removeFromCart(\${idx})" style="background:#cc0c39;color:white;border:none;padding:4px 8px;border-radius:4px;cursor:pointer">Remove</button></td></tr>\`).join("");
-  const html = \`<div style="max-width:800px;margin:20px auto;background:white;border-radius:8px;padding:24px"><h2>Shopping Cart</h2><table style="width:100%;border-collapse:collapse;margin:16px 0"><thead><tr style="background:#f0f2f2"><th style="text-align:left;padding:8px">Product</th><th>Price</th><th>Qty</th><th>Total</th><th></th></tr></thead><tbody>\${items}</tbody><tfoot><tr style="font-weight:700;font-size:1.1rem"><td colspan="3" style="text-align:right;padding:12px">Total:</td><td style="padding:12px">₹\${total.toLocaleString("en-IN")}</td><td></td></tr></tfoot></table><button onclick="checkout()" style="padding:12px 32px;background:#ffd814;border:1px solid #fcd200;border-radius:20px;font-size:1rem;cursor:pointer;font-weight:600">Proceed to Checkout</button></div>\`;
+  const html = \`<div style="max-width:800px;margin:20px auto;background:white;border-radius:8px;padding:24px"><h2>Shopping Cart</h2><table style="width:100%;border-collapse:collapse;margin:16px 0"><thead><tr style="background:#f0f2f2"><th style="text-align:left;padding:8px">Product</th><th>Price</th><th>Qty</th><th>Total</th><th></th></tr></thead><tbody>\${items}</tbody><tfoot><tr style="font-weight:700;font-size:1.1rem"><td colspan="3" style="text-align:right;padding:12px">Total:</td><td style="padding:12px">₹\${total.toLocaleString("en-IN")}</td><td></td></tr></tfoot></table><button onclick="checkout()" style="padding:12px 32px;background:#ffd814;border:1px solid #fcd200;border-radius:20px;font-size:1rem;cursor:pointer;font-weight:600">Proceed to Checkout</button>\${typeof ALL_PRODUCTS !== "undefined" ? \`<div class="section-header" style="margin-top:24px;padding-left:0"><h2>Customers Also Bought</h2></div><div class="products-grid">\${ALL_PRODUCTS.slice(0,4).map(function(p){return \`<div class="product-card"><a href="/product-\${p.slug}.html" style="text-decoration:none;color:inherit;display:flex;flex-direction:column;padding:16px;height:100%"><span class="pname">\${p.name}</span><span class="stock-ok">₹\${p.price.toLocaleString("en-IN")}</span></a></div>\`;}).join("")}</div>\` : ""}</div>\`;
   document.querySelector("main").innerHTML = html;
 }
 async function checkout() {
@@ -704,6 +704,7 @@ function productCard(p: any): string {
   const stockStatus = String(p.stockStatus ?? "instock");
   let stockHtml = '<span class="stock-ok">In Stock</span>';
   if (stockStatus === "outofstock" || stockQty <= 0) stockHtml = '<span class="stock-no">Out of Stock</span>';
+  else if (stockQty <= 3) stockHtml = `<span class="stock-low">Only ${stockQty} left — order soon</span>`;
   else if (stockStatus === "low" || stockQty <= 5) stockHtml = `<span class="stock-low">Only ${stockQty} left</span>`;
   return `<div class="product-card">
 <a href="/product-${e(p.slug)}.html">
@@ -802,7 +803,7 @@ ${mrp && mrp > price ? `<div class="mrp-row">M.R.P: <span class="mrp">${rupee(mr
 ${p.emiAvailable ? `<div class="emi">EMI starts at <span class="price">${rupee(emiPrice)}</span>. No Cost EMI available</div>` : ""}
 <div class="offers"><h4>Offers</h4><ul>${offers.map((o: string) => `<li>${e(o)}</li>`).join("")}</ul></div>
 <div class="features"><h4>Highlights</h4><ul>${highlights.map((h: string) => `<li>${e(h)}</li>`).join("")}</ul></div>
-${p.stockStatus === "outofstock" || Number(p.stockQty ?? 10) <= 0 ? `<div class="stock-no" style="font-size:1.1rem;font-weight:600">Currently Unavailable</div>` : Number(p.stockQty ?? 10) <= 5 ? `<div class="stock-low" style="font-size:1rem;font-weight:600">Only ${p.stockQty} left in stock</div>` : `<div class="stock">In Stock</div>`}
+${p.stockStatus === "outofstock" || Number(p.stockQty ?? 10) <= 0 ? `<div class="stock-no" style="font-size:1.1rem;font-weight:600">Currently Unavailable</div>` : Number(p.stockQty ?? 10) <= 3 ? `<div class="stock-low" style="font-size:1rem;font-weight:600">Only ${p.stockQty} left in stock — order soon</div>` : Number(p.stockQty ?? 10) <= 5 ? `<div class="stock-low" style="font-size:1rem;font-weight:600">Only ${p.stockQty} left in stock</div>` : `<div class="stock">In Stock</div>`}
 <div class="delivery">FREE delivery <strong>${e(p.deliveryDate ?? "Tomorrow")}</strong>. <a href="#" style="color:#007185">Details</a></div>
 <div class="delivery">Delivered by <strong>${e(p.deliveryInfo ?? "Amazon")}</strong></div>
 ${p.codAvailable ? `<div class="cod">Cash on Delivery available</div>` : ""}
@@ -966,6 +967,58 @@ function sortCategory() {
   updateVisibleHearts(); updateCompareChecks();
 }
 sortCategory();
+</script>` });
+  }
+  // ── BRAND PAGES ──
+  const brands = [...new Set(products.map((p: any) => String(p.brand ?? "")).filter(Boolean))] as string[];
+  for (const brandName of brands) {
+    const bSlug = brandName.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');
+    pages.push({ slug: `brand-${bSlug}`, title: brandName, description: `Shop ${brandName} products`,
+      content: `<div class="page-content">
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px">
+<h1 style="margin:0">${e(brandName)}</h1>
+<div style="display:flex;align-items:center;gap:8px">
+<span style="color:#565959;font-size:.85rem" id="resultCount"></span>
+<select id="sortSelect" onchange="sortBrand()" style="padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:.85rem;background:white;cursor:pointer">
+<option value="default">Sort by: Featured</option>
+<option value="priceAsc">Price: Low to High</option>
+<option value="priceDesc">Price: High to Low</option>
+<option value="rating">Rating: High to Low</option>
+<option value="newest">Newest First</option>
+<option value="discount">Biggest Discount</option>
+</select>
+</div>
+</div>
+<div id="productsGrid" class="products-grid"><div class="skeleton-card"><div class="skeleton sk-img"></div><div class="skeleton sk-line"></div><div class="skeleton sk-line short"></div><div class="skeleton sk-line price"></div><div class="skeleton sk-btn"></div></div><div class="skeleton-card"><div class="skeleton sk-img"></div><div class="skeleton sk-line"></div><div class="skeleton sk-line short"></div><div class="skeleton sk-line price"></div><div class="skeleton sk-btn"></div></div><div class="skeleton-card"><div class="skeleton sk-img"></div><div class="skeleton sk-line"></div><div class="skeleton sk-line short"></div><div class="skeleton sk-line price"></div><div class="skeleton sk-btn"></div></div><div class="skeleton-card"><div class="skeleton sk-img"></div><div class="skeleton sk-line"></div><div class="skeleton sk-line short"></div><div class="skeleton sk-line price"></div><div class="skeleton sk-btn"></div></div><div class="skeleton-card"><div class="skeleton sk-img"></div><div class="skeleton sk-line"></div><div class="skeleton sk-line short"></div><div class="skeleton sk-line price"></div><div class="skeleton sk-btn"></div></div><div class="skeleton-card"><div class="skeleton sk-img"></div><div class="skeleton sk-line"></div><div class="skeleton sk-line short"></div><div class="skeleton sk-line price"></div><div class="skeleton sk-btn"></div></div><div class="skeleton-card"><div class="skeleton sk-img"></div><div class="skeleton sk-line"></div><div class="skeleton sk-line short"></div><div class="skeleton sk-line price"></div><div class="skeleton sk-btn"></div></div><div class="skeleton-card"><div class="skeleton sk-img"></div><div class="skeleton sk-line"></div><div class="skeleton sk-line short"></div><div class="skeleton sk-line price"></div><div class="skeleton sk-btn"></div></div></div>
+</div>
+<script>
+var PRODUCTS = ${productJson2};
+var BRAND = "${brandName}";
+function sortBrand() {
+  var sort = document.getElementById("sortSelect").value;
+  var list = PRODUCTS.filter(function(p){return p.brand === BRAND});
+  if (sort === "priceAsc") list.sort(function(a,b){return a.price - b.price});
+  else if (sort === "priceDesc") list.sort(function(a,b){return b.price - a.price});
+  else if (sort === "rating") list.sort(function(a,b){return (b.rating||0) - (a.rating||0)});
+  else if (sort === "newest") list.sort(function(a,b){return (b.createdAt||"").localeCompare(a.createdAt||"")});
+  else if (sort === "discount") list.sort(function(a,b){return (b.discountPercent||0) - (a.discountPercent||0)});
+  document.getElementById("resultCount").textContent = list.length + " products";
+  document.getElementById("productsGrid").innerHTML = list.length === 0 ? '<p style="text-align:center;padding:60px;color:#565959;grid-column:1/-1">No products from this brand yet.</p>' : list.map(function(p){
+    var mrp = p.mrp && p.mrp > p.price ? '<span class="mrp" style="font-size:.8rem;color:#565959;text-decoration:line-through">&#' + '8377;' + p.mrp.toLocaleString("en-IN") + '</span>' : '';
+    var discount = p.mrp && p.mrp > p.price ? '<span class="badge">-' + Math.round((1-p.price/p.mrp)*100) + '%</span>' : '';
+    return '<div class="product-card"><a href="/product-'+p.slug+'.html" style="text-decoration:none;color:inherit;display:flex;flex-direction:column;padding:16px;height:100%">' +
+    '<span class="wishlist-btn" data-slug="'+p.slug+'" data-name="'+p.name.replace(/'/g,"&#39;")+'" onclick="toggleWishlist(this);event.preventDefault();event.stopPropagation()">♡</span>' +
+    '<span class="compare-check" onclick="toggleCompare(this);event.preventDefault();event.stopPropagation()" data-slug="'+p.slug+'" data-name="'+p.name.replace(/'/g,"&#39;")+'" data-price="'+p.price+'" data-category="'+p.category+'" data-brand="'+(p.brand||"")+'" data-img="'+p.img+'" data-rating="'+(p.rating||0)+'" data-reviews="'+(p.reviews||0)+'">◻</span>' +
+    (p.img ? '<div class="img-wrap"><img src="'+p.img+'" alt="" loading="lazy"></div>' : '<div class="img-wrap">No Image</div>') +
+    '<span class="pname">'+p.name+'</span>' +
+    (p.rating > 0 ? '<span class="stars">'+"★".repeat(Math.floor(p.rating))+"☆".repeat(5-Math.floor(p.rating))+'</span>' : '') +
+    '<div class="pr"><span class="p">&#' + '8377;' + p.price.toLocaleString("en-IN") + '</span>'+mrp+'</div>'+discount+
+    (p.deal ? '<span class="badge" style="background:#c45500">'+p.deal+'</span>' : '') +
+    ''+(p.stockStatus==='outofstock'||(p.stockQty||10)<=0?'<span class="stock-no">Out of Stock</span><button class="btn-cart" style="margin-left:auto;padding:6px 12px;background:#eee;border:1px solid #ccc;border-radius:16px;font-size:.75rem;cursor:pointer;color:#888" onclick="notifyMe(\''+p.slug+'\',\''+p.name.replace(/'/g,"&#39;")+'\');event.preventDefault();event.stopPropagation()"">Notify Me</button>':(p.stockStatus==='low'||(p.stockQty||10)<=5?'<span class="stock-low">Only '+(p.stockQty||10)+' left</span>':'<span class="stock-ok">In Stock</span>'))+(p.stockStatus==='outofstock'||(p.stockQty||10)<=0?'':'<button class="btn-cart" style="margin-left:auto;padding:6px 12px;background:#ffd814;border:1px solid #fcd200;border-radius:16px;font-size:.75rem;font-weight:600;cursor:pointer;color:#0f1111" data-name="'+p.name.replace(/'/g,"&#39;")+'" data-price="'+p.price+'" onclick="addToCart(this);return false">Add to Cart</button>')+'</span></a></div>';
+  }).join("");
+  updateVisibleHearts(); updateCompareChecks();
+}
+sortBrand();
 </script>` });
   }
   if (deals.length) pages.push({ slug: "deals", title: "Today's Deals", description: "Limited time offers",
