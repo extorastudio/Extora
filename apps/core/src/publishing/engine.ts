@@ -121,6 +121,14 @@ body{font-family:Arial,Helvetica,sans-serif;color:#0f1111;background:#eaeded;lin
 .compare-table .ct-price{font-size:1.1rem;color:#b12704;font-weight:600}
 .back-to-top{position:fixed;bottom:24px;right:24px;width:44px;height:44px;background:#232f3e;color:white;border:none;border-radius:50%;font-size:1.3rem;cursor:pointer;z-index:998;display:none;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.3);transition:opacity .3s}
 .back-to-top:hover{background:#37475a}
+@keyframes shimmer{0%{background-position:-200px 0}100%{background-position:calc(200px + 100%) 0}}
+.skeleton{background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);background-size:200px 100%;animation:shimmer 1.5s ease-in-out infinite;border-radius:4px}
+.skeleton-card{background:white;border:1px solid #f0f0f0;padding:16px;display:flex;flex-direction:column;gap:10px}
+.skeleton-card .sk-img{height:180px}
+.skeleton-card .sk-line{height:14px;width:80%}
+.skeleton-card .sk-line.short{width:50%}
+.skeleton-card .sk-line.price{width:40%;height:18px}
+.skeleton-card .sk-btn{height:28px;width:90px;border-radius:14px;align-self:flex-end}
 .filter-sidebar{background:white;border:1px solid #e7e7e7;border-radius:8px;padding:16px}
 .filter-sidebar h4{font-size:.95rem;margin:0 0 12px;color:#0f1111}
 .filter-sidebar label{display:flex;align-items:center;gap:6px;padding:4px 0;font-size:.85rem;color:#0f1111;cursor:pointer}
@@ -571,7 +579,7 @@ fetch("/api/v1/reviews/${e(p.id)}").then(r => r.json()).then(d => {
     deal: p.dealType ? String(p.dealLabel ?? p.dealType) : null,
     discountPercent: Number(p.discountPercent ?? 0), createdAt: String(p.createdAt ?? ""),
   })));
-
+  const categoriesJson = JSON.stringify(categories.map((c: any) => ({ name: String(c.name ?? ""), slug: String(c.slug ?? "") })));
 
   for (const cat of categories) {
     const catSlug = e(cat.slug); const catName = e(cat.name);
@@ -591,7 +599,7 @@ fetch("/api/v1/reviews/${e(p.id)}").then(r => r.json()).then(d => {
 </select>
 </div>
 </div>
-<div id="productsGrid" class="products-grid"></div>
+<div id="productsGrid" class="products-grid"><div class="skeleton-card"><div class="skeleton sk-img"></div><div class="skeleton sk-line"></div><div class="skeleton sk-line short"></div><div class="skeleton sk-line price"></div><div class="skeleton sk-btn"></div></div><div class="skeleton-card"><div class="skeleton sk-img"></div><div class="skeleton sk-line"></div><div class="skeleton sk-line short"></div><div class="skeleton sk-line price"></div><div class="skeleton sk-btn"></div></div><div class="skeleton-card"><div class="skeleton sk-img"></div><div class="skeleton sk-line"></div><div class="skeleton sk-line short"></div><div class="skeleton sk-line price"></div><div class="skeleton sk-btn"></div></div><div class="skeleton-card"><div class="skeleton sk-img"></div><div class="skeleton sk-line"></div><div class="skeleton sk-line short"></div><div class="skeleton sk-line price"></div><div class="skeleton sk-btn"></div></div><div class="skeleton-card"><div class="skeleton sk-img"></div><div class="skeleton sk-line"></div><div class="skeleton sk-line short"></div><div class="skeleton sk-line price"></div><div class="skeleton sk-btn"></div></div><div class="skeleton-card"><div class="skeleton sk-img"></div><div class="skeleton sk-line"></div><div class="skeleton sk-line short"></div><div class="skeleton sk-line price"></div><div class="skeleton sk-btn"></div></div><div class="skeleton-card"><div class="skeleton sk-img"></div><div class="skeleton sk-line"></div><div class="skeleton sk-line short"></div><div class="skeleton sk-line price"></div><div class="skeleton sk-btn"></div></div><div class="skeleton-card"><div class="skeleton sk-img"></div><div class="skeleton sk-line"></div><div class="skeleton sk-line short"></div><div class="skeleton sk-line price"></div><div class="skeleton sk-btn"></div></div></div>
 </div>
 <script>
 var PRODUCTS = ${productJson2};
@@ -637,7 +645,7 @@ sortCategory();
 </select>
 </div>
 </div>
-<div id="productsGrid" class="products-grid"></div>
+<div id="productsGrid" class="products-grid"><div class="skeleton-card"><div class="skeleton sk-img"></div><div class="skeleton sk-line"></div><div class="skeleton sk-line short"></div><div class="skeleton sk-line price"></div><div class="skeleton sk-btn"></div></div><div class="skeleton-card"><div class="skeleton sk-img"></div><div class="skeleton sk-line"></div><div class="skeleton sk-line short"></div><div class="skeleton sk-line price"></div><div class="skeleton sk-btn"></div></div><div class="skeleton-card"><div class="skeleton sk-img"></div><div class="skeleton sk-line"></div><div class="skeleton sk-line short"></div><div class="skeleton sk-line price"></div><div class="skeleton sk-btn"></div></div><div class="skeleton-card"><div class="skeleton sk-img"></div><div class="skeleton sk-line"></div><div class="skeleton sk-line short"></div><div class="skeleton sk-line price"></div><div class="skeleton sk-btn"></div></div><div class="skeleton-card"><div class="skeleton sk-img"></div><div class="skeleton sk-line"></div><div class="skeleton sk-line short"></div><div class="skeleton sk-line price"></div><div class="skeleton sk-btn"></div></div><div class="skeleton-card"><div class="skeleton sk-img"></div><div class="skeleton sk-line"></div><div class="skeleton sk-line short"></div><div class="skeleton sk-line price"></div><div class="skeleton sk-btn"></div></div><div class="skeleton-card"><div class="skeleton sk-img"></div><div class="skeleton sk-line"></div><div class="skeleton sk-line short"></div><div class="skeleton sk-line price"></div><div class="skeleton sk-btn"></div></div><div class="skeleton-card"><div class="skeleton sk-img"></div><div class="skeleton sk-line"></div><div class="skeleton sk-line short"></div><div class="skeleton sk-line price"></div><div class="skeleton sk-btn"></div></div></div>
 </div>
 <script>
 var PRODUCTS = ${productJson2};
@@ -666,8 +674,6 @@ function sortDeals() {
 }
 sortDeals();
 </script>` });
-  const categoriesJson = JSON.stringify(categories.map((c: any) => ({ name: String(c.name ?? ""), slug: String(c.slug ?? "") })));
-
   pages.push({ slug: "products", title: "All Products", description: "Browse all",
     content: `<div class="page-content" style="display:flex;gap:24px;flex-wrap:wrap">
 <div class="filter-sidebar" style="min-width:220px;max-width:280px;flex:1;align-self:start">
@@ -690,7 +696,7 @@ sortDeals();
 </select>
 </div>
 </div>
-<div id="productsGrid" class="products-grid"></div>
+<div id="productsGrid" class="products-grid"><div class="skeleton-card"><div class="skeleton sk-img"></div><div class="skeleton sk-line"></div><div class="skeleton sk-line short"></div><div class="skeleton sk-line price"></div><div class="skeleton sk-btn"></div></div><div class="skeleton-card"><div class="skeleton sk-img"></div><div class="skeleton sk-line"></div><div class="skeleton sk-line short"></div><div class="skeleton sk-line price"></div><div class="skeleton sk-btn"></div></div><div class="skeleton-card"><div class="skeleton sk-img"></div><div class="skeleton sk-line"></div><div class="skeleton sk-line short"></div><div class="skeleton sk-line price"></div><div class="skeleton sk-btn"></div></div><div class="skeleton-card"><div class="skeleton sk-img"></div><div class="skeleton sk-line"></div><div class="skeleton sk-line short"></div><div class="skeleton sk-line price"></div><div class="skeleton sk-btn"></div></div><div class="skeleton-card"><div class="skeleton sk-img"></div><div class="skeleton sk-line"></div><div class="skeleton sk-line short"></div><div class="skeleton sk-line price"></div><div class="skeleton sk-btn"></div></div><div class="skeleton-card"><div class="skeleton sk-img"></div><div class="skeleton sk-line"></div><div class="skeleton sk-line short"></div><div class="skeleton sk-line price"></div><div class="skeleton sk-btn"></div></div><div class="skeleton-card"><div class="skeleton sk-img"></div><div class="skeleton sk-line"></div><div class="skeleton sk-line short"></div><div class="skeleton sk-line price"></div><div class="skeleton sk-btn"></div></div><div class="skeleton-card"><div class="skeleton sk-img"></div><div class="skeleton sk-line"></div><div class="skeleton sk-line short"></div><div class="skeleton sk-line price"></div><div class="skeleton sk-btn"></div></div></div>
 </div>
 </div>
 <script>
@@ -822,7 +828,7 @@ function renderContentBody(body: string): string {
 <input type="text" id="searchInput" placeholder="Search by name, category, brand..." style="flex:1;padding:12px 16px;border:1px solid #ddd;border-radius:8px;font-size:1rem;outline:none" onkeyup="doSearch()" />
 <button onclick="doSearch()" style="padding:12px 24px;background:#ffd814;border:1px solid #fcd200;border-radius:8px;font-weight:600;cursor:pointer;white-space:nowrap">Search</button>
 </div>
-<div id="searchResults" class="products-grid"></div>
+<div id="searchResults" class="products-grid"><div class="skeleton-card"><div class="skeleton sk-img"></div><div class="skeleton sk-line"></div><div class="skeleton sk-line short"></div><div class="skeleton sk-line price"></div><div class="skeleton sk-btn"></div></div><div class="skeleton-card"><div class="skeleton sk-img"></div><div class="skeleton sk-line"></div><div class="skeleton sk-line short"></div><div class="skeleton sk-line price"></div><div class="skeleton sk-btn"></div></div><div class="skeleton-card"><div class="skeleton sk-img"></div><div class="skeleton sk-line"></div><div class="skeleton sk-line short"></div><div class="skeleton sk-line price"></div><div class="skeleton sk-btn"></div></div><div class="skeleton-card"><div class="skeleton sk-img"></div><div class="skeleton sk-line"></div><div class="skeleton sk-line short"></div><div class="skeleton sk-line price"></div><div class="skeleton sk-btn"></div></div><div class="skeleton-card"><div class="skeleton sk-img"></div><div class="skeleton sk-line"></div><div class="skeleton sk-line short"></div><div class="skeleton sk-line price"></div><div class="skeleton sk-btn"></div></div><div class="skeleton-card"><div class="skeleton sk-img"></div><div class="skeleton sk-line"></div><div class="skeleton sk-line short"></div><div class="skeleton sk-line price"></div><div class="skeleton sk-btn"></div></div><div class="skeleton-card"><div class="skeleton sk-img"></div><div class="skeleton sk-line"></div><div class="skeleton sk-line short"></div><div class="skeleton sk-line price"></div><div class="skeleton sk-btn"></div></div><div class="skeleton-card"><div class="skeleton sk-img"></div><div class="skeleton sk-line"></div><div class="skeleton sk-line short"></div><div class="skeleton sk-line price"></div><div class="skeleton sk-btn"></div></div></div>
 <p id="noResults" style="display:none;text-align:center;padding:40px;color:#565959">No products found. Try a different search term.</p>
 </div>
 <script>

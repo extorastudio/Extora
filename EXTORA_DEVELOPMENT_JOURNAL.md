@@ -3254,3 +3254,23 @@ This caused ALL buttons (cart, search, login, reviews, newsletter) to silently f
 **Docker deploy:** 25 pages, 876 KB, 7 containers healthy
 
 **CI all green:** Lint 16/16, Typecheck 20/20, Test 34/34
+
+
+### Phase 141: Skeleton Loading States
+**Date:** June 19, 2026 | **Commit:** (upcoming)
+**Duration:** ~20 minutes
+
+**Skeleton loading placeholders on all listing pages:**
+- Products page, category pages, deals page, search page
+- 8 skeleton cards with shimmer animation: gray blocks for image, name, price, button
+- Shimmer keyframes: `linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%)` with `background-size:200px 100%`
+- Skeletons replaced by JS `innerHTML` when sorting/filtering completes
+
+**CSS classes added:**
+- `.skeleton` — shimmer animated placeholder line
+- `.skeleton-card` — card container for skeleton version
+- `.sk-img`, `.sk-line`, `.sk-line.short`, `.sk-line.price`, `.sk-btn` — sized placeholders
+
+**Docker deploy:** 25 pages, 909 KB
+
+**CI all green:** Lint 16/16, Typecheck 20/20, Test 34/34
