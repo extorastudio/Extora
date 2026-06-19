@@ -146,20 +146,20 @@ function saveCart(c) { localStorage.setItem("extora_cart", JSON.stringify(c)); u
 function updateCartCount() { const c = getCart(); const count = c.reduce((s,i) => s + i.qty, 0); const el = document.getElementById("cartCount"); if (el) el.textContent = count || ""; }
 function addToCart(el) {
   const card = el.closest(".product-card") || el.closest(".pdetail");
-  if (!card) return;
+  if (!card) { alert("Cart error: product card not found"); return; }
   const nameEl = card.querySelector(".pname, h1"); const priceEl = card.querySelector(".price, .p");
   const name = nameEl ? nameEl.textContent.trim() : "Product";
   const priceText = priceEl ? priceEl.textContent.replace(/[₹$,]/g,"") : "0";
   const price = parseFloat(priceText) || 0;
   const cart = getCart(); const existing = cart.find(i => i.name === name);
   if (existing) existing.qty++; else cart.push({ name, price, qty: 1 });
-  saveCart(cart); el.textContent = "Added!"; el.style.background = "#007600"; el.style.color = "white";
-  setTimeout(() => { el.textContent = "Add to Cart"; el.style.background = ""; el.style.color = ""; }, 1500);
-  // Sync to API if logged in
+  saveCart(cart); el.textContent = "✓ Added!"; el.style.background = "#007600"; el.style.color = "white"; el.style.borderColor = "#007600";
+  setTimeout(() => { el.textContent = "Add to Cart"; el.style.background = ""; el.style.color = ""; el.style.borderColor = ""; }, 2000);
   const token = localStorage.getItem("at");
   if (token) {
     fetch("/api/v1/commerce/cart/add", { method:"POST", headers:{"Content-Type":"application/json", Authorization:"Bearer "+token}, body: JSON.stringify({productId: name, name, price, qty: 1}) }).catch(() => {});
   }
+  return false;
 }
 function removeFromCart(name) { saveCart(getCart().filter(i => i.name !== name)); location.reload(); }
 function showCart() {
