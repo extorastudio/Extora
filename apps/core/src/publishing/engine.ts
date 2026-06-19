@@ -145,20 +145,16 @@ function getCart() { try { return JSON.parse(localStorage.getItem("extora_cart")
 function saveCart(c) { localStorage.setItem("extora_cart", JSON.stringify(c)); updateCartCount(); }
 function updateCartCount() { const c = getCart(); const count = c.reduce((s,i) => s + i.qty, 0); const el = document.getElementById("cartCount"); if (el) el.textContent = count || ""; }
 function addToCart(el) {
-  const card = el.closest(".product-card") || el.closest(".pdetail");
-  if (!card) { alert("Cart error: product card not found"); return; }
-  const nameEl = card.querySelector(".pname, h1"); const priceEl = card.querySelector(".price, .p");
-  const name = nameEl ? nameEl.textContent.trim() : "Product";
-  const priceText = priceEl ? priceEl.textContent.replace(/[₹$,]/g,"") : "0";
-  const price = parseFloat(priceText) || 0;
-  const cart = getCart(); const existing = cart.find(i => i.name === name);
+  const name = el.getAttribute("data-name") || "Product";
+  const price = parseFloat(el.getAttribute("data-price") || "0");
+  const cart = getCart();
+  const existing = cart.find(i => i.name === name);
   if (existing) existing.qty++; else cart.push({ name, price, qty: 1 });
-  saveCart(cart); el.textContent = "✓ Added!"; el.style.background = "#007600"; el.style.color = "white"; el.style.borderColor = "#007600";
+  saveCart(cart);
+  el.textContent = "✓"; el.style.background = "#007600"; el.style.color = "white"; el.style.borderColor = "#007600";
   setTimeout(() => { el.textContent = "Add to Cart"; el.style.background = ""; el.style.color = ""; el.style.borderColor = ""; }, 2000);
   const token = localStorage.getItem("at");
-  if (token) {
-    fetch("/api/v1/commerce/cart/add", { method:"POST", headers:{"Content-Type":"application/json", Authorization:"Bearer "+token}, body: JSON.stringify({productId: name, name, price, qty: 1}) }).catch(() => {});
-  }
+  if (token) fetch("/api/v1/commerce/cart/add", { method:"POST", headers:{"Content-Type":"application/json", Authorization:"Bearer "+token}, body: JSON.stringify({productId: name, name, price, qty: 1}) }).catch(() => {});
   return false;
 }
 function removeFromCart(name) { saveCart(getCart().filter(i => i.name !== name)); location.reload(); }
@@ -279,7 +275,7 @@ ${rating > 0 ? `<span class="stars">${stars(rating)}</span>` : ""}
 <div class="pr"><span class="p">${rupee(price)}</span>${mrp && mrp > price ? `<span class="mrp">${rupee(mrp)}</span>` : ""}</div>
 ${discount > 0 ? `<span class="badge">-${discount}%</span>` : ""}
 ${p.dealType ? `<span class="badge" style="background:#c45500">${e(p.dealLabel ?? p.dealType)}</span>` : ""}
-<span class="stock-ok" style="display:flex;align-items:center">In Stock<button class="btn-cart" style="margin-left:auto;padding:6px 12px;background:#ffd814;border:1px solid #fcd200;border-radius:16px;font-size:.75rem;font-weight:600;cursor:pointer;color:#0f1111" onclick="addToCart(this);return false">Add to Cart</button></span>
+<span class="stock-ok" style="display:flex;align-items:center">In Stock<button class="btn-cart" style="margin-left:auto;padding:6px 12px;background:#ffd814;border:1px solid #fcd200;border-radius:16px;font-size:.75rem;font-weight:600;cursor:pointer;color:#0f1111" data-name="${e(p.name)}" data-price="${price}" onclick="addToCart(this);return false">Add to Cart</button></span>
 </a>
 </div>`;
 }
@@ -347,7 +343,7 @@ ${p.emiAvailable ? `<div class="emi">EMI starts at <span class="price">${rupee(e
 ${p.codAvailable ? `<div class="cod">Cash on Delivery available</div>` : ""}
 <div class="qty-row">Quantity: <select>${[1,2,3,4,5].map((n) => `<option value="${n}">${n}</option>`).join("")}</select></div>
 <div class="buttons">
-<button class="btn-cart" onclick="addToCart(this);return false">Add to Cart</button>
+<button class="btn-cart" data-name="${e(p.name)}" data-price="${p.price ?? 0}" onclick="addToCart(this);return false">Add to Cart</button>
 <button class="btn-buy">Buy Now</button>
 </div>
 <div class="secure">🔒 Secure transaction</div>
@@ -531,7 +527,7 @@ function doSearch() {
       (p.rating > 0 ? '<span class="stars">' + "★".repeat(Math.floor(p.rating)) + '</span>' : '') +
       '<div class="pr"><span class="p">₹' + p.price.toLocaleString("en-IN") + '</span>' + mrp + '</div>' +
       discount + (p.deal ? '<span class="badge" style="background:#c45500">' + p.deal + '</span>' : '') +
-      '<span class="stock-ok">In Stock</span></a></div>';
+      '<span class="stock-ok" style="display:flex;align-items:center">In Stock<button class="btn-cart" style="margin-left:auto;padding:5px 10px;background:#ffd814;border:1px solid #fcd200;border-radius:12px;font-size:.7rem;font-weight:600;cursor:pointer;color:#0f1111" data-name="' + p.name.replace(/"/g,'&quot;') + '" data-price="' + p.price + '" onclick="addToCart(this);return false">Add</button></span></a></div>';
     }).join("");
   }
 }
