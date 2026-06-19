@@ -3605,3 +3605,43 @@ This caused ALL buttons (cart, search, login, reviews, newsletter) to silently f
 **Docker deploy:** 34 pages, 2023 KB, 7 containers healthy
 
 **CI all green:** Lint 16/16, Typecheck 20/20, Test 34/34
+
+
+### Phase 155: Plugin Install/Uninstall + Dynamic Menus + Amazon-Style Reports
+**Date:** June 19, 2026 | **Commit:** (upcoming)
+**Duration:** ~40 minutes
+
+**Plugin Management (Studio — Plugins.tsx):**
+- Install button with manifest JSON upload (textarea + file picker for extora.json)
+- Uninstall button per plugin (Trash2 icon with confirmation dialog)
+- Discover button to scan local filesystem for new plugins
+- Success/error message banners with dismiss (CheckCircle / AlertCircle + X)
+- Full lifecycle: Install → Activate/Deactivate toggle → Uninstall
+
+**Plugin Store (plugin-store.ts):**
+- Added `installPlugin(manifest)` — POST /plugins/install
+- Added `uninstallPlugin(name)` — DELETE /plugins/:name
+- Added `discoverPlugins()` — POST /plugins/discover
+- Added `successMsg` state + `clearMsg()` action
+
+**Dynamic Admin Menus (DashboardLayout.tsx):**
+- Nav items now built dynamically inside component based on active plugins
+- Analytics nav item only appears when `@extora/product-analytics` is active
+- Plugin store fetched on mount, menu auto-updates on activate/deactivate
+- When plugin deactivated → Analytics menu disappears from sidebar
+- When plugin activated → Analytics menu reappears
+
+**Amazon-Style Multi-Tab Analytics Reports:**
+| Tab | Content |
+|-----|---------|
+| Overview | KPI cards + revenue trend + top products + category breakdown |
+| Sales Report | Date-wise sales table (Orders, Revenue, Avg Order) with Export CSV |
+| Product Performance | Per-SKU metrics (Price, Sold, Revenue, Rating, Reviews) |
+| Inventory Health | Stock breakdown (In Stock, Low, OOS) with progress bars + % of total |
+| Orders | Filterable order history by status (confirmed/processing/shipped/delivered/cancelled) |
+
+**8 plugins now registered** (auth, cms, commerce, forms, seo, recommendations, analytics, product-analytics)
+
+**Docker deploy:** 34 pages, 2023 KB, 7 containers healthy
+
+**CI all green:** Lint 16/16, Typecheck 20/20, Test 34/34

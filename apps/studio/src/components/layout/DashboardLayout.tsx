@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuthStore } from "../../stores/auth-store";
+import { usePluginStore } from "../../stores/plugin-store";
 import apiClient from "../../api/client";
 import {
   LayoutDashboard, Layout, Users, Puzzle, Palette, Settings, Server,
@@ -15,40 +16,6 @@ interface NavItem {
   icon: React.ComponentType<{ className?: string }>;
   children?: NavItem[];
 }
-
-const navItems: NavItem[] = [
-  { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
-  {
-    id: "products", label: "Products", icon: Package,
-    children: [
-      { id: "products", label: "All Products", icon: Package },
-      { id: "categories", label: "Categories", icon: FolderTree },
-      { id: "brands", label: "Brands", icon: Shield },
-      { id: "tags", label: "Tags", icon: Tags },
-      { id: "attributes", label: "Attributes", icon: Grid3X3 },
-      { id: "reviews", label: "Reviews", icon: MessageSquare },
-    ],
-  },
-  { id: "orders", label: "Orders", icon: ShoppingCart },
-  { id: "analytics", label: "Analytics", icon: TrendingUp },
-  { id: "content", label: "Content", icon: FileText },
-  { id: "builder", label: "Builder", icon: Layout,
-    children: [
-      { id: "builder", label: "All Elements", icon: Layout },
-      { id: "builder-layout", label: "Layout", icon: PanelTop },
-      { id: "builder-content", label: "Content", icon: Type },
-      { id: "builder-media", label: "Media", icon: Image },
-      { id: "builder-commerce", label: "Commerce", icon: ShoppingBag },
-    ],
-  },
-  { id: "media", label: "Media", icon: Image },
-  { id: "users", label: "Users", icon: Users },
-  { id: "plugins", label: "Plugins", icon: Puzzle },
-  { id: "themes", label: "Themes", icon: Palette },
-  { id: "themeSettings", label: "Theme Settings", icon: Settings },
-  { id: "services", label: "Services", icon: Server },
-  { id: "config", label: "Configuration", icon: Settings },
-];
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -66,6 +33,46 @@ export default function DashboardLayout({ children, currentPage }: DashboardLayo
   const [publishing, setPublishing] = useState(false);
   const [publishMsg, setPublishMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const { user, logout } = useAuthStore();
+  const { plugins: activePlugins, fetchPlugins } = usePluginStore();
+
+  useEffect(() => { void fetchPlugins(); }, [fetchPlugins]);
+
+  const analyticsActive = activePlugins.some((p) => p.name.includes("product-analytics") && p.isActive);
+
+  // Build nav items dynamically based on active plugins
+  const navItems: NavItem[] = [
+    { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+    {
+      id: "products", label: "Products", icon: Package,
+      children: [
+        { id: "products", label: "All Products", icon: Package },
+        { id: "categories", label: "Categories", icon: FolderTree },
+        { id: "brands", label: "Brands", icon: Shield },
+        { id: "tags", label: "Tags", icon: Tags },
+        { id: "attributes", label: "Attributes", icon: Grid3X3 },
+        { id: "reviews", label: "Reviews", icon: MessageSquare },
+      ],
+    },
+    { id: "orders", label: "Orders", icon: ShoppingCart },
+    ...(analyticsActive ? [{ id: "analytics", label: "Analytics", icon: TrendingUp } as NavItem] : []),
+    { id: "content", label: "Content", icon: FileText },
+    { id: "builder", label: "Builder", icon: Layout,
+      children: [
+        { id: "builder", label: "All Elements", icon: Layout },
+        { id: "builder-layout", label: "Layout", icon: PanelTop },
+        { id: "builder-content", label: "Content", icon: Type },
+        { id: "builder-media", label: "Media", icon: Image },
+        { id: "builder-commerce", label: "Commerce", icon: ShoppingBag },
+      ],
+    },
+    { id: "media", label: "Media", icon: Image },
+    { id: "users", label: "Users", icon: Users },
+    { id: "plugins", label: "Plugins", icon: Puzzle },
+    { id: "themes", label: "Themes", icon: Palette },
+    { id: "themeSettings", label: "Theme Settings", icon: Settings },
+    { id: "services", label: "Services", icon: Server },
+    { id: "config", label: "Configuration", icon: Settings },
+  ];
 
   const toggleExpanded = (id: string) => {
     setExpanded((prev) => {
