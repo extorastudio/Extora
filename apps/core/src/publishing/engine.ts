@@ -702,6 +702,7 @@ function productCard(p: any): string {
   const rating = Number(p.rating ?? 0);
   const stockQty = Number(p.stockQty ?? 10);
   const stockStatus = String(p.stockStatus ?? "instock");
+  const isBestSeller = rating >= 4.5 && (p.reviews ?? 0) >= 100;
   let stockHtml = '<span class="stock-ok">In Stock</span>';
   if (stockStatus === "outofstock" || stockQty <= 0) stockHtml = '<span class="stock-no">Out of Stock</span>';
   else if (stockQty <= 3) stockHtml = `<span class="stock-low">Only ${stockQty} left — order soon</span>`;
@@ -716,6 +717,7 @@ ${rating > 0 ? `<span class="stars">${stars(rating)}</span>` : ""}
 <div class="pr"><span class="p">${rupee(price)}</span>${mrp && mrp > price ? `<span class="mrp">${rupee(mrp)}</span> <span class="save-tag">Save ${rupee(mrp - price)}</span>` : ""}</div>
 ${discount > 0 ? `<span class="badge">-${discount}%</span>` : ""}
 ${p.dealType ? `<span class="badge" style="background:#c45500">${e(p.dealLabel ?? p.dealType)}</span>` : ""}
+${isBestSeller ? `<span class="badge" style="background:#e67a00">Best Seller</span>` : ""}
 <span style="display:flex;align-items:center;margin-top:auto">${stockHtml}${stockStatus === "outofstock" || stockQty <= 0 ? `<button class="btn-cart" style="margin-left:auto;padding:6px 12px;background:#eee;border:1px solid #ccc;border-radius:16px;font-size:.75rem;cursor:pointer;color:#888" onclick="notifyMe('${e(p.slug)}','${e(p.name)}');event.preventDefault();event.stopPropagation()">Notify Me</button>` : `<button class="btn-cart" style="margin-left:auto;padding:6px 12px;background:#ffd814;border:1px solid #fcd200;border-radius:16px;font-size:.75rem;font-weight:600;cursor:pointer;color:#0f1111" data-name="${e(p.name)}" data-price="${price}" onclick="addToCart(this);return false">Add to Cart</button>`}</span>
 </a>
 </div>`;
@@ -779,7 +781,7 @@ export async function publishSite(prisma: PrismaClient, logger: Logger): Promise
       slug: `product-${e(p.slug)}`,
       title: String(p.name),
       description: String(p.shortDesc ?? "").slice(0, 160),
-      content: `<div class="breadcrumb"><a href="/">Home</a> › <a href="/products.html">Products</a> › <span style="color:#c45500">${e(p.name)}</span></div>
+      content: `<div class="breadcrumb"><a href="/">Home</a> › <a href="/products.html">Products</a>${p.brand ? ` › <a href="/brand-${e(String(p.brand).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,''))}.html">${e(p.brand)}</a>` : ""} › <span style="color:#c45500">${e(p.name)}</span></div>
 <div class="container"><div class="pdetail">
 <div class="gallery">
 <div class="main-wrap" id="mainWrap-${e(p.slug)}">
@@ -814,6 +816,7 @@ ${p.codAvailable ? `<div class="cod">Cash on Delivery available</div>` : ""}
 </div>
 <div class="secure">🔒 Secure transaction</div>
 <div class="seller-info">Sold by <strong>${e(p.sellerName ?? "Extora Seller")}</strong> (${p.sellerRating ? stars(Number(p.sellerRating)) : "★★★★"} ${p.sellerRating ?? "4.0"})</div>
+${p.brand ? `<div class="seller-info" style="margin-top:2px">Brand: <a href="/brand-${e(String(p.brand).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,''))}.html" style="color:#007185;text-decoration:none">${e(p.brand)}</a></div>` : ""}
 <div class="warranty"><strong>Warranty:</strong> ${e(p.warranty ?? "1 Year Manufacturer Warranty")}</div>
 <div class="return">✓ ${e(p.returnPolicy ?? "7 days returnable")}</div>
 <hr class="divider">

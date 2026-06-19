@@ -3524,3 +3524,22 @@ This caused ALL buttons (cart, search, login, reviews, newsletter) to silently f
 **Docker deploy:** 34 pages, 2022 KB, 7 containers healthy
 
 **CI all green:** Lint 16/16, Typecheck 20/20, Test 34/34
+
+
+### Phase 152: Best Seller Badges + Brand Links
+**Date:** June 19, 2026 | **Commit:** (upcoming)
+**Duration:** ~10 minutes
+
+**Best Seller Badge:**
+- Orange "Best Seller" tag on products with rating >= 4.5 AND reviews >= 100
+- Positioned inline with other badges (discount, deal type)
+- Server-rendered on all product cards
+
+**Brand Links:**
+- Breadcrumb: Home > Products > Brand > Product Name
+- Brand line below seller info on product detail page (clickable link)
+- Links to auto-generated brand pages (/brand-keycraft.html, etc.)
+
+**Docker deploy:** 34 pages, 2024 KB, 7 containers healthy
+
+**CI all green:** Lint 16/16, Typecheck 20/20, Test 34/34
