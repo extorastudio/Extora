@@ -3423,3 +3423,30 @@ This caused ALL buttons (cart, search, login, reviews, newsletter) to silently f
 **Docker deploy:** 26 pages, 1326 KB, 7 containers healthy
 
 **CI all green:** Lint 16/16 (0 errors, 10 warnings), Typecheck 20/20, Test 34/34
+
+
+### Phase 148: Flash Deals Timer + Review Helpful Votes + Related Searches
+**Date:** June 19, 2026 | **Commit:** (upcoming)
+**Duration:** ~20 minutes
+
+**Flash Deals Countdown Timer:**
+- Live countdown to midnight on homepage deals section and deals page
+- Styled deal-timer component with gradient background + white time boxes
+- Updates every second via setInterval — shows HH:MM:SS format
+- Automatically displays on both homepage and /deals.html
+
+**Review Helpful Votes:**
+- "Was this helpful? 👍 Yes (N) · 👎 No (N)" below each review
+- Votes stored in localStorage per review ID
+- One vote per user per review (prevents duplicate voting)
+- Voted button gets highlighted (border color + bold)
+- Counts initialized on page load and synced across sessions
+
+**Related Searches on Search Page:**
+- When no results found, shows suggested search terms (top categories)
+- "Browse All Products" button below suggestions
+- Prevents duplicate suggestions on re-search
+
+**Docker deploy:** 26 pages, 1434 KB, 7 containers healthy
+
+**CI all green:** Lint 16/16, Typecheck 20/20, Test 34/34

@@ -135,6 +135,14 @@ body{font-family:Arial,Helvetica,sans-serif;color:#0f1111;background:#eaeded;lin
 .compare-table .ct-price{font-size:1.1rem;color:#b12704;font-weight:600}
 .back-to-top{position:fixed;bottom:24px;right:24px;width:44px;height:44px;background:#232f3e;color:white;border:none;border-radius:50%;font-size:1.3rem;cursor:pointer;z-index:998;display:none;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.3);transition:opacity .3s}
 .back-to-top:hover{background:#37475a}
+.deal-timer{display:flex;align-items:center;gap:8px;background:linear-gradient(135deg,#cc0c39,#b12704);color:white;padding:8px 16px;border-radius:8px;font-size:.9rem;font-weight:600}
+.deal-timer .time-box{background:white;color:#cc0c39;padding:2px 8px;border-radius:4px;font-weight:700;font-size:1rem;min-width:32px;text-align:center}
+.helpful-vote{display:inline-flex;align-items:center;gap:16px;margin-top:4px}
+.helpful-vote button{background:none;border:1px solid #ddd;padding:3px 10px;border-radius:4px;cursor:pointer;font-size:.75rem;color:#565959}
+.helpful-vote button:hover{background:#f0f2f2;color:#0f1111}
+.helpful-vote button.voted{background:#f0f2f2;border-color:#007185;color:#007185;font-weight:600}
+.related-search{display:inline-block;margin:4px;padding:6px 14px;background:#f0f2f2;border:1px solid #ddd;border-radius:20px;font-size:.8rem;color:#0f1111;cursor:pointer;text-decoration:none}
+.related-search:hover{background:#e3e6e6}
 @keyframes shimmer{0%{background-position:-200px 0}100%{background-position:calc(200px + 100%) 0}}
 .skeleton{background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);background-size:200px 100%;animation:shimmer 1.5s ease-in-out infinite;border-radius:4px}
 .skeleton-card{background:white;border:1px solid #f0f0f0;padding:16px;display:flex;flex-direction:column;gap:10px}
@@ -305,6 +313,7 @@ document.addEventListener("DOMContentLoaded", function() {
   updateVisibleHearts();
   updateCompareBar();
   updateCompareChecks();
+  initVotes();
   trackPageView();
   const token = localStorage.getItem("at");
   const accEl = document.getElementById("headerAccount");
@@ -605,6 +614,56 @@ function notifyMe(slug, name) {
   }
 }
 function notifyMe2(el) { var slug=el.getAttribute("data-slug"); var name=el.getAttribute("data-name"); notifyMe(slug,name); }
+// ── Deal Countdown Timer ──
+function updateDealTimer() {
+  var now = new Date();
+  var end = new Date(now);
+  end.setHours(23,59,59,0);
+  var diff = Math.max(0, Math.floor((end - now) / 1000));
+  var h = Math.floor(diff/3600), m = Math.floor((diff%3600)/60), s = diff%60;
+  h = h<10?"0"+h:h; m = m<10?"0"+m:m; s = s<10?"0"+s:s;
+  var ids = ['hpTimerH','hpTimerM','hpTimerS','dealTimerH','dealTimerM','dealTimerS'];
+  ids.forEach(function(id){ var el=document.getElementById(id); if(el) { if(id.indexOf('H')>-1)el.textContent=h; else if(id.indexOf('M')>-1)el.textContent=m; else el.textContent=s; } });
+}
+setInterval(updateDealTimer, 1000);
+updateDealTimer();
+// ── Review Helpful Votes ──
+function getVotes(rid) { try { return JSON.parse(localStorage.getItem("extora_vote_"+rid) || '{"yes":0,"no":0}'); } catch { return {yes:0,no:0}; } }
+function voteHelpful(rid, type) {
+  var myVote = localStorage.getItem("extora_myvote_"+rid);
+  if (myVote) return;
+  var v = getVotes(rid); v[type] = (v[type]||0) + 1;
+  localStorage.setItem("extora_vote_"+rid, JSON.stringify(v));
+  localStorage.setItem("extora_myvote_"+rid, type);
+  var yesEl = document.getElementById("yesCount-"+rid), noEl = document.getElementById("noCount-"+rid);
+  var yesBtn = document.getElementById("yes-"+rid), noBtn = document.getElementById("no-"+rid);
+  if (yesEl) yesEl.textContent = v.yes;
+  if (noEl) noEl.textContent = v.no;
+  if (yesBtn && type==="yes") { yesBtn.style.borderColor="#007185"; yesBtn.style.color="#007185"; yesBtn.style.fontWeight="600"; }
+  if (noBtn && type==="no") { noBtn.style.borderColor="#007185"; noBtn.style.color="#007185"; noBtn.style.fontWeight="600"; }
+}
+function initVotes() {
+  document.querySelectorAll(".helpful-vote button").forEach(function(btn){
+    var rid = btn.id.split("-")[1];
+    var v = getVotes(rid);
+    var yesEl = document.getElementById("yesCount-"+rid), noEl = document.getElementById("noCount-"+rid);
+    if (yesEl) yesEl.textContent = v.yes||0;
+    if (noEl) noEl.textContent = v.no||0;
+    var myVote = localStorage.getItem("extora_myvote_"+rid);
+    if (myVote) { var b = document.getElementById(myVote+"-"+rid); if (b) { b.style.borderColor="#007185"; b.style.color="#007185"; b.style.fontWeight="600"; } }
+  });
+}
+// ── Related Searches on Search Page ──
+function showRelatedSearches(query) {
+  var noRes = document.getElementById("noResults");
+  if (!noRes || noRes.style.display === "none") return;
+  if (noRes.querySelector(".related-search")) return;
+  var cats = ALL_PRODUCTS.map(function(p){return p.category}).filter(function(v,i,a){return a.indexOf(v)===i}).slice(0,4);
+  var html = '<div style="margin-top:20px"><p style="color:#565959;font-size:.85rem;margin-bottom:8px">Try searching for:</p>' +
+    cats.map(function(t){return '<a href="?q='+encodeURIComponent(t)+'" class="related-search">'+t+'</a>'}).join(" ") +
+    '<div style="margin-top:12px"><a href="/products.html" class="related-search" style="background:#ffd814;border-color:#fcd200">Browse All Products</a></div></div>';
+  noRes.innerHTML = noRes.innerHTML + html;
+}
 </script>
 <div class="compare-bar" id="compareBar" style="display:none">
 <div class="cb-items" id="compareItems"></div>
@@ -657,7 +716,7 @@ export async function publishSite(prisma: PrismaClient, logger: Logger): Promise
 
   // ── HOMEPAGE ──
   const hpSections: string[] = [];
-  if (deals.length > 0) hpSections.push(`<div class="section-header"><h2>Today's Deals</h2><a href="/deals.html">See all</a></div><div class="products-grid">${deals.slice(0, 6).map(productCard).join("")}</div>`);
+  if (deals.length > 0) hpSections.push(`<div class="section-header"><h2>Today's Deals <span class="deal-timer" id="hpDealTimer">Ends in: <span class="time-box" id="hpTimerH">00</span>h <span class="time-box" id="hpTimerM">00</span>m <span class="time-box" id="hpTimerS">00</span>s</span></h2><a href="/deals.html">See all</a></div><div class="products-grid">${deals.slice(0, 6).map(productCard).join("")}</div>`);
   // Trending: sort by rating * reviews (popularity score)
   const trending = [...products].sort((a: any, b: any) => ((b.rating ?? 0) * (b.reviews ?? 1)) - ((a.rating ?? 0) * (a.reviews ?? 1)));
   hpSections.push(`<div class="section-header"><h2>Trending Products</h2><a href="/products.html">See all</a></div><div class="products-grid">${trending.slice(0, 8).map(productCard).join("")}</div>`);
@@ -779,7 +838,7 @@ fetch("/api/v1/reviews/${e(p.id)}").then(r => r.json()).then(d => {
   const reviews = d.data || [];
   const el = document.getElementById("reviewList-${e(p.slug)}");
   if (reviews.length === 0) { el.innerHTML = '<p style="color:#565959;font-size:.9rem">No reviews yet. Be the first!</p>'; return; }
-  el.innerHTML = reviews.map(r => '<div style="border-bottom:1px solid #e7e7e7;padding:12px 0"><div style="color:#febd69;margin-bottom:4px">'+"★".repeat(r.rating)+"☆".repeat(5-r.rating)+' <strong>'+r.title+'</strong></div><p style="color:#0f1111;font-size:.9rem;margin:4px 0">'+r.content+'</p><span style="color:#565959;font-size:.8rem">By '+r.author+' on '+new Date(r.createdAt).toLocaleDateString()+'</span></div>').join("");
+  el.innerHTML = reviews.map(r => '<div style="border-bottom:1px solid #e7e7e7;padding:12px 0"><div style="color:#febd69;margin-bottom:4px">'+"★".repeat(r.rating)+"☆".repeat(5-r.rating)+' <strong>'+r.title+'</strong></div><p style="color:#0f1111;font-size:.9rem;margin:4px 0">'+r.content+'</p><span style="color:#565959;font-size:.8rem">By '+r.author+' on '+new Date(r.createdAt).toLocaleDateString()+'</span><div class="helpful-vote"><span style="font-size:.75rem;color:#565959">Helpful?</span><button onclick="voteHelpful(\''+r.id+'\',\'yes\')" id="yes-'+r.id+'" style="background:none;border:1px solid #ddd;padding:2px 8px;border-radius:4px;cursor:pointer;font-size:.75rem;color:#565959">👍 Yes <span id="yesCount-'+r.id+'">0</span></button><button onclick="voteHelpful(\''+r.id+'\',\'no\')" id="no-'+r.id+'" style="background:none;border:1px solid #ddd;padding:2px 8px;border-radius:4px;cursor:pointer;font-size:.75rem;color:#565959">👎 No <span id="noCount-'+r.id+'">0</span></button></div></div>').join("");
 }).catch(() => { document.getElementById("reviewLoading-${e(p.slug)}").textContent = "No reviews yet."; });
 </script>
 
@@ -891,7 +950,7 @@ sortCategory();
   if (deals.length) pages.push({ slug: "deals", title: "Today's Deals", description: "Limited time offers",
     content: `<div class="page-content">
 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px">
-<h1 style="margin:0">Today's Deals</h1>
+<h1 style="margin:0">Today's Deals <span class="deal-timer" style="margin-left:12px">Ends in: <span class="time-box" id="dealTimerH">00</span>h <span class="time-box" id="dealTimerM">00</span>m <span class="time-box" id="dealTimerS">00</span>s</span></h1>
 <div style="display:flex;align-items:center;gap:8px">
 <span style="color:#565959;font-size:.85rem" id="resultCount"></span>
 <select id="sortSelect" onchange="sortDeals()" style="padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:.85rem;background:white;cursor:pointer">
@@ -1110,6 +1169,7 @@ function doSearch() {
   if (matches.length === 0) {
     container.innerHTML = "";
     noRes.style.display = "block";
+    showRelatedSearches(query);
   } else {
     noRes.style.display = "none";
     container.innerHTML = matches.map(p => {
