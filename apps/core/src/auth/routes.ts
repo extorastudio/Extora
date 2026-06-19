@@ -21,9 +21,19 @@ const RefreshSchema = z.object({
   refreshToken: z.string().min(1, "Refresh token is required"),
 });
 
+async function isPluginActive(prisma: PrismaClient, nameContains: string): Promise<boolean> {
+  try {
+    const plugins = await (prisma as any).plugin.findMany({ where: { isActive: true } });
+    return plugins.some((p: any) => (p.name ?? "").includes(nameContains));
+  } catch { return true; /* assume active if table doesn't exist */ }
+}
+
 export function registerAuthRoutes(server: FastifyInstance, prisma: PrismaClient): void {
   // POST /api/v1/auth/login
   server.post("/api/v1/auth/login", async (request: FastifyRequest, reply: FastifyReply) => {
+    if (!(await isPluginActive(prisma, "auth"))) {
+      return await reply.status(403).send({ code: "PLUGIN_DISABLED", message: "Authentication is currently disabled. Enable the Auth plugin to log in." });
+    }
     const body = LoginSchema.parse(request.body);
 
     const user = await prisma.user.findUnique({
@@ -103,6 +113,9 @@ export function registerAuthRoutes(server: FastifyInstance, prisma: PrismaClient
 
   // POST /api/v1/auth/register
   server.post("/api/v1/auth/register", async (request: FastifyRequest, reply: FastifyReply) => {
+    if (!(await isPluginActive(prisma, "auth"))) {
+      return await reply.status(403).send({ code: "PLUGIN_DISABLED", message: "Registration is currently disabled." });
+    }
     const body = RegisterSchema.parse(request.body);
 
     const strength = validatePasswordStrength(body.password);
@@ -261,6 +274,9 @@ export function registerAuthRoutes(server: FastifyInstance, prisma: PrismaClient
 
   // GET /api/v1/auth/session
   server.get("/api/v1/auth/session", async (request: FastifyRequest, reply: FastifyReply) => {
+    if (!(await isPluginActive(prisma, "auth"))) {
+      return await reply.status(403).send({ code: "PLUGIN_DISABLED", message: "Authentication is currently disabled." });
+    }
     const auth = request.headers.authorization;
     if (!auth?.startsWith("Bearer ")) {
       return reply.status(401).send({ code: "UNAUTHORIZED", message: "Missing token" });

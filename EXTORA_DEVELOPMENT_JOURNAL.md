@@ -3935,3 +3935,27 @@ var SEO_ACTIVE = true/false;
 - Admin sidebar menus dynamic per plugin state
 
 **Docker deploy:** 34 pages (active), 33 pages (auth disabled)
+
+
+### Phase 165: Auth API Routes Gated — Login/Register/Session Blocked
+**Date:** June 19, 2026 | **Commit:** (upcoming)
+**Duration:** ~10 minutes
+
+**Auth plugin disabled now blocks ALL auth API endpoints:**
+- `POST /api/v1/auth/login` → 403 PLUGIN_DISABLED
+- `POST /api/v1/auth/register` → 403 PLUGIN_DISABLED  
+- `GET /api/v1/auth/session` → 403 PLUGIN_DISABLED
+
+**Helper function `isPluginActive(prisma, nameContains)` used in auth/routes.ts**
+- Queries plugin table for isActive status
+- Returns true if table doesn't exist (backward compatibility)
+- Fast check — single DB query before each endpoint
+
+**Verified:**
+- Auth disabled → Login returns "Authentication is currently disabled"
+- Auth disabled → Register returns "Registration is currently disabled"
+- Auth reactivated → Login works again
+
+**Note:** Plugin management endpoints (activate/deactivate) use core `authenticate()` which works independently of Auth plugin state, preventing deadlock.
+
+**Docker deploy:** CI all green
