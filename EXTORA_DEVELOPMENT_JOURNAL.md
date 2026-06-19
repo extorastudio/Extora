@@ -3394,3 +3394,32 @@ This caused ALL buttons (cart, search, login, reviews, newsletter) to silently f
 **Docker deploy:** 26 pages, 1221 KB, 7 containers healthy
 
 **CI all green:** Lint 16/16, Typecheck 20/20, Test 34/34
+
+
+### Phase 147: Local Video Upload in Admin Panel + Seed Video URLs
+**Date:** June 19, 2026 | **Commit:** (upcoming)
+**Duration:** ~25 minutes
+
+**Studio Product Editor — Video Upload:**
+- Added "Upload Video" button (purple) in Media tab — opens file picker for video files
+- Added "Upload Image" button (blue) alongside existing "Add Image URL"
+- `handleFileUpload(type)` function uploads to `/api/v1/media/upload` via FormData
+- Uploaded URL auto-populates `videoUrl` or `images` field
+- Video preview indicator shows ✓ when video is set
+- File accept filters: `video/*` for video, `image/*` for images
+- Both self-hosted (browser upload → MinIO) and YouTube URLs supported
+
+**Admin API:** `/api/v1/media/upload` already handles any file type → MinIO/S3
+**Product CRUD:** `videoUrl` already in create (line 342) + update fields (line 385)
+
+**Seed Data:** 
+- Mechanical Keyboard: `videoUrl: BigBuckBunny.mp4` (self-hosted sample)
+- Yoga Mat: `videoUrl: ForBiggerBlazes.mp4` + 3 images for gallery testing
+
+**Publishing Engine:** Auto-detects YouTube vs self-hosted URLs:
+- YouTube → `<iframe>` embed
+- Everything else → `<video>` tag with controls
+
+**Docker deploy:** 26 pages, 1326 KB, 7 containers healthy
+
+**CI all green:** Lint 16/16 (0 errors, 10 warnings), Typecheck 20/20, Test 34/34

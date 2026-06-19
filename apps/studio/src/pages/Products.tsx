@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import apiClient from "../api/client";
 import {
-  Package, Plus, Save, Trash2, RefreshCw, Send, Image, Settings,
+  Package, Plus, Save, Trash2, RefreshCw, Send, Image, Settings, Upload,
   Truck, Layers, Link2, Tag, DollarSign, Box, FolderTree,
   Tags, Shield, Grid3X3, MessageSquare
 } from "lucide-react";
@@ -172,8 +172,33 @@ export default function ProductsPage() {
 
   const addImage = () => {
     if (!editing) return;
-    const url = prompt("Enter image URL:");
+    const url = prompt("Enter image URL (or use Upload to pick a file):");
     if (url) update("images", [...editing.images, url]);
+  };
+
+  const handleFileUpload = async (type: "image" | "video") => {
+    if (!editing) return;
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = type === "video" ? "video/*" : "image/*";
+    input.onchange = async () => {
+      const file = input.files?.[0];
+      if (!file) return;
+      const token = localStorage.getItem("at");
+      if (!token) { alert("Please sign in first"); return; }
+      const form = new FormData();
+      form.append("file", file);
+      try {
+        const res = await fetch("/api/v1/media/upload", { method: "POST", headers: { Authorization: "Bearer " + token }, body: form });
+        const data = await res.json() as { url?: string; data?: { url?: string } };
+        const uploadedUrl = data.url ?? data.data?.url ?? "";
+        if (uploadedUrl) {
+          if (type === "image") update("images", [...editing.images, uploadedUrl]);
+          else update("videoUrl", uploadedUrl);
+        }
+      } catch { alert("Upload failed. Check network or file size."); }
+    };
+    input.click();
   };
 
   const removeImage = (idx: number) => {
@@ -500,9 +525,12 @@ export default function ProductsPage() {
             {/* Media Tab */}
             {activeTab === "media" && (
               <div className="grid grid-cols-1 gap-4">
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 flex-wrap">
                   <button onClick={addImage} className="flex items-center gap-2 rounded-lg bg-gray-800 px-4 py-2 text-sm text-white hover:bg-gray-700 border border-gray-700">
-                    <Image className="h-4 w-4" /> Add Image
+                    <Image className="h-4 w-4" /> Add Image URL
+                  </button>
+                  <button onClick={() => handleFileUpload("image")} className="flex items-center gap-2 rounded-lg bg-blue-700 px-4 py-2 text-sm text-white hover:bg-blue-600 border border-blue-600">
+                    <Upload className="h-4 w-4" /> Upload Image
                   </button>
                   <span className="text-xs text-gray-500">{editing.images.length} images</span>
                 </div>
@@ -514,7 +542,21 @@ export default function ProductsPage() {
                     </div>
                   ))}
                 </div>
-                {renderField("Video URL (YouTube)", "videoUrl", "text", { placeholder: "https://youtube.com/watch?v=..." })}
+                <div className="border-t border-gray-700 pt-4">
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Product Video</label>
+                  <div className="flex items-center gap-3 mb-3">
+                    <button onClick={() => handleFileUpload("video")} className="flex items-center gap-2 rounded-lg bg-purple-700 px-4 py-2 text-sm text-white hover:bg-purple-600 border border-purple-600">
+                      <Upload className="h-4 w-4" /> Upload Video
+                    </button>
+                    <span className="text-xs text-gray-500">or paste URL below</span>
+                  </div>
+                  {renderField("Video URL (YouTube or local path)", "videoUrl", "text", { placeholder: "https://youtube.com/watch?v=... or /storage/extora/uploads/video.mp4" })}
+                  {editing.videoUrl && (
+                    <div className="mt-2 p-3 rounded-lg border border-gray-700 bg-gray-800/50">
+                      <span className="text-xs text-green-400">✓ Video set: {editing.videoUrl.length > 60 ? editing.videoUrl.slice(0,60) + "..." : editing.videoUrl}</span>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
 
