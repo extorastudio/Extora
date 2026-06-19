@@ -491,7 +491,7 @@ async function doLogin() {
   const email = document.getElementById("loginEmail").value;
   const pass = document.getElementById("loginPass").value;
   try {
-    const r = await fetch(API + "/login", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({email, password}) });
+    const r = await fetch(API + "/login", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({email, password: pass}) });
     const d = await r.json();
     if (d.accessToken) { localStorage.setItem("at", d.accessToken); location.reload(); }
     else document.getElementById("loginMsg").textContent = d.message || "Login failed";
