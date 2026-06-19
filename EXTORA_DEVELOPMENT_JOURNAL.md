@@ -3230,3 +3230,27 @@ This caused ALL buttons (cart, search, login, reviews, newsletter) to silently f
 **Docker rebuild + deployment:** 25 pages, 843 KB, 7 containers healthy
 
 **CI all green:** Lint 16/16, Typecheck 20/20, Test 34/34
+
+
+### Phase 140: Back to Top + Category Filter Sidebar + Search UI Fix
+**Date:** June 19, 2026 | **Commit:** (upcoming)
+**Duration:** ~20 minutes
+
+**Back to Top button:**
+- Fixed bottom-right (▲ button), appears on scroll >400px
+- Smooth scroll to top on click
+
+**Category Filter Sidebar on Products page:**
+- Left sidebar with checkboxes for each category + product counts
+- Show only selected categories, "Clear Filters" button
+- Combined with existing sort dropdown
+
+**Search UI Fix:**
+- MISSING CSS `search-wrap{position:relative;flex:1}` caused broken layout
+- Added `search-wrap input{width:100%;height:40px;...}` for proper sizing
+- Autocomplete dropdown now correctly positioned relative to search wrapper
+- Search results on `/search.html` verified working
+
+**Docker deploy:** 25 pages, 876 KB, 7 containers healthy
+
+**CI all green:** Lint 16/16, Typecheck 20/20, Test 34/34

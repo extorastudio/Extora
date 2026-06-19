@@ -23,6 +23,8 @@ body{font-family:Arial,Helvetica,sans-serif;color:#0f1111;background:#eaeded;lin
 .top-nav .search{flex:1;display:flex;height:40px}
 .top-nav .search input{flex:1;padding:0 12px;border:none;border-radius:4px 0 0 4px;font-size:.95rem}
 .top-nav .search button{background:#febd69;border:none;padding:0 16px;border-radius:0 4px 4px 0;font-weight:600;cursor:pointer}
+.search-wrap{position:relative;flex:1}
+.search-wrap input{width:100%;height:40px;padding:0 12px;border:none;border-radius:4px 0 0 4px;font-size:.95rem;box-sizing:border-box}
 .top-nav .nav-r{display:flex;gap:18px;align-items:center;white-space:nowrap}
 .top-nav .nav-r a{color:white;text-decoration:none;font-size:.85rem}
 .sub-nav{background:#232f3e}
@@ -117,6 +119,13 @@ body{font-family:Arial,Helvetica,sans-serif;color:#0f1111;background:#eaeded;lin
 .compare-table td:first-child{text-align:left;background:#f8f8f8;font-weight:600}
 .compare-table .ct-img{width:120px;height:120px;object-fit:contain}
 .compare-table .ct-price{font-size:1.1rem;color:#b12704;font-weight:600}
+.back-to-top{position:fixed;bottom:24px;right:24px;width:44px;height:44px;background:#232f3e;color:white;border:none;border-radius:50%;font-size:1.3rem;cursor:pointer;z-index:998;display:none;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.3);transition:opacity .3s}
+.back-to-top:hover{background:#37475a}
+.filter-sidebar{background:white;border:1px solid #e7e7e7;border-radius:8px;padding:16px}
+.filter-sidebar h4{font-size:.95rem;margin:0 0 12px;color:#0f1111}
+.filter-sidebar label{display:flex;align-items:center;gap:6px;padding:4px 0;font-size:.85rem;color:#0f1111;cursor:pointer}
+.filter-sidebar input[type=checkbox]{accent-color:#ffd814}
+.filter-sidebar .filter-count{color:#565959;font-size:.8rem;margin-left:auto}
 
 .section-header{display:flex;align-items:baseline;gap:12px;padding:20px 15px 8px}
 .section-header h2{font-size:1.3rem;color:#0f1111}
@@ -383,6 +392,12 @@ function toggleCompare(el) {
 function removeCompare(idx) { var c = getCompare(); c.splice(idx, 1); saveCompare(c); }
 function clearCompare() { localStorage.removeItem("extora_compare"); updateCompareBar(); updateCompareChecks(); }
 function showCompare() { location.href = "/compare.html"; }
+// ── Back to Top ──
+window.onscroll = function() {
+  var btn = document.getElementById("backToTop");
+  if (btn) btn.style.display = window.scrollY > 400 ? "flex" : "none";
+};
+function scrollToTop() { window.scrollTo({ top: 0, behavior: "smooth" }); }
 </script>
 <div class="compare-bar" id="compareBar" style="display:none">
 <div class="cb-items" id="compareItems"></div>
@@ -391,6 +406,7 @@ function showCompare() { location.href = "/compare.html"; }
 <button class="cb-compare" onclick="showCompare()">Compare Now</button>
 </div>
 </div>
+<button class="back-to-top" id="backToTop" onclick="scrollToTop()" title="Back to top">▲</button>
 </body></html>`;
 }
 
@@ -650,8 +666,16 @@ function sortDeals() {
 }
 sortDeals();
 </script>` });
+  const categoriesJson = JSON.stringify(categories.map((c: any) => ({ name: String(c.name ?? ""), slug: String(c.slug ?? "") })));
+
   pages.push({ slug: "products", title: "All Products", description: "Browse all",
-    content: `<div class="page-content">
+    content: `<div class="page-content" style="display:flex;gap:24px;flex-wrap:wrap">
+<div class="filter-sidebar" style="min-width:220px;max-width:280px;flex:1;align-self:start">
+<h4>Filter by Category</h4>
+<div id="categoryFilters"></div>
+<button onclick="clearFilters()" style="margin-top:12px;padding:6px 16px;background:white;border:1px solid #ddd;border-radius:4px;cursor:pointer;font-size:.8rem;color:#007185">Clear Filters</button>
+</div>
+<div style="flex:3;min-width:300px">
 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px">
 <h1 style="margin:0">All Products</h1>
 <div style="display:flex;align-items:center;gap:8px">
@@ -668,18 +692,38 @@ sortDeals();
 </div>
 <div id="productsGrid" class="products-grid"></div>
 </div>
+</div>
 <script>
 var PRODUCTS = ${productJson2};
+var CATEGORIES = ${categoriesJson};
+function buildFilters() {
+  var el = document.getElementById("categoryFilters");
+  var counts = {};
+  PRODUCTS.forEach(function(p){ counts[p.category] = (counts[p.category]||0) + 1; });
+  el.innerHTML = CATEGORIES.map(function(c){
+    return '<label><input type="checkbox" value="' + c.name + '" onchange="sortProducts()" checked> ' + c.name + ' <span class="filter-count">(' + (counts[c.name]||0) + ')</span></label>';
+  }).join("");
+}
+function getCheckedCats() {
+  var checked = [];
+  document.querySelectorAll("#categoryFilters input[type=checkbox]:checked").forEach(function(cb){ checked.push(cb.value); });
+  return checked;
+}
+function clearFilters() {
+  document.querySelectorAll("#categoryFilters input[type=checkbox]").forEach(function(cb){ cb.checked = true; });
+  sortProducts();
+}
 function sortProducts() {
   var sort = document.getElementById("sortSelect").value;
-  var list = PRODUCTS.slice();
+  var checkedCats = getCheckedCats();
+  var list = PRODUCTS.filter(function(p){ return checkedCats.indexOf(p.category) !== -1; });
   if (sort === "priceAsc") list.sort(function(a,b){return a.price - b.price});
   else if (sort === "priceDesc") list.sort(function(a,b){return b.price - a.price});
   else if (sort === "rating") list.sort(function(a,b){return (b.rating||0) - (a.rating||0)});
   else if (sort === "newest") list.sort(function(a,b){return (b.createdAt||"").localeCompare(a.createdAt||"")});
   else if (sort === "discount") list.sort(function(a,b){return (b.discountPercent||0) - (a.discountPercent||0)});
   document.getElementById("resultCount").textContent = list.length + " products";
-  document.getElementById("productsGrid").innerHTML = list.map(function(p){
+  document.getElementById("productsGrid").innerHTML = list.length === 0 ? '<p style="text-align:center;padding:60px;color:#565959;grid-column:1/-1">No products match your filters.</p>' : list.map(function(p){
     var mrp = p.mrp && p.mrp > p.price ? '<span class="mrp" style="font-size:.8rem;color:#565959;text-decoration:line-through">&#' + '8377;' + p.mrp.toLocaleString("en-IN") + '</span>' : '';
     var discount = p.mrp && p.mrp > p.price ? '<span class="badge">-' + Math.round((1-p.price/p.mrp)*100) + '%</span>' : '';
     return '<div class="product-card"><a href="/product-'+p.slug+'.html" style="text-decoration:none;color:inherit;display:flex;flex-direction:column;padding:16px;height:100%">' +
@@ -694,8 +738,9 @@ function sortProducts() {
   }).join("");
   updateVisibleHearts(); updateCompareChecks();
 }
-sortProducts();
+buildFilters(); sortProducts();
 </script>` });
+
 
   function renderBuilderElement(el: any): string {
   const c = el.content ?? {};
