@@ -410,14 +410,25 @@ function trackPageView() {
 }
 function showRecentlyViewed(viewed) {
   if (viewed.length < 2) return;
-  const container = document.createElement("div");
-  container.className = "section-header";
-  container.innerHTML = '<h2>Recently Viewed</h2>';
-  const grid = document.createElement("div");
-  grid.className = "products-grid";
-  grid.innerHTML = viewed.slice(1, 5).map((v) => '<div class="product-card"><a href="' + v.url + '" style="text-decoration:none;color:inherit;display:flex;flex-direction:column;padding:16px;height:100%"><span class="pname">' + v.name + '</span><span class="stock-ok">View Again</span></a></div>').join("");
+  // Show on product detail page
   const pdetail = document.querySelector(".pdetail");
-  if (pdetail) { pdetail.parentElement?.appendChild(container); pdetail.parentElement?.appendChild(grid); }
+  if (pdetail) {
+    const container = document.createElement("div"); container.className = "section-header";
+    container.innerHTML = '<h2>Recently Viewed</h2>';
+    const grid = document.createElement("div"); grid.className = "products-grid";
+    grid.innerHTML = viewed.slice(1, 5).map((v) => '<div class="product-card"><a href="' + v.url + '" style="text-decoration:none;color:inherit;display:flex;flex-direction:column;padding:16px;height:100%"><span class="pname">' + v.name + '</span><span class="stock-ok">View Again</span></a></div>').join("");
+    pdetail.parentElement?.appendChild(container); pdetail.parentElement?.appendChild(grid);
+  } else {
+    // Show on other pages (homepage, search, etc.) below main content
+    const main = document.querySelector("main");
+    if (main && !document.getElementById("globalRecentlyViewed")) {
+      const wrapper = document.createElement("div"); wrapper.id = "globalRecentlyViewed";
+      wrapper.style.cssText = "max-width:1500px;margin:20px auto;padding:0 15px";
+      wrapper.innerHTML = '<div class="section-header"><h2>Recently Viewed</h2></div><div class="products-grid">' +
+        viewed.slice(0, 6).map((v) => '<div class="product-card"><a href="' + v.url + '" style="text-decoration:none;color:inherit;display:flex;flex-direction:column;padding:16px;height:100%"><span class="pname">' + v.name + '</span><span class="stock-ok">View Again</span></a></div>').join("") + '</div>';
+      main.appendChild(wrapper);
+    }
+  }
 }
 // ── Global Product Index (for search autocomplete) ──
 var ALL_PRODUCTS = ${productJson};

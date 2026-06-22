@@ -4000,3 +4000,18 @@ var SEO_ACTIVE = true/false;
 - Free Delivery badge: 10 occurrences (products above 499)
 
 **Docker deploy:** 34 pages, CI all green
+
+
+### Phase 168: Recently Viewed on All Pages
+**Date:** June 19, 2026 | **Commit:** (upcoming)
+**Duration:** ~10 minutes
+
+**Recently Viewed section now appears on ALL pages:**
+- Previously only showed on product detail pages (`.pdetail` target)
+- Now appends to `<main>` on non-product pages (homepage, search, etc.)
+- Uses `globalRecentlyViewed` ID to prevent duplicate sections
+- Shows up to 6 recently viewed items
+- Triggered on DOMContentLoaded via `trackPageView()`
+- Data from `localStorage.extora_viewed`
+
+**Docker deploy:** 34 pages, CI all green
