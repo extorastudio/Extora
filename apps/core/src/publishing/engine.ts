@@ -962,7 +962,7 @@ ${specRows ? `<h4 style="margin:16px 0 8px">Technical Specifications</h4><table 
 <div id="reviewList-${e(p.slug)}" style="margin-bottom:20px">
 <p style="color:#565959;font-size:.9rem" id="reviewLoading-${e(p.slug)}">Loading reviews...</p>
 </div>
-<div style="border-top:1px solid #e7e7e7;padding-top:16px">
+<div id="reviewForm-${e(p.slug)}" style="border-top:1px solid #e7e7e7;padding-top:16px;display:none">
 <h4 style="margin-bottom:12px">Write a Review</h4>
 <div style="display:flex;align-items:center;gap:4px;margin-bottom:8px" id="starInput-${e(p.slug)}">
 ${[1,2,3,4,5].map((n) => `<span onclick="setRating('${e(p.slug)}',${n})" style="font-size:1.5rem;cursor:pointer;color:#ddd" id="star${n}-${e(p.slug)}">★</span>`).join("")}
@@ -971,28 +971,89 @@ ${[1,2,3,4,5].map((n) => `<span onclick="setRating('${e(p.slug)}',${n})" style="
 <input type="text" id="reviewTitle-${e(p.slug)}" placeholder="Review title" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:4px;margin-bottom:8px;font-size:.9rem">
 <textarea id="reviewContent-${e(p.slug)}" placeholder="Share your experience..." rows="3" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:4px;font-size:.9rem;resize:vertical"></textarea>
 <input type="text" id="reviewName-${e(p.slug)}" placeholder="Your name" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:4px;margin:8px 0;font-size:.9rem">
+<input type="email" id="reviewEmail-${e(p.slug)}" placeholder="Your email (used for order)" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:4px;margin-bottom:8px;font-size:.9rem">
+<div style="margin:8px 0;font-size:.8rem"><input type="file" id="reviewImages-${e(p.slug)}" accept="image/*" multiple style="margin-bottom:4px" onchange="uploadReviewMedia('${e(p.slug)}','images')"><br><input type="file" id="reviewVideos-${e(p.slug)}" accept="video/*" multiple onchange="uploadReviewMedia('${e(p.slug)}','videos')"><span id="mediaStatus-${e(p.slug)}" style="color:#565959;font-size:.75rem"></span></div>
 <button onclick="submitReview('${e(p.slug)}','${e(p.id)}')" style="padding:10px 24px;background:#ffd814;border:1px solid #fcd200;border-radius:20px;cursor:pointer;font-weight:600">Submit Review</button>
 <span id="reviewMsg-${e(p.slug)}" style="color:#007600;margin-left:12px;font-size:.85rem"></span>
 </div>
+<div id="reviewGate-${e(p.slug)}" style="border-top:1px solid #e7e7e7;padding-top:16px">
+<p style="color:#565959;font-size:.9rem" id="reviewGateMsg-${e(p.slug)}">Sign in to verify your purchase and write a review.</p>
+</div>
 </div>
 <script>
-function setRating(slug, n) { document.getElementById("ratingVal-"+slug).value = n; for(let i=1;i<=5;i++) document.getElementById("star"+i+"-"+slug).style.color = i<=n ? "#febd69" : "#ddd"; }
-function submitReview(slug, productId) {
-  const rating = document.getElementById("ratingVal-"+slug).value;
-  const title = document.getElementById("reviewTitle-"+slug).value;
-  const content = document.getElementById("reviewContent-"+slug).value;
-  const author = document.getElementById("reviewName-"+slug).value || "Anonymous";
-  const msg = document.getElementById("reviewMsg-"+slug);
-  fetch("/api/v1/reviews", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({productId, rating:Number(rating), title, content, author}) })
-    .then(r => r.json()).then(() => { msg.textContent = "Review submitted! Pending approval."; })
-    .catch(() => { msg.textContent = "Failed to submit"; });
+var reviewMediaUrls_${e(p.slug)} = { images: [], videos: [] };
+function setRating(slug, n) { document.getElementById("ratingVal-"+slug).value = n; for(var i=1;i<=5;i++) document.getElementById("star"+i+"-"+slug).style.color = i<=n ? "#febd69" : "#ddd"; }
+function uploadReviewMedia(slug, type) {
+  var input = document.getElementById(type === "images" ? "reviewImages-" + slug : "reviewVideos-" + slug);
+  var status = document.getElementById("mediaStatus-" + slug);
+  if (!input.files || !input.files.length) return;
+  status.textContent = "Uploading...";
+  for (var i = 0; i < input.files.length; i++) {
+    var fd = new FormData(); fd.append("file", input.files[i]);
+    fetch("/api/v1/media/upload", { method: "POST", body: fd })
+      .then(function(r){ return r.json(); })
+      .then(function(d){ if (d.url) { reviewMediaUrls_${e(p.slug)}[type].push(d.url); status.textContent = reviewMediaUrls_${e(p.slug)}[type].length + " uploaded"; } })
+      .catch(function(){ status.textContent = "Upload failed"; });
+  }
 }
-fetch("/api/v1/reviews/${e(p.id)}").then(r => r.json()).then(d => {
-  const reviews = d.data || [];
-  const el = document.getElementById("reviewList-${e(p.slug)}");
-  if (reviews.length === 0) { el.innerHTML = '<p style="color:#565959;font-size:.9rem">No reviews yet. Be the first!</p>'; return; }
-  el.innerHTML = reviews.map(r => '<div style="border-bottom:1px solid #e7e7e7;padding:12px 0"><div style="color:#febd69;margin-bottom:4px">'+"★".repeat(r.rating)+"☆".repeat(5-r.rating)+' <strong>'+r.title+'</strong></div><p style="color:#0f1111;font-size:.9rem;margin:4px 0">'+r.content+'</p><span style="color:#565959;font-size:.8rem">By '+r.author+' on '+new Date(r.createdAt).toLocaleDateString()+'</span><div class="helpful-vote"><span style="font-size:.75rem;color:#565959">Helpful?</span><button onclick="voteHelpful(\''+r.id+'\',\'yes\')" id="yes-'+r.id+'" style="background:none;border:1px solid #ddd;padding:2px 8px;border-radius:4px;cursor:pointer;font-size:.75rem;color:#565959">👍 Yes <span id="yesCount-'+r.id+'">0</span></button><button onclick="voteHelpful(\''+r.id+'\',\'no\')" id="no-'+r.id+'" style="background:none;border:1px solid #ddd;padding:2px 8px;border-radius:4px;cursor:pointer;font-size:.75rem;color:#565959">👎 No <span id="noCount-'+r.id+'">0</span></button></div></div>').join("");
-}).catch(() => { document.getElementById("reviewLoading-${e(p.slug)}").textContent = "No reviews yet."; });
+function submitReview(slug, productId) {
+  var rating = document.getElementById("ratingVal-"+slug).value;
+  var title = document.getElementById("reviewTitle-"+slug).value;
+  var content = document.getElementById("reviewContent-"+slug).value;
+  var author = document.getElementById("reviewName-"+slug).value || "Anonymous";
+  var email = document.getElementById("reviewEmail-"+slug).value.trim();
+  var msg = document.getElementById("reviewMsg-"+slug);
+  if (!email) { msg.textContent = "Email required for purchase verification"; msg.style.color = "#cc0c39"; return; }
+  fetch("/api/v1/reviews", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({productId:productId,rating:Number(rating),title:title,content:content,author:author,email:email,images:reviewMediaUrls_${e(p.slug)}.images,videos:reviewMediaUrls_${e(p.slug)}.videos}) })
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      if (d.code === "NOT_PURCHASED") { msg.textContent = "You can only review products you have purchased."; msg.style.color = "#cc0c39"; }
+      else if (d.code === "ALREADY_REVIEWED") { msg.textContent = "You have already reviewed this product."; msg.style.color = "#cc0c39"; }
+      else { msg.textContent = d.message || "Review submitted! It will appear after approval."; msg.style.color = "#007600"; document.getElementById("reviewForm-"+slug).style.display = "none"; }
+    })
+    .catch(function(){ msg.textContent = "Failed to submit"; msg.style.color = "#cc0c39"; });
+}
+// Check if user can review + load existing reviews
+fetch("/api/v1/reviews/${e(p.id)}").then(function(r){ return r.json(); }).then(function(d){
+  var reviews = d.data || [];
+  var el = document.getElementById("reviewList-${e(p.slug)}");
+  if (reviews.length === 0) { el.innerHTML = '<p style="color:#565959;font-size:.9rem">No reviews yet. Be the first!</p>'; } else {
+    el.innerHTML = reviews.map(function(r){ return '<div style="border-bottom:1px solid #e7e7e7;padding:12px 0"><div style="color:#febd69;margin-bottom:4px">'+"★".repeat(r.rating)+"☆".repeat(5-r.rating)+' <strong>'+r.title+'</strong></div><p style="color:#0f1111;font-size:.9rem;margin:4px 0">'+r.content+'</p>'+(Array.isArray(r.images)&&r.images.length?'<div style="display:flex;gap:8px;margin:8px 0">'+r.images.map(function(u){return'<img src="'+u+'" style="width:80px;height:80px;object-fit:cover;border-radius:4px;border:1px solid #e7e7e7" loading="lazy">';}).join("")+'</div>':'')+(Array.isArray(r.videos)&&r.videos.length?'<div style="display:flex;gap:8px;margin:8px 0">'+r.videos.map(function(u){return'<video src="'+u+'" controls style="width:120px;height:80px;border-radius:4px"></video>';}).join("")+'</div>':'')+'<span style="color:#565959;font-size:.8rem">By '+r.author+' on '+new Date(r.createdAt).toLocaleDateString()+'</span><div class="helpful-vote"><span style="font-size:.75rem;color:#565959">Helpful?</span><button onclick="voteHelpful(\''+r.id+'\',\'yes\')" id="yes-'+r.id+'" style="background:none;border:1px solid #ddd;padding:2px 8px;border-radius:4px;cursor:pointer;font-size:.75rem;color:#565959">👍 Yes <span id="yesCount-'+r.id+'">0</span></button><button onclick="voteHelpful(\''+r.id+'\',\'no\')" id="no-'+r.id+'" style="background:none;border:1px solid #ddd;padding:2px 8px;border-radius:4px;cursor:pointer;font-size:.75rem;color:#565959">👎 No <span id="noCount-'+r.id+'">0</span></button></div></div>'; }).join("");
+  }
+}).catch(function(){ document.getElementById("reviewLoading-${e(p.slug)}").textContent = "No reviews yet."; });
+// Gate: check if user can review
+(function(){
+  var form = document.getElementById("reviewForm-${e(p.slug)}");
+  var gate = document.getElementById("reviewGate-${e(p.slug)}");
+  var gateMsg = document.getElementById("reviewGateMsg-${e(p.slug)}");
+  var token = localStorage.getItem("at");
+  if (token) {
+    fetch("/api/v1/auth/session", { headers: { Authorization: "Bearer " + token } })
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        var email = d.user ? d.user.email : "";
+        if (email) {
+          document.getElementById("reviewEmail-${e(p.slug)}").value = email;
+          document.getElementById("reviewEmail-${e(p.slug)}").readOnly = true;
+          fetch("/api/v1/reviews/check?productId=" + encodeURIComponent("${e(p.id)}") + "&email=" + encodeURIComponent(email))
+            .then(function(r2){ return r2.json(); })
+            .then(function(check){
+              if (check.canReview) {
+                form.style.display = "block"; gate.style.display = "none";
+              } else if (check.reason === "Already reviewed") {
+                gateMsg.textContent = "You have already reviewed this product. Thank you!";
+              } else {
+                gateMsg.textContent = "Only verified purchasers can review. Buy this product to leave a review.";
+              }
+            });
+        } else {
+          gateMsg.innerHTML = '<a href="/account.html" style="color:#007185">Sign in</a> to write a review for your purchased items.';
+        }
+      });
+  } else {
+    gateMsg.innerHTML = '<a href="/account.html" style="color:#007185">Sign in</a> to verify purchase and write a review.';
+  }
+})();
 </script>
 
 <div style="max-width:1200px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:16px">

@@ -756,24 +756,89 @@ export function registerAdminRoutes(server: FastifyInstance, prisma: PrismaClien
   // Product Reviews (Public)
   // =========================================================================
 
+  // POST /api/v1/reviews — submit review (requires purchase)
   server.post("/api/v1/reviews", async (request: FastifyRequest, reply: FastifyReply) => {
     const body = request.body as Record<string, unknown> | undefined;
-    if (!body?.productId || !body?.rating) return reply.status(400).send({ code: "BAD_REQUEST", message: "productId and rating required" });
+    const productId = String(body?.productId ?? "");
+    const email = String(body?.email ?? "").toLowerCase().trim();
+    if (!productId || !body?.rating) return reply.status(400).send({ code: "BAD_REQUEST", message: "productId and rating required" });
+    if (!email) return reply.status(400).send({ code: "BAD_REQUEST", message: "Email required for purchase verification" });
+
+    // Check if user has purchased this product
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const orders: any[] = await (prisma as any).$queryRawUnsafe(
+      `SELECT items FROM "Order" WHERE "customerEmail" = $1`,
+      email,
+    );
+    let hasPurchased = false;
+    for (const o of orders) {
+      const items = typeof o.items === "string" ? JSON.parse(o.items) : (o.items ?? []);
+      const found = (items as any[]).some((item: any) =>
+        (item.productId === productId || item.name === productId || String(item.id ?? "") === productId)
+      );
+      if (found) { hasPurchased = true; break; }
+    }
+    if (!hasPurchased) {
+      return reply.status(403).send({ code: "NOT_PURCHASED", message: "You can only review products you have purchased" });
+    }
+
+    // Check for existing review from this email on this product
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const existingReview: any = await (prisma as any).productReview.findFirst({
+      where: { productId, email },
+    });
+    if (existingReview) {
+      return reply.status(409).send({ code: "ALREADY_REVIEWED", message: "You have already reviewed this product" });
+    }
+
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const review = await (prisma as any).productReview.create({
         data: {
-          productId: String(body.productId),
+          productId,
           rating: Number(body.rating),
           title: String(body.title ?? ""),
           content: String(body.content ?? ""),
           author: String(body.author ?? "Anonymous"),
-          email: String(body.email ?? ""),
+          email,
           status: "pending",
+          images: body.images ?? [],
+          videos: body.videos ?? [],
+          orderId: String(body.orderId ?? ""),
         },
       });
-      return await reply.status(201).send({ data: review });
+      return await reply.status(201).send({ data: review, message: "Review submitted for approval. It will appear once approved." });
     } catch { return reply.status(500).send({ code: "ERROR", message: "Failed to submit review" }); }
+  });
+
+  // GET /api/v1/reviews/check?productId=X&email=Y — check if user can review
+  server.get("/api/v1/reviews/check", async (request: FastifyRequest, reply: FastifyReply) => {
+    const q = (request.query as Record<string, string>) ?? {};
+    const productId = q.productId;
+    const email = (q.email ?? "").toLowerCase().trim();
+    if (!productId || !email) return reply.send({ canReview: false, reason: "Missing params" });
+
+    // Check purchase
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const orders: any[] = await (prisma as any).$queryRawUnsafe(
+      `SELECT items FROM "Order" WHERE "customerEmail" = $1`,
+      email,
+    );
+    let hasPurchased = false;
+    for (const o of orders) {
+      const items = typeof o.items === "string" ? JSON.parse(o.items) : (o.items ?? []);
+      if ((items as any[]).some((item: any) =>
+        (item.productId === productId || item.name === productId || String(item.id ?? "") === productId)
+      )) { hasPurchased = true; break; }
+    }
+    if (!hasPurchased) return reply.send({ canReview: false, reason: "Purchase required to review" });
+
+    // Check existing
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const existing = await (prisma as any).productReview.findFirst({ where: { productId, email } });
+    if (existing) return reply.send({ canReview: false, reason: "Already reviewed", existingReview: existing });
+
+    return await reply.send({ canReview: true });
   });
 
   server.get("/api/v1/reviews/:productId", async (request: FastifyRequest, reply: FastifyReply) => {

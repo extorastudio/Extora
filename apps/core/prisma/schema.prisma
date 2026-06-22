@@ -511,6 +511,9 @@ model ProductReview {
   author    String   @default("Anonymous")
   email     String   @default("")
   status    String   @default("pending")
+  images    Json     @default("[]")
+  videos    Json     @default("[]")
+  orderId   String   @default("")
   verified  Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

@@ -4106,3 +4106,37 @@ sellerName, sellerRating, multiBuyEnabled
 **ESLint fix:** `restrict-plus-operands` error from number + string in rating filter HTML
 **Verification:** Search filters all visible, Review page accessible at /admin-panel/#/reviews
 **CI:** All green | **Pages:** 35
+
+
+### Phase 177: Purchase-Gated Reviews with Image/Video Upload
+**Date:** June 19, 2026 | **Commit:** (upcoming)
+**Duration:** ~25 minutes
+
+**Purchase verification:**
+- `POST /api/v1/reviews` now verifies purchase from Order table (`customerEmail` + `items`)
+- 403 `NOT_PURCHASED` if user hasn't bought the product
+- 409 `ALREADY_REVIEWED` if user already reviewed (unique per email+productId)
+
+**NEW: GET /api/v1/reviews/check?productId=X&email=Y**
+- Returns `{canReview, reason, existingReview}` for client-side gating
+
+**Image/Video upload in reviews:**
+- `reviewMediaUrls` object tracks uploaded files via `/api/v1/media/upload`
+- `uploadReviewMedia()` function handles FormData uploads for images + videos
+- Uploaded URLs sent as `images` and `videos` arrays in review body
+- Images rendered in approved review list (80x80 thumbnails)
+- Videos rendered with `<video controls>` in approved review list
+
+**Client-side gating:**
+- Review form hidden by default; shown only after `/api/v1/reviews/check` returns `canReview:true`
+- Email auto-filled from authenticated session (readOnly)
+- Different messages for: not signed in, no purchase, already reviewed
+- Form hidden after successful submission with approval message
+- File inputs for images (accept="image/*") + videos (accept="video/*")
+
+**DB changes:** Added `images` (JSONB), `videos` (JSONB), `orderId` (TEXT) to ProductReview
+**Reviews now default to "pending" status — require admin approval to appear**
+**Only approved reviews shown on product pages (GET already filters by status:"approved")**
+
+**Verification:** Non-purchase review rejected with 403. canReview check returns false.
+**CI:** All green | **Pages:** 35
