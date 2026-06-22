@@ -9,6 +9,7 @@ interface PublishedSite { id: string; url: string; pages: number; sizeKB: number
 interface PageData { slug: string; title: string; description: string; content: string; }
 
 const e = (s: any) => String(s ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
+const sjs = (s: any) => String(s ?? "").replace(/-/g, "_").replace(/[^a-zA-Z0-9_$]/g, "");
 const stars = (n: number) => "★".repeat(Math.floor(n)) + "☆".repeat(5 - Math.floor(n));
 const rupee = (n: number) => "₹" + n.toLocaleString("en-IN");
 
@@ -333,19 +334,23 @@ function getCart() { try { return JSON.parse(localStorage.getItem("extora_cart")
 function saveCart(c) { localStorage.setItem("extora_cart", JSON.stringify(c)); updateCartCount(); }
 function updateCartCount() { const c = getCart(); const count = c.reduce((s,i) => s + i.qty, 0); const el = document.getElementById("cartCount"); if (el) el.textContent = count || ""; }
 function addToCart(el) {
-  const name = el.getAttribute("data-name") || "Product";
-  const price = parseFloat(el.getAttribute("data-price") || "0");
-  const img = el.getAttribute("data-img") || "";
-  const slug = el.getAttribute("data-slug") || "";
-  const cart = getCart();
-  const existing = cart.find(function(i){ return i.name === name; });
-  if (existing) existing.qty++; else cart.push({ name: name, price: price, qty: 1, img: img, slug: slug });
-  saveCart(cart);
-  el.textContent = "✓"; el.style.background = "#007600"; el.style.color = "white"; el.style.borderColor = "#007600";
-  setTimeout(function(){ el.textContent = "Add to Cart"; el.style.background = ""; el.style.color = ""; el.style.borderColor = ""; }, 2000);
-  var token = localStorage.getItem("at");
-  if (token) fetch("/api/v1/commerce/cart/add", { method:"POST", headers:{"Content-Type":"application/json", Authorization:"Bearer "+token}, body: JSON.stringify({productId: name, name: name, price: price, qty: 1}) }).catch(function(){});
-  openCartDrawer();
+  console.log("[Extora] addToCart called", el.getAttribute("data-name"));
+  try {
+    const name = el.getAttribute("data-name") || "Product";
+    const price = parseFloat(el.getAttribute("data-price") || "0");
+    const img = el.getAttribute("data-img") || "";
+    const slug = el.getAttribute("data-slug") || "";
+    const cart = getCart();
+    const existing = cart.find(function(i){ return i.name === name; });
+    if (existing) existing.qty++; else cart.push({ name: name, price: price, qty: 1, img: img, slug: slug });
+    saveCart(cart);
+    el.textContent = "✓"; el.style.background = "#007600"; el.style.color = "white"; el.style.borderColor = "#007600";
+    setTimeout(function(){ el.textContent = "Add to Cart"; el.style.background = ""; el.style.color = ""; el.style.borderColor = ""; }, 2000);
+    var token = localStorage.getItem("at");
+    if (token) fetch("/api/v1/commerce/cart/add", { method:"POST", headers:{"Content-Type":"application/json", Authorization:"Bearer "+token}, body: JSON.stringify({productId: name, name: name, price: price, qty: 1}) }).catch(function(){});
+    console.log("[Extora] opening cart drawer, cart size:", cart.length);
+    openCartDrawer();
+  } catch(e) { console.error("[Extora] addToCart error:", e); }
   return false;
 }
 function buyNow(el) {
@@ -379,13 +384,16 @@ function syncCartToServer() {
 }
 function closeCartDrawer() { document.getElementById("cartOverlay").style.display = "none"; document.getElementById("cartDrawer").classList.remove("open"); }
 function openCartDrawer() {
-  var cart = getCart();
-  var body = document.getElementById("drawerBody");
-  var footer = document.getElementById("drawerFooter");
-  var overlay = document.getElementById("cartOverlay");
-  var drawer = document.getElementById("cartDrawer");
-  var title = document.getElementById("drawerCartTitle");
-  if (!body || !footer) return;
+  console.log("[Extora] openCartDrawer called");
+  try {
+    var cart = getCart();
+    var body = document.getElementById("drawerBody");
+    var footer = document.getElementById("drawerFooter");
+    var overlay = document.getElementById("cartOverlay");
+    var drawer = document.getElementById("cartDrawer");
+    var title = document.getElementById("drawerCartTitle");
+    console.log("[Extora] drawer elements:", {body:!!body, footer:!!footer, overlay:!!overlay, drawer:!!drawer});
+    if (!body || !footer || !overlay || !drawer) { console.error("[Extora] Missing drawer elements"); return; }
   if (cart.length === 0) {
     body.innerHTML = '<div style="text-align:center;padding:40px 0"><p style="color:#565959;margin:12px 0">Your cart is empty</p><a href="/products.html" style="color:#007185;text-decoration:none;font-weight:600">Browse Products</a></div>';
     footer.innerHTML = '<p style="text-align:center;color:#565959">Your cart is empty</p>';
@@ -399,12 +407,14 @@ function openCartDrawer() {
       var subtotal = item.price * item.qty;
       return '<div class="cart-item">'+imgTag+'<div class="cart-item-info"><p class="name">'+item.name+'</p><p class="price">₹'+item.price.toLocaleString("en-IN")+'</p><div class="cart-qty"><button onclick="changeCartQty('+idx+',-1)">−</button><span>'+item.qty+'</span><button onclick="changeCartQty('+idx+',1)">+</button><span style="font-size:.8rem;color:#565959;margin-left:8px">₹'+subtotal.toLocaleString("en-IN")+'</span></div><button class="cart-item-remove" onclick="removeFromCart('+idx+')">Remove</button></div></div>';
     }).join("");
-    var couponLine = couponDiscount > 0 ? '<div style="font-size:.8rem;color:#007600;margin-bottom:8px">Coupon ('+appliedCoupon.code+'): -₹'+couponDiscount.toLocaleString("en-IN")+'</div>' : '';
+    var couponLine = couponDiscount > 0 && appliedCoupon ? '<div style="font-size:.8rem;color:#007600;margin-bottom:8px">Coupon ('+appliedCoupon.code+'): -₹'+couponDiscount.toLocaleString("en-IN")+'</div>' : '';
     var couponInput = '<div style="display:flex;gap:6px;margin-bottom:12px"><input type="text" id="drawerCouponCode" placeholder="Coupon code" style="flex:1;padding:8px;border:1px solid #ddd;border-radius:4px;font-size:.8rem"><button onclick="applyCouponDrawer()" style="padding:8px 14px;background:#ffd814;border:1px solid #fcd200;border-radius:4px;font-weight:600;cursor:pointer;font-size:.8rem;white-space:nowrap">Apply</button></div><span id="drawerCouponMsg" style="font-size:.75rem;color:#007600"></span>';
     footer.innerHTML = couponInput+couponLine+'<div style="display:flex;justify-content:space-between;margin-bottom:12px;font-size:.95rem"><span>Subtotal:</span><span style="font-weight:700">₹'+finalTotal.toLocaleString("en-IN")+'</span></div><a href="/cart.html" onclick="closeCartDrawer()" style="display:block;text-align:center;padding:12px;background:#ffd814;border:1px solid #fcd200;border-radius:24px;text-decoration:none;color:#0f1111;font-weight:600;font-size:.9rem;margin-bottom:8px">View Cart</a><button onclick="checkout()" style="width:100%;padding:12px;background:#ffa41c;border:1px solid #ff8f00;border-radius:24px;cursor:pointer;font-weight:600;font-size:.9rem">Proceed to Checkout</button>';
   }
   overlay.style.display = "block";
   drawer.classList.add("open");
+  console.log("[Extora] drawer opened successfully");
+  } catch(e) { console.error("[Extora] openCartDrawer error:", e); }
 }
 function applyCouponDrawer() {
   var code = document.getElementById("drawerCouponCode").value.trim();
@@ -451,7 +461,7 @@ function showCart() {
   }).join("");
   var couponRow = couponDiscount > 0 ? '<div style="color:#007600;font-size:.8rem;margin-bottom:4px">Coupon (' + appliedCoupon.code + '): -₹' + appliedCoupon.discount.toLocaleString("en-IN") + '</div>' : '';
   var couponInput = '<div style="margin-bottom:12px"><div style="display:flex;gap:6px"><input type="text" id="couponCode" placeholder="Enter coupon code" style="flex:1;padding:8px;border:1px solid #ddd;border-radius:4px;font-size:.8rem"><button onclick="applyCoupon()" style="padding:8px 14px;background:#ffd814;border:1px solid #fcd200;border-radius:4px;font-weight:600;cursor:pointer;font-size:.8rem;white-space:nowrap">Apply</button></div><span id="couponMsg" style="font-size:.75rem;color:#007600"></span></div>';
-  var sidebarTotal = '<div style="background:white;border:1px solid #e7e7e7;border-radius:8px;padding:20px;position:sticky;top:80px"><h3 style="font-size:1.1rem;margin:0 0 4px">Subtotal ('+cart.reduce(function(s,i){return s+i.qty;},0)+' items):</h3><span style="font-size:1.4rem;font-weight:700">₹'+finalTotal.toLocaleString("en-IN")+'</span>'+couponRow+couponInput+'<div style="margin:8px 0"><span style="font-size:.75rem;color:#007600">✓ FREE delivery</span></div><button onclick="checkout()" style="width:100%;padding:12px;background:#ffd814;border:1px solid #fcd200;border-radius:8px;font-size:.9rem;font-weight:600;cursor:pointer;margin-bottom:8px">Proceed to Buy</button><button onclick="checkout()" style="width:100%;padding:12px;background:#ffa41c;border:1px solid #ff8f00;border-radius:8px;font-size:.9rem;font-weight:600;cursor:pointer">Buy with EMI</button><p style="font-size:.7rem;color:#565959;margin:8px 0 0">By placing order, you agree to Extora\'s <a href="#" style="color:#007185">Privacy Notice</a> and <a href="#" style="color:#007185">Conditions of Use</a>.</p></div>';
+  var sidebarTotal = '<div style="background:white;border:1px solid #e7e7e7;border-radius:8px;padding:20px;position:sticky;top:80px"><h3 style="font-size:1.1rem;margin:0 0 4px">Subtotal ('+cart.reduce(function(s,i){return s+i.qty;},0)+' items):</h3><span style="font-size:1.4rem;font-weight:700">₹'+finalTotal.toLocaleString("en-IN")+'</span>'+couponRow+couponInput+'<div style="margin:8px 0"><span style="font-size:.75rem;color:#007600">✓ FREE delivery</span></div><button onclick="checkout()" style="width:100%;padding:12px;background:#ffd814;border:1px solid #fcd200;border-radius:8px;font-size:.9rem;font-weight:600;cursor:pointer;margin-bottom:8px">Proceed to Buy</button><button onclick="checkout()" style="width:100%;padding:12px;background:#ffa41c;border:1px solid #ff8f00;border-radius:8px;font-size:.9rem;font-weight:600;cursor:pointer">Buy with EMI</button><p style="font-size:.7rem;color:#565959;margin:8px 0 0">By placing order, you agree to Extora\u2019s <a href="#" style="color:#007185">Privacy Notice</a> and <a href="#" style="color:#007185">Conditions of Use</a>.</p></div>';
   var recsSection = (typeof ALL_PRODUCTS !== "undefined" && typeof RECS_ACTIVE !== "undefined" && RECS_ACTIVE) ? '<div class="section-header" style="margin-top:32px;padding-left:0"><h2>Customers Also Bought</h2></div><div class="products-grid">'+ALL_PRODUCTS.slice(0,4).map(function(p){return '<div class="product-card"><a href="/product-'+p.slug+'.html" style="text-decoration:none;color:inherit;display:flex;flex-direction:column;padding:16px;height:100%"><span class="pname">'+p.name+'</span><span class="stock-ok">₹'+p.price.toLocaleString("en-IN")+'</span></a></div>';}).join("")+'</div>' : '';
   document.querySelector("main").innerHTML = '<div style="max-width:1200px;margin:20px auto;border-radius:8px"><div style="display:flex;gap:24px;align-items:flex-start"><div style="flex:1;background:white;border-radius:8px;padding:24px"><h2 style="margin:0 0 4px">Shopping Cart</h2><p style="color:#565959;margin:0 0 4px;font-size:.85rem"><a href="#" style="color:#007185;text-decoration:none" onclick="deselectAll();return false">Deselect all items</a></p><div style="border-top:1px solid #e7e7e7;margin-top:12px">'+items+'</div><div style="text-align:right;font-size:.8rem;color:#565959;margin-top:8px">Subtotal ('+cart.reduce(function(s,i){return s+i.qty;},0)+' items): <span style="font-weight:700;color:#0f1111">₹'+finalTotal.toLocaleString("en-IN")+'</span></div></div><div style="width:280px;flex-shrink:0">'+sidebarTotal+'</div></div><a href="/index.html" style="display:inline-block;color:#007185;text-decoration:none;font-size:.85rem;margin-top:12px">← Continue Shopping</a></div>'+recsSection;
 }
@@ -1069,9 +1079,9 @@ ${p.multiBuyEnabled !== false ? `<div style="font-size:.78rem;color:#565959;marg
 ${p.stockStatus === "outofstock" || Number(p.stockQty ?? 10) <= 0 ? `
 <button class="btn-cart" style="background:#eee;border:1px solid #ccc;color:#888;cursor:not-allowed;padding:12px 24px;border-radius:24px;font-size:1rem;font-weight:500" disabled>Currently Unavailable</button>
 <button class="btn-buy" style="background:#eee;border:1px solid #ccc;color:#888;cursor:not-allowed;padding:12px 24px;border-radius:24px;font-size:1rem;font-weight:500" disabled>Buy Now</button>
-` : `
-<button class="btn-cart" data-name="${e(p.name)}" data-price="${p.price ?? 0}" data-img="${e(firstImg)}" data-slug="${e(p.slug)}" onclick="addToCart(this);return false">Add to Cart</button>
-<button class="btn-buy" data-name="${e(p.name)}" data-price="${p.price ?? 0}" data-img="${e(firstImg)}" data-slug="${e(p.slug)}" onclick="buyNow(this);return false">Buy Now</button>
+ ` : `
+<button type="button" class="btn-cart" data-name="${e(p.name)}" data-price="${p.price ?? 0}" data-img="${e(firstImg)}" data-slug="${e(p.slug)}" onclick="addToCart(this);return false">Add to Cart</button>
+<button type="button" class="btn-buy" data-name="${e(p.name)}" data-price="${p.price ?? 0}" data-img="${e(firstImg)}" data-slug="${e(p.slug)}" onclick="buyNow(this);return false">Buy Now</button>
 `}
 </div>
 <div class="secure">🔒 Secure transaction</div>
@@ -1110,7 +1120,7 @@ ${[1,2,3,4,5].map((n) => `<span onclick="setRating('${e(p.slug)}',${n})" style="
 </div>
 </div>
 <script>
-var reviewMediaUrls_${e(p.slug)} = { images: [], videos: [] };
+var reviewMediaUrls_${sjs(p.slug)} = { images: [], videos: [] };
 function setRating(slug, n) { document.getElementById("ratingVal-"+slug).value = n; for(var i=1;i<=5;i++) document.getElementById("star"+i+"-"+slug).style.color = i<=n ? "#febd69" : "#ddd"; }
 function uploadReviewMedia(slug, type) {
   var input = document.getElementById(type === "images" ? "reviewImages-" + slug : "reviewVideos-" + slug);
@@ -1121,7 +1131,7 @@ function uploadReviewMedia(slug, type) {
     var fd = new FormData(); fd.append("file", input.files[i]);
     fetch("/api/v1/media/upload", { method: "POST", body: fd })
       .then(function(r){ return r.json(); })
-      .then(function(d){ if (d.url) { reviewMediaUrls_${e(p.slug)}[type].push(d.url); status.textContent = reviewMediaUrls_${e(p.slug)}[type].length + " uploaded"; } })
+      .then(function(d){ if (d.url) { reviewMediaUrls_${sjs(p.slug)}[type].push(d.url); status.textContent = reviewMediaUrls_${sjs(p.slug)}[type].length + " uploaded"; } })
       .catch(function(){ status.textContent = "Upload failed"; });
   }
 }
@@ -1133,7 +1143,7 @@ function submitReview(slug, productId) {
   var email = document.getElementById("reviewEmail-"+slug).value.trim();
   var msg = document.getElementById("reviewMsg-"+slug);
   if (!email) { msg.textContent = "Email required for purchase verification"; msg.style.color = "#cc0c39"; return; }
-  fetch("/api/v1/reviews", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({productId:productId,rating:Number(rating),title:title,content:content,author:author,email:email,images:reviewMediaUrls_${e(p.slug)}.images,videos:reviewMediaUrls_${e(p.slug)}.videos}) })
+  fetch("/api/v1/reviews", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({productId:productId,rating:Number(rating),title:title,content:content,author:author,email:email,images:reviewMediaUrls_${sjs(p.slug)}.images,videos:reviewMediaUrls_${sjs(p.slug)}.videos}) })
     .then(function(r){ return r.json(); })
     .then(function(d){
       if (d.code === "NOT_PURCHASED") { msg.textContent = "You can only review products you have purchased."; msg.style.color = "#cc0c39"; }

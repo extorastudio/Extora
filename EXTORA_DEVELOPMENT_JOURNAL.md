@@ -4279,3 +4279,30 @@ sellerName, sellerRating, multiBuyEnabled
 
 **Verification:** All fixes confirmed on correct product detail URL
 **CI:** All green | **Pages:** 36
+
+
+### Phase 182: Critical Fix — JS Syntax Errors from Slug Hyphens
+**Date:** June 19, 2026 | **Commit:** (upcoming)
+**Duration:** ~30 minutes
+
+**Root cause:** Product slugs contain hyphens (e.g. `mechanical-keyboard-1781840000559`).
+These were used directly in JavaScript identifiers (variable names like
+`reviewMediaUrls_mechanical-keyboard-1781840000559`), which is invalid —
+JavaScript identifiers cannot contain hyphens.
+
+This caused `SyntaxError: Unexpected token '-'` on line 1 of the review script,
+which stopped ALL JavaScript execution on the page. Since the global script
+(containing `addToCart`) runs after the broken review script, it may or may not
+execute depending on browser behavior.
+
+**Fix:**
+- Added `sjs()` helper: replaces hyphens with underscores for JS-safe identifiers
+- All `reviewMediaUrls_${e(p.slug)}` → `reviewMediaUrls_${sjs(p.slug)}`
+- Additional: changed `Extora\'s` → `Extora\u2019s` (Unicode curly apostrophe) to
+  avoid backslash quote escaping issues inside template literals
+- Added `console.log` diagnostics to `addToCart()` and `openCartDrawer()`
+- Added `try-catch` wrappers for resilience
+- Added `type="button"` to product detail page buttons
+
+**Result:** No syntax errors. `addToCart` and `openCartDrawer` now defined and callable.
+**CI:** All green | **Pages:** 36
