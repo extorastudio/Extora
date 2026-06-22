@@ -898,6 +898,49 @@ export function registerAdminRoutes(server: FastifyInstance, prisma: PrismaClien
     return await reply.send({ data: { ...orderData, createdAt: new Date().toISOString() } });
   });
 
+  // GET /api/v1/orders/track?orderNumber=EXT-XXXXXX&email=customer@example.com — public tracking
+  server.get("/api/v1/orders/track", async (request: FastifyRequest, reply: FastifyReply) => {
+    const q = (request.query as Record<string, string>) ?? {};
+    const orderNumber = q.orderNumber;
+    const email = q.email;
+    if (!orderNumber || !email) {
+      return reply.status(400).send({ code: "MISSING_PARAMS", message: "orderNumber and email required" });
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const rows: any[] = await (prisma as any).$queryRawUnsafe(
+      `SELECT * FROM "Order" WHERE "orderNumber" = $1 AND "customerEmail" = $2 LIMIT 1`,
+      orderNumber, email,
+    );
+    if (!rows.length) return reply.status(404).send({ code: "NOT_FOUND", message: "Order not found" });
+    return await reply.send({ data: rows[0] });
+  });
+
+  // POST /api/v1/coupons/validate — validate coupon code
+  server.post("/api/v1/coupons/validate", async (request: FastifyRequest, reply: FastifyReply) => {
+    const body = request.body as Record<string, unknown> | undefined;
+    const code = String(body?.code ?? "").trim().toUpperCase();
+    const orderTotal = Number(body?.orderTotal ?? 0);
+    if (!code || orderTotal <= 0) {
+      return reply.status(400).send({ code: "INVALID", message: "Missing code or invalid order total" });
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const rows: any[] = await (prisma as any).$queryRawUnsafe(
+      `SELECT * FROM "Coupon" WHERE code = $1 AND "isActive" = true AND ("expiresAt" IS NULL OR "expiresAt" > NOW()) LIMIT 1`,
+      code,
+    );
+    if (!rows.length) return reply.status(404).send({ code: "NOT_FOUND", message: "Invalid or expired coupon" });
+    const coupon = rows[0];
+    if (coupon.minOrder && orderTotal < coupon.minOrder) {
+      return reply.send({ valid: false, message: `Minimum order of ₹${coupon.minOrder} required` });
+    }
+    if (coupon.usageLimit && coupon.usageCount >= coupon.usageLimit) {
+      return reply.send({ valid: false, message: "Coupon usage limit reached" });
+    }
+    let discount = coupon.type === "fixed" ? Number(coupon.value) : Math.round(orderTotal * Number(coupon.value) / 100);
+    if (coupon.maxDiscount) discount = Math.min(discount, Number(coupon.maxDiscount));
+    return await reply.send({ valid: true, discount, code: coupon.code, message: `₹${discount} off applied!` });
+  });
+
   // ── ANALYTICS & REPORTS ──
 
   // GET /api/v1/analytics/dashboard — dashboard summary stats

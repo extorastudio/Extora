@@ -235,6 +235,7 @@ footer .inner{grid-template-columns:repeat(2,1fr)}
 <div id="accountDropdown" style="display:none;position:absolute;top:100%;right:0;background:white;border:1px solid #ddd;border-radius:4px;box-shadow:0 4px 12px rgba(0,0,0,.15);min-width:180px;z-index:100;padding:8px 0">
 <a href="/account.html" style="display:block;padding:8px 16px;color:#0f1111;text-decoration:none;font-size:.85rem">My Account</a>
 <a href="/orders.html" style="display:block;padding:8px 16px;color:#0f1111;text-decoration:none;font-size:.85rem">My Orders</a>
+<a href="/track-order.html" style="display:block;padding:8px 16px;color:#0f1111;text-decoration:none;font-size:.85rem">Track Order</a>
 <hr style="margin:4px 0;border:none;border-top:1px solid #e7e7e7">
 <a href="#" onclick="doHeaderLogout();return false" style="display:block;padding:8px 16px;color:#cc0c39;text-decoration:none;font-size:.85rem">Sign Out</a>
 </div>
@@ -251,7 +252,7 @@ footer .inner{grid-template-columns:repeat(2,1fr)}
 <div><h4>Get to Know Us</h4><a href="/about.html">About</a></div>
 <div><h4>Connect</h4><a href="#">Facebook</a><a href="#">Twitter</a><a href="#">Instagram</a></div>
 <div><h4>Make Money</h4><a href="#">Sell</a><a href="#">Affiliate</a></div>
-<div><h4>Let Us Help</h4><a href="/account.html">Your Account</a><a href="/orders.html">Your Orders</a><a href="#">Returns</a><a href="#">Help</a></div>
+<div><h4>Let Us Help</h4><a href="/account.html">Your Account</a><a href="/orders.html">Your Orders</a><a href="/track-order.html">Track Order</a><a href="#">Returns</a><a href="#">Help</a></div>
 <div style="grid-column:1/-1;margin-top:12px;padding:16px 0;border-top:1px solid #3a4553;display:flex;align-items:center;gap:16px;flex-wrap:wrap">
 <span style="color:white;font-size:.9rem">Subscribe to our newsletter</span>
 <input type="email" id="nlEmail" placeholder="Enter your email" style="flex:1;min-width:200px;padding:8px 12px;border:1px solid #3a4553;border-radius:4px;background:#131921;color:white;font-size:.85rem">
@@ -299,6 +300,20 @@ function buyNow(el) {
   setTimeout(() => showCart(), 300);
 }
 function removeFromCart(idx) { const c = getCart(); c.splice(idx,1); saveCart(c); showCart(); }
+var appliedCoupon = null;
+function applyCoupon() {
+  var code = document.getElementById("couponCode").value.trim();
+  var msg = document.getElementById("couponMsg");
+  if (!code) { msg.textContent = "Enter a coupon code"; msg.style.color = "#cc0c39"; return; }
+  var cart = getCart();
+  var total = cart.reduce(function(s,i){ return s + i.price * i.qty; }, 0);
+  fetch("/api/v1/coupons/validate", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({code:code, orderTotal:total}) })
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      if (d.valid) { appliedCoupon = d; msg.textContent = d.message; msg.style.color = "#007600"; showCart(); }
+      else { msg.textContent = d.message || "Invalid coupon"; msg.style.color = "#cc0c39"; appliedCoupon = null; }
+    }).catch(function(){ msg.textContent = "Error validating coupon"; msg.style.color = "#cc0c39"; });
+}
 function showCart() {
   const cart = getCart();
   if (cart.length === 0) {
@@ -307,8 +322,12 @@ function showCart() {
     return;
   }
   const total = cart.reduce((s,i) => s + i.price * i.qty, 0);
+  var couponDiscount = (typeof appliedCoupon !== "undefined" && appliedCoupon ? appliedCoupon.discount : 0);
+  var finalTotal = total - couponDiscount;
   const items = cart.map((i, idx) => \`<tr><td>\${i.name}</td><td>₹\${i.price.toLocaleString("en-IN")}</td><td>\${i.qty}</td><td>₹\${(i.price*i.qty).toLocaleString("en-IN")}</td><td><button onclick="removeFromCart(\${idx})" style="background:#cc0c39;color:white;border:none;padding:4px 8px;border-radius:4px;cursor:pointer">Remove</button></td></tr>\`).join("");
-  const html = \`<div style="max-width:800px;margin:20px auto;background:white;border-radius:8px;padding:24px"><h2>Shopping Cart</h2><table style="width:100%;border-collapse:collapse;margin:16px 0"><thead><tr style="background:#f0f2f2"><th style="text-align:left;padding:8px">Product</th><th>Price</th><th>Qty</th><th>Total</th><th></th></tr></thead><tbody>\${items}</tbody><tfoot><tr style="font-weight:700;font-size:1.1rem"><td colspan="3" style="text-align:right;padding:12px">Total:</td><td style="padding:12px">₹\${total.toLocaleString("en-IN")}</td><td></td></tr></tfoot></table><button onclick="checkout()" style="padding:12px 32px;background:#ffd814;border:1px solid #fcd200;border-radius:20px;font-size:1rem;cursor:pointer;font-weight:600">Proceed to Checkout</button>\${typeof ALL_PRODUCTS !== "undefined" && typeof RECS_ACTIVE !== "undefined" && RECS_ACTIVE ? \`<div class="section-header" style="margin-top:24px;padding-left:0"><h2>Customers Also Bought</h2></div><div class="products-grid">\${ALL_PRODUCTS.slice(0,4).map(function(p){return \`<div class="product-card"><a href="/product-\${p.slug}.html" style="text-decoration:none;color:inherit;display:flex;flex-direction:column;padding:16px;height:100%"><span class="pname">\${p.name}</span><span class="stock-ok">₹\${p.price.toLocaleString("en-IN")}</span></a></div>\`;}).join("")}</div>\` : ""}</div>\`;
+  var couponRow = (typeof appliedCoupon !== "undefined" && appliedCoupon) ? '<tr style="color:#007600"><td colspan="3" style="text-align:right;padding:4px 12px;font-size:.85rem">Coupon (' + appliedCoupon.code + '):</td><td style="padding:4px 12px;font-size:.85rem">-₹' + appliedCoupon.discount.toLocaleString("en-IN") + '</td><td></td></tr>' : '';
+  var couponInput = '<div style="display:flex;gap:8px;margin:12px 0;max-width:360px"><input type="text" id="couponCode" placeholder="Enter coupon code" style="flex:1;padding:8px 12px;border:1px solid #ddd;border-radius:4px;font-size:.85rem"><button onclick="applyCoupon()" style="padding:8px 16px;background:#ffd814;border:1px solid #fcd200;border-radius:4px;cursor:pointer;font-weight:600;font-size:.85rem;white-space:nowrap">Apply</button></div><span id="couponMsg" style="font-size:.8rem;color:#007600"></span>';
+  const html = \`<div style="max-width:800px;margin:20px auto;background:white;border-radius:8px;padding:24px"><h2>Shopping Cart</h2><table style="width:100%;border-collapse:collapse;margin:16px 0"><thead><tr style="background:#f0f2f2"><th style="text-align:left;padding:8px">Product</th><th>Price</th><th>Qty</th><th>Total</th><th></th></tr></thead><tbody>\${items}</tbody><tfoot>\${couponRow}<tr style="font-weight:700;font-size:1.1rem"><td colspan="3" style="text-align:right;padding:12px">Total:</td><td style="padding:12px">₹\${finalTotal.toLocaleString("en-IN")}</td><td></td></tr></tfoot></table>\${couponInput}<button onclick="checkout()" style="padding:12px 32px;background:#ffd814;border:1px solid #fcd200;border-radius:20px;font-size:1rem;cursor:pointer;font-weight:600;margin-top:12px">Proceed to Checkout</button>\${typeof ALL_PRODUCTS !== "undefined" && typeof RECS_ACTIVE !== "undefined" && RECS_ACTIVE ? \`<div class="section-header" style="margin-top:24px;padding-left:0"><h2>Customers Also Bought</h2></div><div class="products-grid">\${ALL_PRODUCTS.slice(0,4).map(function(p){return \`<div class="product-card"><a href="/product-\${p.slug}.html" style="text-decoration:none;color:inherit;display:flex;flex-direction:column;padding:16px;height:100%"><span class="pname">\${p.name}</span><span class="stock-ok">₹\${p.price.toLocaleString("en-IN")}</span></a></div>\`;}).join("")}</div>\` : ""}</div>\`;
   document.querySelector("main").innerHTML = html;
 }
 async function checkout() {
@@ -340,8 +359,11 @@ async function checkout() {
   // Show suggestions from product data
   var recs = (typeof ALL_PRODUCTS !== "undefined" ? ALL_PRODUCTS : []).slice(0,4).map(function(p){return '<div class="product-card"><a href="/product-'+p.slug+'.html" style="text-decoration:none;color:inherit;display:flex;flex-direction:column;padding:16px;height:100%"><span class="pname">'+p.name+'</span><span class="stock-ok">₹'+p.price.toLocaleString("en-IN")+'</span></a></div>'}).join("");
   var recHTML = recs ? '<div class="section-header" style="margin-top:32px"><h2>You Might Also Like</h2></div><div class="products-grid">'+recs+'</div>' : '';
+  var couponDiscount = (typeof appliedCoupon !== "undefined" && appliedCoupon ? appliedCoupon.discount : 0);
+  var finalTotal = total - couponDiscount;
+  var couponLine = couponDiscount > 0 ? '<p style="color:#007600;font-size:.85rem">Coupon discount: -₹' + couponDiscount.toLocaleString("en-IN") + '</p>' : '';
   var giftBadge = giftMsg ? '<div style="margin:12px auto;max-width:400px;background:#fff8e1;border:1px solid #ffe082;border-radius:8px;padding:12px;text-align:left"><span style="color:#f57f17;font-weight:600;font-size:.85rem">🎁 Gift Order</span><p style="color:#555;font-size:.85rem;margin:4px 0 0">Message: '+giftMsg+'</p></div>' : (isGift ? '<p style="color:#f57f17;font-size:.85rem">🎁 This is a gift order</p>' : '');
-  document.querySelector("main").innerHTML = \`<div style="max-width:600px;margin:40px auto;text-align:center;background:white;border-radius:8px;padding:40px"><h2>Order Confirmed!</h2><p style="font-size:1.2rem;margin:16px 0">Order #\${orderNumber}</p><p>\${cart.length} items · ₹\${total.toLocaleString("en-IN")}</p>\${giftBadge}<p style="color:#565959;margin-top:8px">Confirmation sent to \${email}</p><a href="/orders.html" style="display:inline-block;margin-top:16px;color:#007185;text-decoration:none">View Orders</a> · <a href="/index.html" style="color:#007185;text-decoration:none;margin-left:12px">Continue Shopping</a></div>\${recHTML}\`;
+  document.querySelector("main").innerHTML = \`<div style="max-width:600px;margin:40px auto;text-align:center;background:white;border-radius:8px;padding:40px"><h2>Order Confirmed!</h2><p style="font-size:1.2rem;margin:16px 0">Order #\${orderNumber}</p><p>\${cart.length} items · ₹\${finalTotal.toLocaleString("en-IN")}</p>\${couponLine}\${giftBadge}<p style="color:#565959;margin-top:8px">Confirmation sent to \${email}</p><a href="/orders.html" style="display:inline-block;margin-top:16px;color:#007185;text-decoration:none">View Orders</a> · <a href="/orders.html" style="color:#007185;text-decoration:none;margin-left:12px">Track Order</a> · <a href="/index.html" style="color:#007185;text-decoration:none;margin-left:12px">Continue Shopping</a></div>\${recHTML}\`;
   localStorage.removeItem("extora_cart");
   updateCartCount();
 }
@@ -823,8 +845,9 @@ export async function publishSite(prisma: PrismaClient, logger: Logger): Promise
     const highlights: string[] = Array.isArray(p.highlights) ? p.highlights.map(String) : [];
     if (!highlights.length) highlights.push("High quality material", "Durable & long lasting", "Easy to use", "1 year warranty");
 
-    const specs = (typeof p.specs === "object" && p.specs ? p.specs : {}) as Record<string, string>;
-    const specRows = Object.entries(specs).map(([k, v]) => `<tr><td>${e(k)}</td><td>${e(v)}</td></tr>`).join("");
+    const specsRaw = p.specs || [];
+    const specs = Array.isArray(specsRaw) ? specsRaw : (typeof specsRaw === "object" ? Object.entries(specsRaw).map(([k, v]) => ({ label: k, value: v })) : []);
+    const specRows = specs.map((s: any) => `<tr><td>${e(s.label ?? s.key ?? "")}</td><td>${e(s.value ?? "")}</td></tr>`).join("");
 
     let videoHtml = "";
     if (p.videoUrl) {
@@ -1452,6 +1475,69 @@ if (token) {
       '</tbody></table>';
     }).catch(() => {});
 }
+</script>
+</div>`,
+  });
+
+  // ── TRACK ORDER PAGE ──
+  if (isCommerceActive) pages.push({
+    slug: "track-order", title: "Track Your Order", description: "Check order status",
+    content: `<div class="page-content">
+<h1>Track Your Order</h1>
+<p style="color:#565959;margin-bottom:24px">Enter your order number and email to check delivery status.</p>
+<div id="trackForm" style="max-width:440px">
+<input type="text" id="trackOrderNo" placeholder="Order Number (e.g. EXT-123456)" style="width:100%;padding:12px;border:1px solid #ddd;border-radius:8px;margin-bottom:12px;font-size:1rem">
+<input type="email" id="trackEmail" placeholder="Email used for order" style="width:100%;padding:12px;border:1px solid #ddd;border-radius:8px;margin-bottom:12px;font-size:1rem">
+<button onclick="trackOrder()" style="width:100%;padding:12px;background:#ffd814;border:1px solid #fcd200;border-radius:8px;font-size:1rem;font-weight:600;cursor:pointer">Track Order</button>
+</div>
+<div id="trackResult" style="margin-top:24px"></div>
+<div id="trackOrdersList" style="margin-top:16px"></div>
+<script>
+function getStatusIndex(status) {
+  const steps = ["confirmed", "processing", "shipped", "out_for_delivery", "delivered"];
+  return steps.indexOf(status);
+}
+function trackOrder() {
+  const orderNo = document.getElementById("trackOrderNo").value.trim();
+  const email = document.getElementById("trackEmail").value.trim();
+  if (!orderNo || !email) { alert("Please enter both order number and email"); return; }
+  fetch("/api/v1/orders/track?orderNumber=" + encodeURIComponent(orderNo) + "&email=" + encodeURIComponent(email))
+    .then(r => r.json()).then(d => {
+      if (!d.data) { document.getElementById("trackResult").innerHTML = '<p style="color:#d00">Order not found. Please check your order number and email.</p>'; return; }
+      const o = d.data;
+      const steps = ["confirmed", "processing", "shipped", "out_for_delivery", "delivered"];
+      const idx = steps.indexOf(o.status);
+      const statusLabels = {confirmed:"Confirmed",processing:"Processing",shipped:"Shipped",out_for_delivery:"Out for Delivery",delivered:"Delivered"};
+      const curLabel = statusLabels[o.status] || o.status || "Confirmed";
+      const items = Array.isArray(o.items) ? o.items : (typeof o.items === "string" ? JSON.parse(o.items) : []);
+      const bgColors = {confirmed:"#ffd814",processing:"#007185",shipped:"#007185",out_for_delivery:"#f90",delivered:"#007600"};
+      document.getElementById("trackResult").innerHTML =
+        '<div style="background:white;border-radius:8px;padding:24px">' +
+        '<h2 style="margin:0 0 4px">Order #' + o.orderNumber + '</h2>' +
+        '<p style="color:#565959;margin:0 0 16px">Placed on ' + new Date(o.createdAt).toLocaleDateString("en-IN",{year:"numeric",month:"long",day:"numeric"}) + ' · ₹' + (o.total||0).toLocaleString("en-IN") + '</p>' +
+        '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;position:relative">' +
+        steps.map((s,i) => '<div style="flex:1;text-align:center;position:relative">' +
+          '<div style="width:32px;height:32px;border-radius:50%;margin:0 auto 6px;display:flex;align-items:center;justify-content:center;font-size:1rem;background:' + (i <= idx ? (s==="delivered"?"#007600":bgColors[s]) : "#ddd") + ';color:' + (i <= idx ? "#fff" : "#888") + '">' + (i <= idx ? (s==="delivered"?"✓":i+1) : i+1) + '</div>' +
+          '<span style="font-size:.75rem;color:' + (i <= idx ? "#0f1111" : "#ccc") + ';font-weight:' + (i <= idx ? "600" : "400") + '">' + statusLabels[s] + '</span>' +
+          (i < idx ? '<div style="position:absolute;top:16px;left:calc(50% + 20px);width:calc(100% - 40px);height:2px;background:#007600"></div>' : '') +
+        '</div>').join("") +
+        '</div>' +
+        '<div style="border-top:1px solid #e7e7e7;padding-top:16px;margin-top:12px">' +
+        '<h4 style="margin:0 0 8px">Status: <span style="color:' + (bgColors[o.status] || "#333") + '">' + curLabel + '</span></h4>' +
+        '<p style="color:#0f1111;font-size:.9rem;margin:4px 0">' + items.length + ' item(s) · ₹' + (o.total||0).toLocaleString("en-IN") + '</p>' +
+        '<p style="color:#565959;font-size:.8rem;margin-top:12px">Questions about your order? <a href="/contact.html" style=\\"color:#007185\\">Contact support</a></p>' +
+        '</div></div>';
+    }).catch(() => { document.getElementById("trackResult").innerHTML = '<p style="color:#d00">Something went wrong. Please try again.</p>'; });
+}
+// Auto-fill from URL params
+(function(){
+  const params = new URLSearchParams(location.search);
+  const no = params.get("orderNumber") || params.get("no");
+  const em = params.get("email");
+  if (no) document.getElementById("trackOrderNo").value = no;
+  if (em) document.getElementById("trackEmail").value = em;
+  if (no && em) trackOrder();
+})();
 </script>
 </div>`,
   });

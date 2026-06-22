@@ -4015,3 +4015,35 @@ var SEO_ACTIVE = true/false;
 - Data from `localStorage.extora_viewed`
 
 **Docker deploy:** 34 pages, CI all green
+
+
+### Phase 169-171: Product Specs, Order Tracking, Coupon System
+**Date:** June 19, 2026 | **Commit:** (upcoming)
+**Duration:** ~45 minutes
+
+**Phase 169: Product Specs Comparison Table**
+- Standalone Specs tab in Studio product editor (10th tab, icon: List)
+- Spec rows: label + value pairs, add/remove rows
+- Publishing engine renders table on product detail pages
+- Uses existing `specs` JSONB column (now defaults to `[]`)
+- Array format prioritized (Prisma `@default("[]")`)
+
+**Phase 170: Public Order Tracking Page**
+- `GET /api/v1/orders/track?orderNumber=xxx&email=yyy` — public (no auth)
+- Raw SQL query against Order table by orderNumber + email
+- `track-order.html` page (35th page) with form + timeline visualization
+- 5-step tracking: confirmed → processing → shipped → out_for_delivery → delivered
+- Color-coded progress bar with step indicators
+- Auto-fill from URL params (e.g. `/track-order.html?orderNumber=EXT-123456`)
+- "Track Order" links in header dropdown + footer
+
+**Phase 171: Discount Coupon System**
+- `Coupon` table in PostgreSQL + Prisma model
+- `POST /api/v1/coupons/validate` endpoint (validates code, checks minOrder, usageLimit, expiry)
+- Supports percentage + fixed discount types with maxDiscount cap
+- Coupon input in cart drawer + `applyCoupon()` JS function
+- Applied coupon shows as line item in cart + order confirmation
+- Seed coupons: WELCOME10 (10% off, min ₹499, max ₹500), FLAT100 (₹100 off, min ₹999)
+- `appliedCoupon` global variable tracks state across cart renders
+
+**CI:** All green | **Pages:** 34 → 35 | **Docker:** Rebuilt + deployed

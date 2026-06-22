@@ -359,7 +359,7 @@ model Product {
   warranty      String   @default("")
   offers        String[] @default([])
   highlights    String[] @default([])
-  specs         Json     @default("{}")
+  specs         Json     @default("[]")
   sellerName    String   @default("Extora Seller")
   sellerRating  Float    @default(4.0)
   createdAt    DateTime @default(now())
@@ -484,6 +484,22 @@ model ProductAttribute {
   sortOrder   Int      @default(0)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+model Coupon {
+  id          String    @id @default(cuid())
+  code        String    @unique
+  type        String    @default("percentage")
+  value       Float     @default(10)
+  minOrder    Float?
+  maxDiscount Float?
+  usageLimit  Int?
+  usageCount  Int       @default(0)
+  isActive    Boolean   @default(true)
+  expiresAt   DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@map("Coupon")
 }
 
 model ProductReview {

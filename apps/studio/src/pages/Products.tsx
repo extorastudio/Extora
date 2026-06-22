@@ -3,7 +3,7 @@ import apiClient from "../api/client";
 import {
   Package, Plus, Save, Trash2, RefreshCw, Send, Image, Settings, Upload,
   Truck, Layers, Link2, Tag, DollarSign, Box, FolderTree,
-  Tags, Shield, Grid3X3, MessageSquare, Globe
+  Tags, Shield, Grid3X3, MessageSquare, Globe, List
 } from "lucide-react";
 import { TableSkeleton } from "../components/ui/Skeleton";
 
@@ -41,6 +41,7 @@ interface ProductData {
   crossSellIds: string[];
   relatedIds: string[];
   metaData: Record<string, unknown>;
+  specs: { label: string; value: string }[];
 }
 
 const EMPTY_PRODUCT: ProductData = {
@@ -50,7 +51,7 @@ const EMPTY_PRODUCT: ProductData = {
   category: "General", categories: [], tags: [], images: [], videoUrl: "", brand: "",
   manageStock: false, stockQty: 0, stockStatus: "instock", weight: null, taxStatus: "taxable",
   dealType: null, dealValue: null, dealLabel: null, discountType: null, discountValue: null,
-  comboItems: [], upSellIds: [], crossSellIds: [], relatedIds: [], metaData: {},
+  comboItems: [], upSellIds: [], crossSellIds: [], relatedIds: [], metaData: {}, specs: [],
 };
 
 const TABS = [
@@ -63,6 +64,7 @@ const TABS = [
   { id: "deals", icon: Tag, label: "Deals" },
   { id: "advanced", icon: Layers, label: "Advanced" },
   { id: "seo", icon: Globe, label: "SEO" },
+  { id: "specs", icon: List, label: "Specs" },
 ];
 
 const STATUS_OPTIONS = [
@@ -706,6 +708,21 @@ export default function ProductsPage() {
                 <div className="border-t border-gray-700 pt-3"><h4 className="text-xs text-gray-500 uppercase mb-3">📱 Social (OG)</h4><div className="grid grid-cols-2 gap-3"><div><label className="text-xs text-gray-400 block mb-1">OG Title</label><input type="text" value={seoOgTitle} onChange={e=>setSeoOgTitle(e.target.value)} className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none" /></div><div><label className="text-xs text-gray-400 block mb-1">OG Image URL</label><input type="text" value={seoOgImage} onChange={e=>setSeoOgImage(e.target.value)} className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none" /></div></div><div className="mt-2"><label className="text-xs text-gray-400 block mb-1">OG Description</label><textarea rows={2} value={seoOgDesc} onChange={e=>setSeoOgDesc(e.target.value)} className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none resize-y" /></div></div>
                 <label className="flex items-center gap-2 cursor-pointer text-xs text-gray-400"><input type="checkbox" checked={seoNoIndex} onChange={e=>setSeoNoIndex(e.target.checked)} className="accent-red-500" /> Noindex</label>
                 <div className="flex items-center gap-3 border-t border-gray-700 pt-3"><button onClick={()=>void saveSeoMeta()} disabled={seoSaving} className="rounded-lg bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-500 disabled:opacity-50">{seoSaving?"Saving...":"💾 Save SEO"}</button>{seoMsg && <span className="text-sm text-green-400">{seoMsg}</span>}</div>
+              </div>
+            )}
+
+            {activeTab === "specs" && editing && (
+              <div className="grid grid-cols-1 gap-3">
+                <div className="flex items-center gap-2"><List className="h-4 w-4 text-blue-400" /><span className="text-sm font-semibold text-white">Technical Specifications</span></div>
+                <p className="text-xs text-gray-500">Add specification rows (label + value). These appear in the product specs table.</p>
+                {(editing.specs ?? []).map((s, i) => (
+                  <div key={i} className="flex items-center gap-2">
+                    <input type="text" value={s.label ?? ""} onChange={e => { const updated = [...(editing.specs ?? [])]; updated[i] = { label: e.target.value, value: updated[i]?.value ?? "" }; update("specs", updated); }} placeholder="Label (e.g. Material)" className="flex-1 rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none" />
+                    <input type="text" value={s.value ?? ""} onChange={e => { const updated = [...(editing.specs ?? [])]; updated[i] = { label: updated[i]?.label ?? "", value: e.target.value }; update("specs", updated); }} placeholder="Value (e.g. Cotton)" className="flex-1 rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none" />
+                    <button onClick={() => { const updated = [...(editing.specs ?? [])]; updated.splice(i, 1); update("specs", updated); }} className="rounded-lg border border-red-800 px-2 py-2 text-xs text-red-400 hover:bg-red-900/50">✕</button>
+                  </div>
+                ))}
+                <button onClick={() => { const updated = [...(editing.specs ?? []), { label: "", value: "" }]; update("specs", updated); }} className="rounded-lg border border-gray-600 px-3 py-2 text-xs text-blue-400 hover:bg-gray-800 w-fit">+ Add Row</button>
               </div>
             )}
 
