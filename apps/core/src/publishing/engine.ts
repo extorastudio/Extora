@@ -12,7 +12,17 @@ const e = (s: any) => String(s ?? "").replaceAll("&", "&amp;").replaceAll("<", "
 const stars = (n: number) => "★".repeat(Math.floor(n)) + "☆".repeat(5 - Math.floor(n));
 const rupee = (n: number) => "₹" + n.toLocaleString("en-IN");
 
-function layout(site: { name: string }, body: string, pageTitle: string, allProducts?: any[], pluginState?: { commerce: boolean; cms: boolean; auth: boolean; seo: boolean; recs: boolean }, seoMeta?: { title?: string; description?: string; keywords?: string; ogTitle?: string; ogDescription?: string; ogImage?: string; noIndex?: boolean }): string {
+function layout(site: { name: string }, body: string, pageTitle: string, allProducts?: any[], pluginState?: { commerce: boolean; cms: boolean; auth: boolean; seo: boolean; recs: boolean }, seoMeta?: { title?: string; description?: string; keywords?: string; ogTitle?: string; ogDescription?: string; ogImage?: string; noIndex?: boolean }, themeSettings?: Record<string, any>): string {
+  const s = themeSettings ?? {};
+  const primaryColor = String(s.primaryColor ?? "#131921");
+  const accentColor  = String(s.accentColor ?? "#febd69");
+  const bgColor      = String(s.bgColor ?? "#eaeded");
+  const textColor    = String(s.textColor ?? "#0f1111");
+  const linkColor    = String(s.linkColor ?? "#007185");
+  const footerBg     = String(s.footerBg ?? "#232f3e");
+  const bodyFont     = String(s.bodyFont ?? "Arial, Helvetica, sans-serif");
+  const customCss    = String(s.customCss ?? "");
+  const customJs     = String(s.customJs ?? "");
   const productJson = allProducts ? JSON.stringify(allProducts) : "[]";
   const cs = pluginState?.commerce ?? true;
   const cms = pluginState?.cms ?? true;
@@ -242,6 +252,21 @@ footer .inner{grid-template-columns:repeat(2,1fr)}
 .cart-item-remove:hover{text-decoration:underline}
 .cart-drawer-saved{border-top:1px solid #e7e7e7;padding:12px 20px;font-size:.8rem;color:#007600}
 }
+<style>
+/* Theme Overrides */
+body{font-family:${bodyFont};color:${textColor};background:${bgColor}}
+.top-nav{background:${primaryColor}}
+.top-nav .logo{color:${accentColor}}
+.sub-nav{background:${footerBg}}
+footer{background:${footerBg}}
+a{color:${linkColor}}
+.top-nav .search button{background:${accentColor}}
+.announce-bar{background:${footerBg}}
+.announce-bar a{color:${accentColor}}
+.pdetail .rating-row .stars{color:${accentColor}}
+.pdetail .rating-row .revs{color:${linkColor}}
+.pdetail .gallery .thumbs img:hover{border-color:${accentColor}}
+${customCss ? "/* Custom CSS */\n" + customCss + "\n" : ""}
 </style></head><body>
 <div class="announce-bar" id="announceBar">
 <span>🚀 Free shipping on orders above ₹499 | <a href="/deals.html">Today's Deals</a> — Up to 60% off</span>
@@ -892,6 +917,7 @@ function showRelatedSearches(query) {
 </div>
 </div>
 <button class="back-to-top" id="backToTop" onclick="scrollToTop()" title="Back to top">▲</button>
+${customJs ? "<script>\n// Custom JS from theme settings\n" + customJs + "\n</script>" : ""}
 </body></html>`;
 }
 
@@ -935,6 +961,13 @@ export async function publishSite(prisma: PrismaClient, logger: Logger): Promise
   const rawCategories = await (prisma as any).productCategory.findMany({ orderBy: { name: "asc" } });
   const contentEntries = await (prisma as any).contentEntry.findMany({ where: { status: "published" } });
   const site = { name: siteName };
+
+  // ── Load theme settings from DB ──
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const themeSettingsRaw = await (prisma as any).themeSetting.findMany({ where: { themeName: "default" } });
+  const themeSettings: Record<string, any> = {};
+  for (const row of themeSettingsRaw) { themeSettings[row.key] = row.value; }
+  logger.info(`Loaded ${Object.keys(themeSettings).length} theme settings`);
 
   // ── Check active plugins for gating ──
   let isCommerceActive = true, isCmsActive = true, isAuthActive = true, isSeoActive = true, isRecsActive = true;
@@ -1934,7 +1967,7 @@ function cartPageRemove(idx) { var c = getCart(); c.splice(idx,1); saveCart(c); 
     else if (page.slug.startsWith("category-")) resourceId = page.slug.replace("category-", "");
     else if (page.slug.startsWith("brand-")) resourceId = page.slug.replace("brand-", "");
     const seoMeta = seoMetaMap[`product_${resourceId}`] ?? undefined;
-    const html = layout(site, page.content, page.title, allProducts, pluginState, seoMeta);
+    const html = layout(site, page.content, page.title, allProducts, pluginState, seoMeta, themeSettings);
     const fileName = page.slug === "index" ? "index.html" : `${page.slug}.html`;
     await writeFile(join(outputDir, fileName), html, "utf-8");
     totalSize += Buffer.byteLength(html, "utf-8");

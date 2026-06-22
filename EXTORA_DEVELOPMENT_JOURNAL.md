@@ -4220,3 +4220,36 @@ sellerName, sellerRating, multiBuyEnabled
 
 **Verification:** No duplicate global handler, login gate active, sync endpoint working
 **CI:** All green | **Pages:** 36
+
+
+### Phase 180: Theme Settings Applied to Published Site
+**Date:** June 19, 2026 | **Commit:** (upcoming)
+**Duration:** ~35 minutes
+
+**Root cause:** Publishing engine never read `themeSetting` table. All CSS colors/fonts were hardcoded in the `layout()` function.
+
+**Fix:**
+- `publishSite()` now loads all `themeSetting` rows for `themeName: "default"` at publish time
+- `layout()` accepts `themeSettings` parameter, computes all theme variables with defaults
+- Theme override `<style>` block injected after main CSS with direct property overrides:
+  - `body` — font-family, color, background
+  - `.top-nav` — background (primaryColor)
+  - `.top-nav .logo` — color (accentColor)
+  - `.sub-nav` — background (footerBg)
+  - `footer` — background (footerBg)
+  - `a` — color (linkColor)
+  - `.top-nav .search button` — background (accentColor)
+  - `.announce-bar` — background (footerBg)
+  - `.announce-bar a` — color (accentColor)
+  - `.pdetail .rating-row .stars` — color (accentColor)
+  - `.pdetail .rating-row .revs` — color (linkColor)
+  - `.pdetail .gallery .thumbs img:hover` — border-color (accentColor)
+- Custom CSS injected after theme overrides (before `</head>`)
+- Custom JS injected before `</body>`
+
+**How it works:** A second `<style>` block is appended after the main CSS. Since CSS cascade priority gives later rules precedence, theme overrides effectively replace the hardcoded colors without modifying the original CSS.
+
+**Supported theme settings:** primaryColor, accentColor, bgColor, textColor, linkColor, footerBg, bodyFont, customCss, customJs
+
+**Verification:** Changed all 6 colors via API, re-published, confirmed colors appear in HTML. DB verified: 8+ settings stored.
+**CI:** All green | **Pages:** 36 | **Docker:** Rebuilt + deployed
