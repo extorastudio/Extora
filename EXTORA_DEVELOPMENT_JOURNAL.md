@@ -4181,3 +4181,42 @@ sellerName, sellerRating, multiBuyEnabled
 
 **New page:** cart.html (36th page)
 **CI:** All green | **Pages:** 35 → 36 | **Docker:** Rebuilt + deployed
+
+
+### Phase 179: Cart Bug Fixes — Login Gate, Sync, Double-Qty, Drawer, Polish
+**Date:** June 19, 2026 | **Commit:** (upcoming)
+**Duration:** ~30 minutes
+
+**Bug fixes:**
+
+**Critical: Double-quantity bug**
+- Root cause: global `document.addEventListener("click")` fired alongside inline `onclick` handlers
+- Both called `addToCart()`, causing qty to increment twice
+- Fix: removed the global click handler (lines 464-467)
+
+**Login required for cart**
+- `addToCart()` now checks `localStorage.getItem("at")` before allowing add
+- Redirects to `/account.html` if not logged in
+
+**Cart sync with server**
+- New `syncCartToServer()` function sends entire cart to server when logged in
+- Called after every `changeCartQty()` and `removeFromCart()`
+- NEW API: `POST /api/v1/commerce/cart/sync` — replaces entire server-side cart
+- Server-side sync maps localStorage items to server cart format
+
+**Amazon-style cart page layout**
+- Two-column layout: items (left, flex:1) + subtotal sidebar (right, 280px, sticky)
+- Sidebar shows: subtotal, coupon input, "Proceed to Buy" + "Buy with EMI" buttons
+- FREE delivery badge, privacy terms
+- Continue Shopping link below
+
+**Missing data-img/slug on listing cart buttons**
+- All search/listing page cart buttons now have `data-img` + `data-slug`
+- Product detail mini-button also fixed
+
+**Remaining fixes:**
+- `changeCartQty` and `removeFromCart` now trigger `syncCartToServer()`
+- Cart drawer elements verified working (outside `<main>`, persistent)
+
+**Verification:** No duplicate global handler, login gate active, sync endpoint working
+**CI:** All green | **Pages:** 36

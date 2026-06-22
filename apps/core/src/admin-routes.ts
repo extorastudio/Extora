@@ -905,6 +905,23 @@ export function registerAdminRoutes(server: FastifyInstance, prisma: PrismaClien
     return await reply.send({ data: { ...c, total: c.items.reduce((s, i) => s + i.price * i.qty, 0), itemCount: c.items.length } });
   });
 
+  server.post("/api/v1/commerce/cart/sync", async (request: FastifyRequest, reply: FastifyReply) => {
+    await authenticate(request, reply, prisma);
+    const userId = ((request as unknown as Record<string, string>).userId) ?? "anonymous";
+    const body = request.body as Record<string, unknown> | undefined;
+    const items = (body?.items as any[]) ?? [];
+    const cartItems = items.map((i: any) => ({
+      productId: String(i.name ?? i.productId ?? ""),
+      name: String(i.name ?? ""),
+      price: Number(i.price ?? 0),
+      qty: Number(i.qty ?? 1),
+      image: String(i.img ?? i.image ?? ""),
+    }));
+    carts.set(userId, { items: cartItems, updatedAt: new Date().toISOString() });
+    const total = cartItems.reduce((s, i) => s + i.price * i.qty, 0);
+    return await reply.send({ data: { items: cartItems, total, itemCount: cartItems.length } });
+  });
+
   server.post("/api/v1/commerce/checkout", async (request: FastifyRequest, reply: FastifyReply) => {
     await authenticate(request, reply, prisma);
     const userId = ((request as unknown as Record<string, string>).userId) ?? "anonymous";
