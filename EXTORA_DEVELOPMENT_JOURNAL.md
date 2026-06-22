@@ -4047,3 +4047,37 @@ var SEO_ACTIVE = true/false;
 - `appliedCoupon` global variable tracks state across cart renders
 
 **CI:** All green | **Pages:** 34 → 35 | **Docker:** Rebuilt + deployed
+
+
+### Phase 172-174: EMI Calculator, Delivery Estimator, Multi-Buy Discounts
+**Date:** June 19, 2026 | **Commit:** (upcoming)
+**Duration:** ~35 minutes
+
+**Phase 172: EMI Calculator Table**
+- Expandable "View Plans ▼" table showing 3/6/9/12 month plans
+- Calculates monthly EMI as price/months
+- Shows monthly amount + total per tenure
+- No Cost EMI disclaimer text
+- Gated behind `emiAvailable` flag on Product
+
+**Phase 173: Delivery Date Countdown Timer**
+- "Order within X hrs Y mins to get it by Tomorrow" message
+- 4 PM cut-off logic — after 4 PM, estimates 2 days out
+- Updates every 60 seconds via setInterval
+- Appended to delivery info line on product detail pages
+- Skips Sundays
+
+**Phase 174: Multi-Buy / Bulk Discounts**
+- Quantity selector triggers discount calculation
+- Buy 2 → 5% off, Buy 3 → 10% off, Buy 5 → 15% off
+- Shows discounted total + per-unit price
+- `updateMultiBuy()` function appends dynamic text
+- Gated behind `multiBuyEnabled` flag (defaults to true if not set to false)
+
+**Admin Route Fix:** Product PATCH fields whitelist expanded to include:
+mrp, discountPercent, emiAvailable, emiPrice, deliveryInfo, deliveryDate,
+codAvailable, returnPolicy, warranty, offers, highlights, specs,
+sellerName, sellerRating, multiBuyEnabled
+
+**Verification:** All 3 features rendered + functional on Mechanical Keyboard product page
+**CI:** All green | **Pages:** 35

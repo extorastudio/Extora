@@ -299,6 +299,15 @@ function buyNow(el) {
   addToCart(el);
   setTimeout(() => showCart(), 300);
 }
+function updateMultiBuy(slug, price, qty) {
+  var msg = document.getElementById("multiBuyMsg-" + slug);
+  if (!msg) return;
+  var n = parseInt(qty) || 1;
+  if (n >= 5) { msg.textContent = "Save 15% — Pay ₹" + (price * n * 0.85).toLocaleString("en-IN") + " (₹" + Math.round(price * 0.85).toLocaleString("en-IN") + " each)"; }
+  else if (n >= 3) { msg.textContent = "Save 10% — Pay ₹" + (price * n * 0.9).toLocaleString("en-IN") + " (₹" + Math.round(price * 0.9).toLocaleString("en-IN") + " each)"; }
+  else if (n >= 2) { msg.textContent = "Save 5% — Pay ₹" + (price * n * 0.95).toLocaleString("en-IN") + " (₹" + Math.round(price * 0.95).toLocaleString("en-IN") + " each)"; }
+  else { msg.textContent = ""; }
+}
 function removeFromCart(idx) { const c = getCart(); c.splice(idx,1); saveCart(c); showCart(); }
 var appliedCoupon = null;
 function applyCoupon() {
@@ -399,6 +408,44 @@ document.addEventListener("DOMContentLoaded", function() {
         }
       }).catch(() => {});
   }
+  // Delivery countdown timer — show "Order within Xh Ym to get by [Day]"
+  (function(){
+    var delEl = document.querySelector(".pdetail .delivery");
+    if (!delEl) return;
+    var cutoffHour = 16; // 4 PM cut-off
+    var now = new Date();
+    var hoursLeft = cutoffHour - now.getHours();
+    var minsLeft = 60 - now.getMinutes();
+    if (minsLeft === 60) { minsLeft = 0; hoursLeft++; }
+    var estDay = "";
+    if (hoursLeft > 0 || (hoursLeft === 0 && minsLeft > 0)) {
+      estDay = "Tomorrow";
+    } else {
+      var d = new Date(now); d.setDate(d.getDate() + 2);
+      estDay = d.toLocaleDateString("en-IN", { weekday: "long" });
+    }
+    if (estDay === "Sunday") estDay = "Monday";
+    var cm = "";
+    if (hoursLeft > 0) cm += hoursLeft + " hrs ";
+    if (minsLeft > 0) cm += minsLeft + " mins";
+    if (cm) {
+      var span = document.createElement("div");
+      span.style.cssText = "font-size:.82rem;color:#007600;margin-top:4px";
+      span.textContent = "Order within " + cm.trim() + " to get it by " + estDay;
+      delEl.parentNode.insertBefore(span, delEl.nextSibling);
+      // Update every 60 seconds
+      setInterval(function(){
+        var n = new Date();
+        var hl = cutoffHour - n.getHours();
+        var ml = 60 - n.getMinutes();
+        if (ml === 60) { ml = 0; hl++; }
+        var txt = "Order within ";
+        if (hl > 0) txt += hl + " hrs ";
+        if (ml > 0) txt += ml + " mins";
+        span.textContent = txt.trim() + " to get it by " + estDay;
+      }, 60000);
+    }
+  })();
 });
 function doHeaderLogout() { localStorage.removeItem("at"); location.href = "/index.html"; }
 function subscribeNewsletter() {
@@ -885,14 +932,15 @@ ${rating > 0 ? `<div class="rating-row"><span class="stars">${stars(rating)}</sp
 ${mrp && mrp > price ? `<div class="mrp-row">M.R.P: <span class="mrp">${rupee(mrp)}</span></div>` : ""}
 <div class="price-row"><span class="price">${rupee(discount > 0 && mrp ? mrp > price ? price : price : price)}</span>${discount > 0 ? `<span class="discount">-${discount}%</span>` : ""}</div>
 <div class="tax">Inclusive of all taxes</div>
-${p.emiAvailable ? `<div class="emi">EMI starts at <span class="price">${rupee(emiPrice)}</span>. No Cost EMI available</div>` : ""}
+${p.emiAvailable ? `<div class="emi">EMI starts at <span class="price">${rupee(emiPrice)}</span>. No Cost EMI available <a href="#" onclick="document.getElementById('emiTable-${e(p.slug)}').style.display='block';this.style.display='none';return false" style="color:#007185;font-size:.85rem;margin-left:8px">View Plans ▼</a><div id="emiTable-${e(p.slug)}" style="display:none;margin-top:8px;border:1px solid #e7e7e7;border-radius:4px;overflow:hidden"><table style="width:100%;border-collapse:collapse;font-size:.8rem"><thead><tr style="background:#f0f2f2"><th style="padding:6px 8px;text-align:left">Tenure</th><th style="padding:6px 8px;text-align:right">Monthly EMI</th><th style="padding:6px 8px;text-align:right">Total</th></tr></thead><tbody>${[3,6,9,12].map(m=>`<tr style="border-bottom:1px solid #e7e7e7"><td style="padding:6px 8px">${m} months</td><td style="padding:6px 8px;text-align:right;font-weight:600">${rupee(Math.round(price/m))}</td><td style="padding:6px 8px;text-align:right;color:#565959">${rupee(price)}</td></tr>`).join("")}</tbody></table><p style="font-size:.7rem;color:#565959;padding:6px 8px;margin:0">No Cost EMI available on select credit cards. Interest charged by bank.</p></div></div>` : ""}
 <div class="offers"><h4>Offers</h4><ul>${offers.map((o: string) => `<li>${e(o)}</li>`).join("")}</ul></div>
 <div class="features"><h4>Highlights</h4><ul>${highlights.map((h: string) => `<li>${e(h)}</li>`).join("")}</ul></div>
 ${p.stockStatus === "outofstock" || Number(p.stockQty ?? 10) <= 0 ? `<div class="stock-no" style="font-size:1.1rem;font-weight:600">Currently Unavailable</div>` : Number(p.stockQty ?? 10) <= 3 ? `<div class="stock-low" style="font-size:1rem;font-weight:600">Only ${p.stockQty} left in stock — order soon</div>` : Number(p.stockQty ?? 10) <= 5 ? `<div class="stock-low" style="font-size:1rem;font-weight:600">Only ${p.stockQty} left in stock</div>` : `<div class="stock">In Stock</div>`}
 <div class="delivery">FREE delivery <strong>${e(p.deliveryDate ?? "Tomorrow")}</strong>. <a href="#" style="color:#007185">Details</a></div>
 <div class="delivery">Delivered by <strong>${e(p.deliveryInfo ?? "Amazon")}</strong></div>
 ${p.codAvailable ? `<div class="cod">Cash on Delivery available</div>` : ""}
-<div class="qty-row">Quantity: <select>${[1,2,3,4,5].map((n) => `<option value="${n}">${n}</option>`).join("")}</select></div>
+<div class="qty-row">Quantity: <select id="qtySelect-${e(p.slug)}" onchange="updateMultiBuy('${e(p.slug)}',${price},this.value)">${[1,2,3,4,5].map((n) => `<option value="${n}">${n}</option>`).join("")}</select><span id="multiBuyMsg-${e(p.slug)}" style="font-size:.82rem;color:#007600"></span></div>
+${p.multiBuyEnabled !== false ? `<div style="font-size:.78rem;color:#565959;margin:-8px 0 8px">Buy 2: 5% off · Buy 3: 10% off · Buy 5: 15% off</div>` : ""}
 <div class="buttons">
 <button class="btn-cart" data-name="${e(p.name)}" data-price="${p.price ?? 0}" onclick="addToCart(this);return false">Add to Cart</button>
 <button class="btn-buy" data-name="${e(p.name)}" data-price="${p.price ?? 0}" onclick="buyNow(this);return false">Buy Now</button>
