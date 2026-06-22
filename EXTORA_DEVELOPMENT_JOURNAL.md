@@ -4411,3 +4411,24 @@ execute depending on browser behavior.
 
 **Verification:** All patterns clean, addToCart defined
 **CI:** All green | **Pages:** 37
+
+
+### Phase 188: Fix voteHelpful escaping + cart page getCart error
+**Date:** June 19, 2026 | **Commit:** (upcoming)
+**Duration:** ~15 minutes
+
+**Bug 1: voteHelpful — "Unexpected identifier 'yes'"**
+- Line 365 in product page HTML: `voteHelpful('+r.id+','yes')` 
+- The single quotes close the outer JS string (`el.innerHTML = '...'`) before `r.id` 
+- Result: `yes` parsed as identifier, not string
+- Fix: Use `\\'` in template literal → produces `\'` in output JS → browser JS treats as escaped quote
+- Pattern: `voteHelpful(\\''+r.id+'\\',\\'yes\\')`
+
+**Bug 2: cart.html — "getCart is not defined"**
+- Cart page content `<script>` runs as IIFE in `<main>` BEFORE the global `<script>` in footer
+- `getCart()` called before it's defined
+- Fix: Changed IIFE `(function(){...})()` to `document.addEventListener("DOMContentLoaded", function(){...})`
+
+**Result:** voteHelpful has 4 properly escaped quotes. Cart page defers to DOMContentLoaded.
+**Verification:** All patterns clean. Cart + Add to Cart working.
+CI: All green | Pages: 37
