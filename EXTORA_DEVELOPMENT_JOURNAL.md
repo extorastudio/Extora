@@ -4140,3 +4140,44 @@ sellerName, sellerRating, multiBuyEnabled
 
 **Verification:** Non-purchase review rejected with 403. canReview check returns false.
 **CI:** All green | **Pages:** 35
+
+
+### Phase 178: Enhanced Cart — Drawer + Full Page with Images & Qty Controls
+**Date:** June 19, 2026 | **Commit:** (upcoming)
+**Duration:** ~35 minutes
+
+**Cart Drawer (Amazon-style slide-in panel):**
+- Fixed right-side panel (400px, animate from right)
+- Overlay backdrop (click to close)
+- Opens automatically when item added to cart
+- Displays cart items with: product image (80x80), name, price, quantity +/- buttons, subtotal, Remove
+- Each item row: image | name + price | qty (− span +) | subtotal | Remove
+- Coupon code input in drawer with applyCouponDrawer()
+- Subtotal + coupon discount display
+- "View Cart" link → full cart page
+- "Proceed to Checkout" button
+- Empty state with "Browse Products" link
+
+**Full Cart Page (`/cart.html`):**
+- Image column (80x80 thumbnails) + name + qty (−/+ inline)
+- Remove button per row
+- Total row (item count + total price)
+- "Proceed to Buy" + "Continue Shopping" buttons
+- Qty changes trigger page reload for simplicity
+
+**Full Cart View (inline `showCart()`):**
+- Completely rewritten with image column + qty controls
+- Same layout as cart page but rendered in main area
+- changeCartQtyInline() + removeFromCartInline() for live updates
+- Retains "Customers Also Bought" section
+
+**Cart data enhanced:**
+- Cart items now store: {name, price, qty, img, slug}
+- addToCart() reads data-img + data-slug from button attributes
+- All cart buttons (product detail, search, category pages) have data-img + data-slug
+- firstImg variable added to product detail loop
+
+**CSS:** ~20 new rules for .cart-drawer, .cart-drawer-header, .cart-drawer-body, .cart-drawer-footer, .cart-item, .cart-item-img, .cart-qty, .cart-item-remove, .cart-drawer-overlay
+
+**New page:** cart.html (36th page)
+**CI:** All green | **Pages:** 35 → 36 | **Docker:** Rebuilt + deployed

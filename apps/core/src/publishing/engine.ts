@@ -221,6 +221,26 @@ footer .inner{grid-template-columns:repeat(2,1fr)}
 .wishlist-btn{width:26px;height:26px;font-size:.8rem}
 .compare-check{font-size:.9rem}
 .back-to-top{width:36px;height:36px;bottom:16px;right:12px}
+.cart-drawer-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);z-index:999;display:none}
+.cart-drawer{position:fixed;top:0;right:-420px;width:400px;height:100%;background:white;z-index:1000;transition:right .3s ease;display:flex;flex-direction:column}
+.cart-drawer.open{right:0}
+.cart-drawer-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid #e7e7e7;background:#f0f2f2}
+.cart-drawer-header h3{margin:0;font-size:1.1rem}
+.cart-drawer-header button{background:none;border:none;font-size:1.2rem;cursor:pointer;color:#565959;padding:4px 8px}
+.cart-drawer-body{flex:1;overflow-y:auto;padding:16px 20px}
+.cart-drawer-footer{border-top:1px solid #e7e7e7;padding:16px 20px;background:#fafafa}
+.cart-item{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid #e7e7e7;align-items:flex-start}
+.cart-item-img{width:80px;height:80px;object-fit:cover;border-radius:4px;border:1px solid #e7e7e7;flex-shrink:0}
+.cart-item-info{flex:1}
+.cart-item-info .name{font-size:.9rem;color:#0f1111;margin:0 0 4px}
+.cart-item-info .price{font-size:.85rem;color:#b12704;font-weight:600}
+.cart-qty{display:flex;align-items:center;gap:6px;margin-top:6px}
+.cart-qty button{width:28px;height:28px;border:1px solid #ddd;border-radius:4px;background:white;cursor:pointer;font-size:1rem;line-height:1;display:flex;align-items:center;justify-content:center;color:#333}
+.cart-qty button:hover{background:#f0f2f2}
+.cart-qty span{min-width:24px;text-align:center;font-size:.9rem}
+.cart-item-remove{color:#cc0c39;font-size:.75rem;cursor:pointer;background:none;border:none;padding:2px 0;margin-top:4px}
+.cart-item-remove:hover{text-decoration:underline}
+.cart-drawer-saved{border-top:1px solid #e7e7e7;padding:12px 20px;font-size:.8rem;color:#007600}
 }
 </style></head><body>
 <div class="announce-bar" id="announceBar">
@@ -261,6 +281,12 @@ footer .inner{grid-template-columns:repeat(2,1fr)}
 </div>
 <div class="bt">&copy; 2026 ${e(site.name)}. Published with Extora.</div>
 </div></footer>
+<div class="cart-drawer-overlay" id="cartOverlay" onclick="closeCartDrawer()"></div>
+<div class="cart-drawer" id="cartDrawer">
+<div class="cart-drawer-header"><h3><span id="drawerCartTitle">Shopping Cart</span></h3><button onclick="closeCartDrawer()">×</button></div>
+<div class="cart-drawer-body" id="drawerBody"></div>
+<div class="cart-drawer-footer" id="drawerFooter"><p style="text-align:center;color:#565959">Your cart is empty</p></div>
+</div>
 <script>
 var COMMERCE_ACTIVE = ${cs};
 var CMS_ACTIVE = ${cms};
@@ -285,14 +311,17 @@ function updateCartCount() { const c = getCart(); const count = c.reduce((s,i) =
 function addToCart(el) {
   const name = el.getAttribute("data-name") || "Product";
   const price = parseFloat(el.getAttribute("data-price") || "0");
+  const img = el.getAttribute("data-img") || "";
+  const slug = el.getAttribute("data-slug") || "";
   const cart = getCart();
-  const existing = cart.find(i => i.name === name);
-  if (existing) existing.qty++; else cart.push({ name, price, qty: 1 });
+  const existing = cart.find(function(i){ return i.name === name; });
+  if (existing) existing.qty++; else cart.push({ name: name, price: price, qty: 1, img: img, slug: slug });
   saveCart(cart);
   el.textContent = "✓"; el.style.background = "#007600"; el.style.color = "white"; el.style.borderColor = "#007600";
-  setTimeout(() => { el.textContent = "Add to Cart"; el.style.background = ""; el.style.color = ""; el.style.borderColor = ""; }, 2000);
-  const token = localStorage.getItem("at");
-  if (token) fetch("/api/v1/commerce/cart/add", { method:"POST", headers:{"Content-Type":"application/json", Authorization:"Bearer "+token}, body: JSON.stringify({productId: name, name, price, qty: 1}) }).catch(() => {});
+  setTimeout(function(){ el.textContent = "Add to Cart"; el.style.background = ""; el.style.color = ""; el.style.borderColor = ""; }, 2000);
+  var token = localStorage.getItem("at");
+  if (token) fetch("/api/v1/commerce/cart/add", { method:"POST", headers:{"Content-Type":"application/json", Authorization:"Bearer "+token}, body: JSON.stringify({productId: name, name: name, price: price, qty: 1}) }).catch(function(){});
+  openCartDrawer();
   return false;
 }
 function buyNow(el) {
@@ -308,12 +337,62 @@ function updateMultiBuy(slug, price, qty) {
   else if (n >= 2) { msg.textContent = "Save 5% — Pay ₹" + (price * n * 0.95).toLocaleString("en-IN") + " (₹" + Math.round(price * 0.95).toLocaleString("en-IN") + " each)"; }
   else { msg.textContent = ""; }
 }
-function removeFromCart(idx) { const c = getCart(); c.splice(idx,1); saveCart(c); showCart(); }
+function removeFromCart(idx) { var c = getCart(); c.splice(idx,1); saveCart(c); openCartDrawer(); }
+function changeCartQty(idx, delta) {
+  var c = getCart();
+  if (idx < 0 || idx >= c.length) return;
+  c[idx].qty += delta;
+  if (c[idx].qty <= 0) { c.splice(idx, 1); }
+  saveCart(c);
+  openCartDrawer();
+}
+function closeCartDrawer() { document.getElementById("cartOverlay").style.display = "none"; document.getElementById("cartDrawer").classList.remove("open"); }
+function openCartDrawer() {
+  var cart = getCart();
+  var body = document.getElementById("drawerBody");
+  var footer = document.getElementById("drawerFooter");
+  var overlay = document.getElementById("cartOverlay");
+  var drawer = document.getElementById("cartDrawer");
+  var title = document.getElementById("drawerCartTitle");
+  if (!body || !footer) return;
+  if (cart.length === 0) {
+    body.innerHTML = '<div style="text-align:center;padding:40px 0"><p style="color:#565959;margin:12px 0">Your cart is empty</p><a href="/products.html" style="color:#007185;text-decoration:none;font-weight:600">Browse Products</a></div>';
+    footer.innerHTML = '<p style="text-align:center;color:#565959">Your cart is empty</p>';
+  } else {
+    var total = cart.reduce(function(s,i){ return s + i.price * i.qty; }, 0);
+    var couponDiscount = (typeof appliedCoupon !== "undefined" && appliedCoupon ? appliedCoupon.discount : 0);
+    var finalTotal = total - couponDiscount;
+    title.textContent = "Shopping Cart (" + cart.reduce(function(s,i){return s+i.qty;},0) + " items)";
+    body.innerHTML = cart.map(function(item, idx){
+      var imgTag = item.img ? '<img src="'+item.img+'" class="cart-item-img" onerror="this.style.display=\\'none\\'">' : '<div class="cart-item-img" style="background:#f0f2f2;display:flex;align-items:center;justify-content:center;color:#999;font-size:.7rem">No Img</div>';
+      var subtotal = item.price * item.qty;
+      return '<div class="cart-item">'+imgTag+'<div class="cart-item-info"><p class="name">'+item.name+'</p><p class="price">₹'+item.price.toLocaleString("en-IN")+'</p><div class="cart-qty"><button onclick="changeCartQty('+idx+',-1)">−</button><span>'+item.qty+'</span><button onclick="changeCartQty('+idx+',1)">+</button><span style="font-size:.8rem;color:#565959;margin-left:8px">₹'+subtotal.toLocaleString("en-IN")+'</span></div><button class="cart-item-remove" onclick="removeFromCart('+idx+')">Remove</button></div></div>';
+    }).join("");
+    var couponLine = couponDiscount > 0 ? '<div style="font-size:.8rem;color:#007600;margin-bottom:8px">Coupon ('+appliedCoupon.code+'): -₹'+couponDiscount.toLocaleString("en-IN")+'</div>' : '';
+    var couponInput = '<div style="display:flex;gap:6px;margin-bottom:12px"><input type="text" id="drawerCouponCode" placeholder="Coupon code" style="flex:1;padding:8px;border:1px solid #ddd;border-radius:4px;font-size:.8rem"><button onclick="applyCouponDrawer()" style="padding:8px 14px;background:#ffd814;border:1px solid #fcd200;border-radius:4px;font-weight:600;cursor:pointer;font-size:.8rem;white-space:nowrap">Apply</button></div><span id="drawerCouponMsg" style="font-size:.75rem;color:#007600"></span>';
+    footer.innerHTML = couponInput+couponLine+'<div style="display:flex;justify-content:space-between;margin-bottom:12px;font-size:.95rem"><span>Subtotal:</span><span style="font-weight:700">₹'+finalTotal.toLocaleString("en-IN")+'</span></div><a href="/cart.html" onclick="closeCartDrawer()" style="display:block;text-align:center;padding:12px;background:#ffd814;border:1px solid #fcd200;border-radius:24px;text-decoration:none;color:#0f1111;font-weight:600;font-size:.9rem;margin-bottom:8px">View Cart</a><button onclick="checkout()" style="width:100%;padding:12px;background:#ffa41c;border:1px solid #ff8f00;border-radius:24px;cursor:pointer;font-weight:600;font-size:.9rem">Proceed to Checkout</button>';
+  }
+  overlay.style.display = "block";
+  drawer.classList.add("open");
+}
+function applyCouponDrawer() {
+  var code = document.getElementById("drawerCouponCode").value.trim();
+  var msg = document.getElementById("drawerCouponMsg");
+  if (!code) return;
+  var cart = getCart();
+  var total = cart.reduce(function(s,i){ return s + i.price * i.qty; }, 0);
+  fetch("/api/v1/coupons/validate", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({code:code, orderTotal:total}) })
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      if (d.valid) { appliedCoupon = d; msg.textContent = d.message; msg.style.color = "#007600"; openCartDrawer(); }
+      else { msg.textContent = d.message || "Invalid coupon"; msg.style.color = "#cc0c39"; }
+    });
+}
 var appliedCoupon = null;
 function applyCoupon() {
-  var code = document.getElementById("couponCode").value.trim();
+  var code = document.getElementById("couponCode") ? document.getElementById("couponCode").value.trim() : "";
   var msg = document.getElementById("couponMsg");
-  if (!code) { msg.textContent = "Enter a coupon code"; msg.style.color = "#cc0c39"; return; }
+  if (!code || !msg) return;
   var cart = getCart();
   var total = cart.reduce(function(s,i){ return s + i.price * i.qty; }, 0);
   fetch("/api/v1/coupons/validate", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({code:code, orderTotal:total}) })
@@ -324,21 +403,27 @@ function applyCoupon() {
     }).catch(function(){ msg.textContent = "Error validating coupon"; msg.style.color = "#cc0c39"; });
 }
 function showCart() {
-  const cart = getCart();
+  closeCartDrawer();
+  var cart = getCart();
   if (cart.length === 0) {
     var recs = (typeof ALL_PRODUCTS !== "undefined" && typeof RECS_ACTIVE !== "undefined" && RECS_ACTIVE ? ALL_PRODUCTS.slice(0,4) : []).map(function(p){return '<div class="product-card"><a href="/product-'+p.slug+'.html" style="text-decoration:none;color:inherit;display:flex;flex-direction:column;padding:16px;height:100%"><span class="pname">'+p.name+'</span><span class="stock-ok">₹'+p.price.toLocaleString("en-IN")+'</span></a></div>'}).join("");
     document.querySelector("main").innerHTML = '<div style="max-width:800px;margin:20px auto;background:white;border-radius:8px;padding:24px;text-align:center"><h2>Your Cart is Empty</h2><p style="color:#565959;margin:12px 0">Browse our trending products</p><a href="/products.html" style="display:inline-block;padding:12px 32px;background:#ffd814;border:1px solid #fcd200;border-radius:24px;text-decoration:none;color:#0f1111;font-weight:600;margin-bottom:20px">Shop Now</a>'+(recs?'<div class="section-header"><h2>Trending</h2></div><div class="products-grid">'+recs+'</div>':'')+'</div>';
     return;
   }
-  const total = cart.reduce((s,i) => s + i.price * i.qty, 0);
+  var total = cart.reduce(function(s,i){ return s + i.price * i.qty; }, 0);
   var couponDiscount = (typeof appliedCoupon !== "undefined" && appliedCoupon ? appliedCoupon.discount : 0);
   var finalTotal = total - couponDiscount;
-  const items = cart.map((i, idx) => \`<tr><td>\${i.name}</td><td>₹\${i.price.toLocaleString("en-IN")}</td><td>\${i.qty}</td><td>₹\${(i.price*i.qty).toLocaleString("en-IN")}</td><td><button onclick="removeFromCart(\${idx})" style="background:#cc0c39;color:white;border:none;padding:4px 8px;border-radius:4px;cursor:pointer">Remove</button></td></tr>\`).join("");
-  var couponRow = (typeof appliedCoupon !== "undefined" && appliedCoupon) ? '<tr style="color:#007600"><td colspan="3" style="text-align:right;padding:4px 12px;font-size:.85rem">Coupon (' + appliedCoupon.code + '):</td><td style="padding:4px 12px;font-size:.85rem">-₹' + appliedCoupon.discount.toLocaleString("en-IN") + '</td><td></td></tr>' : '';
+  var items = cart.map(function(i, idx){
+    var imgTag = i.img ? '<img src="'+i.img+'" style="width:80px;height:80px;object-fit:cover;border-radius:4px;border:1px solid #e7e7e7" onerror="this.style.display=\\'none\\'">' : '<div style="width:80px;height:80px;border-radius:4px;background:#f0f2f2;display:flex;align-items:center;justify-content:center;color:#999;font-size:.65rem;border:1px solid #e7e7e7">No Img</div>';
+    var lineTotal = i.price * i.qty;
+    return '<tr><td style="padding:12px 8px;display:flex;align-items:center;gap:12px">'+imgTag+'<div><strong>'+i.name+'</strong><div class="cart-qty" style="margin-top:4px"><button onclick="changeCartQtyInline('+idx+',-1)">−</button><span>'+i.qty+'</span><button onclick="changeCartQtyInline('+idx+',1)">+</button></div></div></td><td style="padding:12px 8px;text-align:center">₹'+i.price.toLocaleString("en-IN")+'</td><td style="padding:12px 8px;text-align:right;font-weight:600">₹'+lineTotal.toLocaleString("en-IN")+'</td><td style="padding:12px 8px"><button onclick="removeFromCartInline('+idx+')" style="background:#cc0c39;color:white;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:.75rem">Remove</button></td></tr>';
+  }).join("");
+  var couponRow = couponDiscount > 0 ? '<tr style="color:#007600"><td colspan="2" style="text-align:right;padding:4px 12px;font-size:.85rem">Coupon (' + appliedCoupon.code + '):</td><td style="text-align:right;padding:4px 12px;font-size:.85rem">-₹' + appliedCoupon.discount.toLocaleString("en-IN") + '</td><td></td></tr>' : '';
   var couponInput = '<div style="display:flex;gap:8px;margin:12px 0;max-width:360px"><input type="text" id="couponCode" placeholder="Enter coupon code" style="flex:1;padding:8px 12px;border:1px solid #ddd;border-radius:4px;font-size:.85rem"><button onclick="applyCoupon()" style="padding:8px 16px;background:#ffd814;border:1px solid #fcd200;border-radius:4px;cursor:pointer;font-weight:600;font-size:.85rem;white-space:nowrap">Apply</button></div><span id="couponMsg" style="font-size:.8rem;color:#007600"></span>';
-  const html = \`<div style="max-width:800px;margin:20px auto;background:white;border-radius:8px;padding:24px"><h2>Shopping Cart</h2><table style="width:100%;border-collapse:collapse;margin:16px 0"><thead><tr style="background:#f0f2f2"><th style="text-align:left;padding:8px">Product</th><th>Price</th><th>Qty</th><th>Total</th><th></th></tr></thead><tbody>\${items}</tbody><tfoot>\${couponRow}<tr style="font-weight:700;font-size:1.1rem"><td colspan="3" style="text-align:right;padding:12px">Total:</td><td style="padding:12px">₹\${finalTotal.toLocaleString("en-IN")}</td><td></td></tr></tfoot></table>\${couponInput}<button onclick="checkout()" style="padding:12px 32px;background:#ffd814;border:1px solid #fcd200;border-radius:20px;font-size:1rem;cursor:pointer;font-weight:600;margin-top:12px">Proceed to Checkout</button>\${typeof ALL_PRODUCTS !== "undefined" && typeof RECS_ACTIVE !== "undefined" && RECS_ACTIVE ? \`<div class="section-header" style="margin-top:24px;padding-left:0"><h2>Customers Also Bought</h2></div><div class="products-grid">\${ALL_PRODUCTS.slice(0,4).map(function(p){return \`<div class="product-card"><a href="/product-\${p.slug}.html" style="text-decoration:none;color:inherit;display:flex;flex-direction:column;padding:16px;height:100%"><span class="pname">\${p.name}</span><span class="stock-ok">₹\${p.price.toLocaleString("en-IN")}</span></a></div>\`;}).join("")}</div>\` : ""}</div>\`;
-  document.querySelector("main").innerHTML = html;
+  document.querySelector("main").innerHTML = '<div style="max-width:1000px;margin:20px auto;background:white;border-radius:8px;padding:28px"><h2 style="margin:0 0 4px">Shopping Cart</h2><p style="color:#565959;margin:0 0 20px">'+cart.reduce(function(s,i){return s+i.qty;},0)+' items</p><table style="width:100%;border-collapse:collapse"><thead><tr style="background:#f0f2f2"><th style="text-align:left;padding:10px">Product</th><th style="text-align:center;padding:10px;width:100px">Price</th><th style="text-align:right;padding:10px;width:120px">Subtotal</th><th style="width:80px"></th></tr></thead><tbody>'+items+'</tbody><tfoot>'+couponRow+'<tr style="font-weight:700;font-size:1.1rem;border-top:2px solid #0f1111"><td colspan="2" style="text-align:right;padding:16px 12px">Total:</td><td style="text-align:right;padding:16px 12px">₹'+finalTotal.toLocaleString("en-IN")+'</td><td></td></tr></tfoot></table>'+couponInput+'<div style="display:flex;gap:12px;margin-top:20px"><a href="/checkout.html" style="padding:12px 32px;background:#ffd814;border:1px solid #fcd200;border-radius:24px;font-size:1rem;cursor:pointer;font-weight:600;text-decoration:none;color:#0f1111" onclick="checkout();return false">Proceed to Buy</a><a href="/index.html" style="padding:12px 24px;border:1px solid #ddd;border-radius:24px;text-decoration:none;color:#0f1111;font-size:.9rem">Continue Shopping</a></div>'+(typeof ALL_PRODUCTS !== "undefined" && typeof RECS_ACTIVE !== "undefined" && RECS_ACTIVE ? '<div class="section-header" style="margin-top:32px;padding-left:0"><h2>Customers Also Bought</h2></div><div class="products-grid">'+ALL_PRODUCTS.slice(0,4).map(function(p){return '<div class="product-card"><a href="/product-'+p.slug+'.html" style="text-decoration:none;color:inherit;display:flex;flex-direction:column;padding:16px;height:100%"><span class="pname">'+p.name+'</span><span class="stock-ok">₹'+p.price.toLocaleString("en-IN")+'</span></a></div>';}).join("")+'</div>' : '')+'</div>';
 }
+function changeCartQtyInline(idx, delta) { var c = getCart(); if (idx<0||idx>=c.length) return; c[idx].qty+=delta; if (c[idx].qty<=0) c.splice(idx,1); saveCart(c); showCart(); }
+function removeFromCartInline(idx) { var c = getCart(); c.splice(idx,1); saveCart(c); showCart(); }
 async function checkout() {
   const cart = getCart();
   if (cart.length === 0) { alert("Cart empty"); return; }
@@ -880,6 +965,7 @@ export async function publishSite(prisma: PrismaClient, logger: Logger): Promise
   // ── PRODUCT DETAIL PAGES (Amazon.in style) ──
   for (const p of products) {
     const imgs = (Array.isArray(p.images) ? p.images.map(String) : []) as string[];
+    const firstImg = imgs[0] ?? "";
     const price = Number(p.price ?? 0);
     const mrp = p.mrp ? Number(p.mrp) : null;
     const discount = mrp && mrp > price ? Math.round((1 - price / mrp) * 100) : (p.discountPercent ? Number(p.discountPercent) : 0);
@@ -942,8 +1028,8 @@ ${p.codAvailable ? `<div class="cod">Cash on Delivery available</div>` : ""}
 <div class="qty-row">Quantity: <select id="qtySelect-${e(p.slug)}" onchange="updateMultiBuy('${e(p.slug)}',${price},this.value)">${[1,2,3,4,5].map((n) => `<option value="${n}">${n}</option>`).join("")}</select><span id="multiBuyMsg-${e(p.slug)}" style="font-size:.82rem;color:#007600"></span></div>
 ${p.multiBuyEnabled !== false ? `<div style="font-size:.78rem;color:#565959;margin:-8px 0 8px">Buy 2: 5% off · Buy 3: 10% off · Buy 5: 15% off</div>` : ""}
 <div class="buttons">
-<button class="btn-cart" data-name="${e(p.name)}" data-price="${p.price ?? 0}" onclick="addToCart(this);return false">Add to Cart</button>
-<button class="btn-buy" data-name="${e(p.name)}" data-price="${p.price ?? 0}" onclick="buyNow(this);return false">Buy Now</button>
+<button class="btn-cart" data-name="${e(p.name)}" data-price="${p.price ?? 0}" data-img="${e(firstImg)}" data-slug="${e(p.slug)}" onclick="addToCart(this);return false">Add to Cart</button>
+<button class="btn-buy" data-name="${e(p.name)}" data-price="${p.price ?? 0}" data-img="${e(firstImg)}" data-slug="${e(p.slug)}" onclick="buyNow(this);return false">Buy Now</button>
 </div>
 <div class="secure">🔒 Secure transaction</div>
 <div class="seller-info">Sold by <strong>${e(p.sellerName ?? "Extora Seller")}</strong> (${p.sellerRating ? stars(Number(p.sellerRating)) : "★★★★"} ${p.sellerRating ?? "4.0"})</div>
@@ -1757,6 +1843,33 @@ function renderCompare() {
   el.innerHTML = html;
 }
 renderCompare();
+</script>
+</div>`,
+  });
+
+  // ── CART PAGE ──
+  if (isCommerceActive) pages.push({
+    slug: "cart", title: "Shopping Cart", description: "View your cart and checkout",
+    content: `<div class="page-content">
+<h1>Shopping Cart</h1>
+<div id="cartPageContent"><p style="color:#565959">Loading cart...</p></div>
+<script>
+(function(){
+  var c = getCart();
+  if (c.length === 0) {
+    document.getElementById("cartPageContent").innerHTML = '<div style="text-align:center;padding:40px"><h2>Your Cart is Empty</h2><p style="color:#565959;margin:12px 0">Browse our trending products</p><a href="/products.html" style="display:inline-block;padding:12px 32px;background:#ffd814;border:1px solid #fcd200;border-radius:24px;text-decoration:none;color:#0f1111;font-weight:600">Shop Now</a></div>';
+    return;
+  }
+  var total = c.reduce(function(s,i){return s+i.price*i.qty;},0);
+  var count = c.reduce(function(s,i){return s+i.qty;},0);
+  var rows = c.map(function(i,idx){
+    var imgTag = i.img ? '<img src="'+i.img+'" style="width:80px;height:80px;object-fit:cover;border-radius:4px;border:1px solid #e7e7e7" onerror="this.style.display=\\'none\\'">' : '<div style="width:80px;height:80px;border-radius:4px;background:#f0f2f2;display:flex;align-items:center;justify-content:center;color:#999;font-size:.65rem;border:1px solid #e7e7e7">No Img</div>';
+    return '<tr><td style="padding:12px 8px;display:flex;align-items:center;gap:12px">'+imgTag+'<div><strong>'+i.name+'</strong><div class="cart-qty" style="margin-top:4px"><button onclick="cartPageChangeQty('+idx+',-1)">−</button><span>'+i.qty+'</span><button onclick="cartPageChangeQty('+idx+',1)">+</button></div></div></td><td style="padding:12px 8px;text-align:center">₹'+i.price.toLocaleString("en-IN")+'</td><td style="padding:12px 8px;text-align:right;font-weight:600">₹'+(i.price*i.qty).toLocaleString("en-IN")+'</td><td style="padding:12px 8px"><button onclick="cartPageRemove('+idx+')" style="background:#cc0c39;color:white;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:.75rem">Remove</button></td></tr>';
+  }).join("");
+  document.getElementById("cartPageContent").innerHTML = '<table style="width:100%;border-collapse:collapse;margin-bottom:20px"><thead><tr style="background:#f0f2f2"><th style="text-align:left;padding:10px">Product</th><th style="text-align:center;padding:10px;width:100px">Price</th><th style="text-align:right;padding:10px;width:120px">Subtotal</th><th style="width:80px"></th></tr></thead><tbody>'+rows+'</tbody><tfoot><tr style="font-weight:700;font-size:1.1rem;border-top:2px solid #0f1111"><td colspan="2" style="text-align:right;padding:16px 12px">Total ('+count+' items):</td><td style="text-align:right;padding:16px 12px">₹'+total.toLocaleString("en-IN")+'</td><td></td></tr></tfoot></table><div style="display:flex;gap:12px"><button onclick="checkout()" style="padding:12px 32px;background:#ffd814;border:1px solid #fcd200;border-radius:24px;font-size:1rem;cursor:pointer;font-weight:600">Proceed to Buy</button><a href="/index.html" style="padding:12px 24px;border:1px solid #ddd;border-radius:24px;text-decoration:none;color:#0f1111;font-size:.9rem;display:inline-flex;align-items:center">Continue Shopping</a></div>';
+})();
+function cartPageChangeQty(idx, delta) { var c = getCart(); if (idx<0||idx>=c.length) return; c[idx].qty+=delta; if (c[idx].qty<=0) c.splice(idx,1); saveCart(c); location.reload(); }
+function cartPageRemove(idx) { var c = getCart(); c.splice(idx,1); saveCart(c); location.reload(); }
 </script>
 </div>`,
   });
