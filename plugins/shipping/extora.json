@@ -3,9 +3,18 @@
   "version": "1.0.0",
   "title": "Shipping Manager",
   "description": "Configure delivery charges, free shipping thresholds, and shipping zones",
-  "author": "Extora",
+  "type": "plugin",
+  "author": {
+    "name": "Extora"
+  },
   "license": "MIT",
-  "category": "shipping",
+  "extora": {
+    "core": ">=0.3.0"
+  },
   "icon": "truck",
-  "tags": ["shipping", "delivery", "charges", "logistics"]
+  "keywords": ["shipping", "delivery", "charges", "logistics"],
+  "entry": {
+    "server": "./src/index.ts"
+  },
+  "permissions": []
 }

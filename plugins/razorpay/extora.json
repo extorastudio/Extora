@@ -3,9 +3,18 @@
   "version": "1.0.0",
   "title": "Razorpay Payments",
   "description": "Accept online payments via Razorpay payment gateway",
-  "author": "Extora",
+  "type": "plugin",
+  "author": {
+    "name": "Extora"
+  },
   "license": "MIT",
-  "category": "payments",
+  "extora": {
+    "core": ">=0.3.0"
+  },
   "icon": "credit-card",
-  "tags": ["payment", "razorpay", "gateway", "checkout"]
+  "keywords": ["payment", "razorpay", "gateway", "checkout"],
+  "entry": {
+    "server": "./src/index.ts"
+  },
+  "permissions": ["http:outbound:*"]
 }

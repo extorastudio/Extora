@@ -4358,3 +4358,34 @@ execute depending on browser behavior.
 
 **New files:** 6 pages + 3 plugin manifests + 3 plugin source files
 **CI:** All green | **Pages:** 36
+
+
+### Phase 186: Fix Plugin Manifests — Discovery + Installation Now Working
+**Date:** June 19, 2026 | **Commit:** (upcoming)
+**Duration:** ~15 minutes
+
+**Root cause:** Plugin `extora.json` manifests failed Zod schema validation:
+- `author` must be an **object** `{ name, email?, url? }` — was a plain string
+- `extora` field is **required**: `{ core: ">=0.3.0" }` — was completely missing
+- `type` must be `"plugin"` (Zod enum) — not arbitrary values like `"payment"`
+- Manifest validation failure was silently caught (0 discovered)
+
+**Fix:** Updated all 3 plugin manifests to match `PluginManifestSchema`:
+```json
+{
+  "author": { "name": "Extora" },
+  "extora": { "core": ">=0.3.0" },
+  "type": "plugin",
+  "entry": { "server": "./src/index.ts" }
+}
+```
+
+**Result:**
+- Plugins now auto-discovered and registered on bootstrap (11 total)
+- Activated via `POST /api/v1/plugins/%40extora%2F{name}/activate`
+- Admin panel plugin list shows all 3 as active
+- `checkout.html` page generated (37 pages, +1)
+- Razorpay/Pincode/Shipping sidebar items appear in admin panel
+
+**For manual install via admin panel:** paste manifest with author as object + extora field, or use "Discover" button.
+**CI:** All green | **Pages:** 36 → 37

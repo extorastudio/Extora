@@ -3,9 +3,18 @@
   "version": "1.0.0",
   "title": "Pincode Serviceability",
   "description": "Manage serviceable pincodes and delivery availability by area",
-  "author": "Extora",
+  "type": "plugin",
+  "author": {
+    "name": "Extora"
+  },
   "license": "MIT",
-  "category": "shipping",
+  "extora": {
+    "core": ">=0.3.0"
+  },
   "icon": "map-pin",
-  "tags": ["pincode", "delivery", "serviceability", "shipping"]
+  "keywords": ["pincode", "delivery", "serviceability", "shipping"],
+  "entry": {
+    "server": "./src/index.ts"
+  },
+  "permissions": []
 }
