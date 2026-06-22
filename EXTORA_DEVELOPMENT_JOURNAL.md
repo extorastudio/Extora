@@ -4389,3 +4389,25 @@ execute depending on browser behavior.
 
 **For manual install via admin panel:** paste manifest with author as object + extora field, or use "Discover" button.
 **CI:** All green | **Pages:** 36 → 37
+
+
+### Phase 187: Critical Fix — JS Syntax Errors from Template Literal Escaping
+**Date:** June 19, 2026 | **Commit:** (upcoming)
+**Duration:** ~15 minutes
+
+**Bug 1: voteHelpful — double single-quotes**
+- Source: `onclick="voteHelpful(\''+r.id+'\',\'yes\')"`  
+- In template literal, `\'` is NOT a recognized escape — outputs just `'` (backslash consumed)
+- Result: `voteHelpful('' + r.id + '','yes')` — adjacent `''` = JS syntax error
+- Fix: Since onclick is double-quoted, use plain single quotes: `voteHelpful('+r.id+','yes')`
+
+**Bug 2: Checkout prompt \n → newline in source**
+- Source: `prompt("Select payment method:\n" + ...)`  
+- In template literal, `\n` IS a recognized escape — outputs real newline in HTML
+- Result: JS string broken across multiple lines in `<script>` block
+- Fix: Double-escape as `\\n` — template literal outputs `\n`, browser JS interprets as newline
+
+**Both errors prevented `addToCart` from being defined (script stopped early)**
+
+**Verification:** All patterns clean, addToCart defined
+**CI:** All green | **Pages:** 37
