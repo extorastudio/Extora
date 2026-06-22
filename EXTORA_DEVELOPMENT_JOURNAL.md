@@ -4306,3 +4306,24 @@ execute depending on browser behavior.
 
 **Result:** No syntax errors. `addToCart` and `openCartDrawer` now defined and callable.
 **CI:** All green | **Pages:** 36
+
+
+### Phase 183: Cart Page Layout Fix + Header Cart Icon with Badge
+**Date:** June 19, 2026 | **Commit:** (upcoming)
+**Duration:** ~15 minutes
+
+**Cart page display fix:**
+- Replaced `<tr>/<td>` table markup with `<div>`-based flex layout
+- Cart items now: image (100x100) | name + price + qty (−/+) | subtotal | Remove
+- Removed duplicate subtotal line + broken "Deselect all items" link
+- Responsive: `flex-wrap:wrap` on main container, `min-width` on sidebar
+- Sidebar stays 300px, items column takes remaining space
+
+**Header cart icon with badge:**
+- Replaced "Cart" text link with 🛒 emoji icon
+- Red/orange badge (accentColor) positioned `absolute` top-right of icon
+- Badge shows item count, hides (`display:none`) when count is 0
+- Badge styled: `border-radius:9px`, `min-width:18px`, `height:18px`, centered text
+- `updateCartCount()` now toggles `display:flex`/`display:none`
+
+**CI:** All green | **Pages:** 36
