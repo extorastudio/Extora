@@ -13,7 +13,7 @@ const sjs = (s: any) => String(s ?? "").replace(/-/g, "_").replace(/[^a-zA-Z0-9_
 const stars = (n: number) => "★".repeat(Math.floor(n)) + "☆".repeat(5 - Math.floor(n));
 const rupee = (n: number) => "₹" + n.toLocaleString("en-IN");
 
-function layout(site: { name: string }, body: string, pageTitle: string, allProducts?: any[], pluginState?: { commerce: boolean; cms: boolean; auth: boolean; seo: boolean; recs: boolean }, seoMeta?: { title?: string; description?: string; keywords?: string; ogTitle?: string; ogDescription?: string; ogImage?: string; noIndex?: boolean }, themeSettings?: Record<string, any>): string {
+function layout(site: { name: string }, body: string, pageTitle: string, allProducts?: any[], pluginState?: { commerce: boolean; cms: boolean; auth: boolean; seo: boolean; recs: boolean; cod: boolean; razorpay: boolean }, seoMeta?: { title?: string; description?: string; keywords?: string; ogTitle?: string; ogDescription?: string; ogImage?: string; noIndex?: boolean }, themeSettings?: Record<string, any>): string {
   const s = themeSettings ?? {};
   const primaryColor = String(s.primaryColor ?? "#131921");
   const accentColor  = String(s.accentColor ?? "#febd69");
@@ -30,6 +30,8 @@ function layout(site: { name: string }, body: string, pageTitle: string, allProd
   const authActive = pluginState?.auth ?? true;
   const seoActive = pluginState?.seo ?? true;
   const recsActive = pluginState?.recs ?? true;
+  const codAvailable = pluginState?.cod ?? true;
+  const razorpayActive = pluginState?.razorpay ?? false;
   const seo = seoActive && seoMeta ? seoMeta : {};
   const seoTitle = seo.title || pageTitle;
   const seoDesc = seo.description || "";
@@ -318,6 +320,8 @@ var CMS_ACTIVE = ${cms};
 var AUTH_ACTIVE = ${authActive};
 var SEO_ACTIVE = ${seoActive};
 var RECS_ACTIVE = ${recsActive};
+var COD_AVAILABLE = ${codAvailable};
+var RAZORPAY_AVAILABLE = ${razorpayActive};
 if (!COMMERCE_ACTIVE) {
   document.querySelectorAll(".nav-r a").forEach(function(a) {
     if (a.textContent.includes("Wishlist") || a.textContent.includes("Cart") || a.href.includes("orders.html")) a.style.display = "none";
@@ -468,18 +472,48 @@ function showCart() {
 function changeCartQtyInline(idx, delta) { var c = getCart(); if (idx<0||idx>=c.length) return; c[idx].qty+=delta; if (c[idx].qty<=0) c.splice(idx,1); saveCart(c); showCart(); }
 function removeFromCartInline(idx) { var c = getCart(); c.splice(idx,1); saveCart(c); showCart(); }
 async function checkout() {
-  const cart = getCart();
+  var cart = getCart();
   if (cart.length === 0) { alert("Cart empty"); return; }
-  const total = cart.reduce((s,i) => s + i.price * i.qty, 0);
-  const token = localStorage.getItem("at");
-  const email = prompt("Enter your email for order confirmation:");
+  var total = cart.reduce(function(s,i){return s + i.price * i.qty;},0);
+  var token = localStorage.getItem("at");
+  var email = "";
+  // Try to get email from session if logged in
+  if (token) {
+    try {
+      var sessionResp = await fetch("/api/v1/auth/session", { headers: { Authorization: "Bearer " + token } });
+      var sessionData = await sessionResp.json();
+      if (sessionData.user && sessionData.user.email) email = sessionData.user.email;
+    } catch(e) {}
+  }
+  if (!email) email = prompt("Enter your email for order confirmation:");
   if (!email) return;
-  const isGift = confirm("Is this a gift order?");
+
+  // Payment method selection
+  var paymentMethod = "cod";
+  var codAvailable = typeof COD_AVAILABLE !== "undefined" ? COD_AVAILABLE : true;
+  var razorpayAvailable = typeof RAZORPAY_AVAILABLE !== "undefined" ? RAZORPAY_AVAILABLE : false;
+  var paymentOptions = [];
+  if (codAvailable) paymentOptions.push("Cash on Delivery");
+  if (razorpayAvailable) paymentOptions.push("Pay Online (Razorpay)");
+  if (paymentOptions.length > 1) {
+    var choice = prompt("Select payment method:\n" + paymentOptions.map(function(o,i){ return (i+1) + ". " + o; }).join("\n"));
+    var idx = parseInt(choice) - 1;
+    if (idx === 1 && razorpayAvailable) paymentMethod = "razorpay";
+    else paymentMethod = "cod";
+  }
+
+  var isGift = confirm("Is this a gift order?");
   var giftMsg = "";
   if (isGift) giftMsg = prompt("Enter gift message (optional):") || "";
 
-  // Try API checkout if logged in
-  let orderNumber = "EXT-" + Date.now().toString().slice(-6);
+  // If Razorpay, redirect to payment page (handled by plugin)
+  if (paymentMethod === "razorpay") {
+    location.href = "/checkout.html?amount=" + total + "&email=" + encodeURIComponent(email) + "&token=" + encodeURIComponent(token || "");
+    return;
+  }
+
+  // Proceed with COD checkout
+  var orderNumber = "EXT-" + Date.now().toString().slice(-6);
   if (token) {
     try {
       const API = "/api/v1/commerce";
@@ -979,6 +1013,7 @@ export async function publishSite(prisma: PrismaClient, logger: Logger): Promise
 
   // ── Check active plugins for gating ──
   let isCommerceActive = true, isCmsActive = true, isAuthActive = true, isSeoActive = true, isRecsActive = true;
+  let isRazorpayActive = false, isCodEnabled = true;
   try {
     const plugs = await (prisma as any).plugin.findMany({ where: { isActive: true } });
     const names = plugs.map((p: any) => p.name ?? "");
@@ -987,8 +1022,13 @@ export async function publishSite(prisma: PrismaClient, logger: Logger): Promise
     isAuthActive = names.some((n: string) => n.includes("auth"));
     isSeoActive = names.some((n: string) => n.includes("seo"));
     isRecsActive = names.some((n: string) => n.includes("recommendations"));
+    isRazorpayActive = names.some((n: string) => n.includes("razorpay"));
+    // Check COD config
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const codConfig = await (prisma as any).systemConfig.findUnique({ where: { key: "cod_enabled" } });
+    isCodEnabled = codConfig ? String(codConfig.value) === "true" : true;
   } catch { /* plugin table optional */ }
-  const pluginState = { commerce: isCommerceActive, cms: isCmsActive, auth: isAuthActive, seo: isSeoActive, recs: isRecsActive };
+  const pluginState = { commerce: isCommerceActive, cms: isCmsActive, auth: isAuthActive, seo: isSeoActive, recs: isRecsActive, cod: isCodEnabled, razorpay: isRazorpayActive };
 
   // If commerce disabled, clear products + categories so no commerce pages are generated
   const products = isCommerceActive ? rawProducts : [];
@@ -1923,6 +1963,109 @@ renderCompare();
 })();
 function cartPageChangeQty(idx, delta) { var c = getCart(); if (idx<0||idx>=c.length) return; c[idx].qty+=delta; if (c[idx].qty<=0) c.splice(idx,1); saveCart(c); location.reload(); }
 function cartPageRemove(idx) { var c = getCart(); c.splice(idx,1); saveCart(c); location.reload(); }
+</script>
+</div>`,
+  });
+
+  // ── CHECKOUT / PAYMENT PAGE ──
+  if (isCommerceActive && isRazorpayActive) pages.push({
+    slug: "checkout", title: "Secure Checkout", description: "Complete your payment",
+    content: `<div class="page-content" style="max-width:500px;margin:40px auto">
+<h1>Secure Checkout</h1>
+<div id="checkoutStatus"><p style="color:#565959">Loading payment options...</p></div>
+<script>
+(function(){
+  var params = new URLSearchParams(location.search);
+  var amount = params.get("amount");
+  var email = params.get("email");
+  var token = params.get("token");
+
+  if (!amount) {
+    document.getElementById("checkoutStatus").innerHTML = '<p style="color:#cc0c39">No order amount specified. <a href="/cart.html">Return to cart</a></p>';
+    return;
+  }
+
+  document.getElementById("checkoutStatus").innerHTML =
+    '<div style="background:white;border:1px solid #e7e7e7;border-radius:8px;padding:24px">' +
+    '<h3 style="margin:0 0 16px">Order Summary</h3>' +
+    '<div style="display:flex;justify-content:space-between;margin-bottom:8px"><span>Total Amount</span><span style="font-weight:700;font-size:1.2rem">₹' + Number(amount).toLocaleString("en-IN") + '</span></div>' +
+    (email ? '<div style="font-size:.85rem;color:#565959;margin-bottom:16px">Email: ' + email + '</div>' : '') +
+    '<hr style="border:none;border-top:1px solid #e7e7e7;margin:16px 0">' +
+    '<h4 style="margin:0 0 12px">Select Payment Method</h4>' +
+    '<label style="display:flex;align-items:center;gap:12px;padding:12px;border:2px solid #007185;border-radius:8px;cursor:pointer;margin-bottom:8px;background:#f0f8ff">' +
+    '<input type="radio" name="payment" value="razorpay" checked style="accent-color:#007185">' +
+    '<span style="font-weight:600">Pay Online</span><span style="color:#565959;font-size:.8rem">Credit/Debit Card, UPI, NetBanking</span></label>' +
+    (typeof COD_AVAILABLE !== "undefined" && COD_AVAILABLE ?
+    '<label style="display:flex;align-items:center;gap:12px;padding:12px;border:2px solid #e7e7e7;border-radius:8px;cursor:pointer;margin-bottom:12px">' +
+    '<input type="radio" name="payment" value="cod"><span style="font-weight:600">Cash on Delivery</span><span style="color:#565959;font-size:.8rem">Pay when you receive</span></label>' : '') +
+    '<button onclick="doRazorpayCheckout()" id="payBtn" style="width:100%;padding:14px;background:#ffd814;border:1px solid #fcd200;border-radius:24px;font-size:1rem;font-weight:600;cursor:pointer;margin-top:8px">Pay ₹' + Number(amount).toLocaleString("en-IN") + '</button>' +
+    '<p style="font-size:.7rem;color:#565959;text-align:center;margin-top:8px">🔒 Secured by Razorpay</p></div>';
+
+  // Update button when payment method changes
+  document.querySelectorAll('input[name="payment"]').forEach(function(radio){
+    radio.addEventListener("change", function(){
+      var btn = document.getElementById("payBtn");
+      if (this.value === "cod") {
+        btn.textContent = "Place Order (COD)";
+        btn.onclick = function(){ doCodCheckout(amount, email, token); };
+      } else {
+        btn.textContent = "Pay ₹" + Number(amount).toLocaleString("en-IN");
+        btn.onclick = function(){ doRazorpayCheckout(); };
+      }
+    });
+  });
+})();
+
+function doCodCheckout(amount, email, token) {
+  if (!token) { alert("Please sign in first"); location.href = "/account.html"; return; }
+  fetch("/api/v1/commerce/checkout", { method:"POST", headers:{"Content-Type":"application/json", Authorization:"Bearer "+token}, body: JSON.stringify({email:email}) })
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      if (d.data) {
+        localStorage.removeItem("extora_cart");
+        updateCartCount();
+        document.getElementById("checkoutStatus").innerHTML = '<div style="text-align:center;padding:40px"><h2>Order Confirmed!</h2><p style="font-size:1.2rem;margin:16px 0">Order #' + d.data.orderNumber + '</p><p style="color:#565959">Amount: ₹' + Number(amount).toLocaleString("en-IN") + '</p><p style="color:#565959">Payment: Cash on Delivery</p><a href="/orders.html" style="color:#007185">View Orders</a> · <a href="/index.html" style="color:#007185;margin-left:12px">Continue Shopping</a></div>';
+      }
+    }).catch(function(){ alert("Checkout failed. Please try again."); });
+}
+
+function doRazorpayCheckout() {
+  var params = new URLSearchParams(location.search);
+  var amount = params.get("amount");
+  var email = params.get("email");
+  document.getElementById("payBtn").disabled = true;
+  document.getElementById("payBtn").textContent = "Processing...";
+  fetch("/api/v1/razorpay/order", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({amount: Number(amount), email: email}) })
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      if (!d.data || !d.data.id) { alert("Payment gateway unavailable. Try COD."); document.getElementById("payBtn").disabled = false; document.getElementById("payBtn").textContent = "Pay ₹" + Number(amount).toLocaleString("en-IN"); return; }
+      var options = {
+        key: d.data.keyId,
+        amount: d.data.amount,
+        currency: d.data.currency || "INR",
+        name: "Extora",
+        description: "Order Payment",
+        order_id: d.data.id,
+        handler: function(response){
+          fetch("/api/v1/razorpay/verify", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({razorpay_order_id: response.razorpay_order_id, razorpay_payment_id: response.razorpay_payment_id, razorpay_signature: response.razorpay_signature, email: email, amount: amount}) })
+            .then(function(r2){ return r2.json(); })
+            .then(function(v){
+              if (v.data && v.data.verified) {
+                localStorage.removeItem("extora_cart");
+                updateCartCount();
+                document.getElementById("checkoutStatus").innerHTML = '<div style="text-align:center;padding:40px"><h2>Payment Successful!</h2><p style="font-size:1.2rem;margin:16px 0">Order #' + v.data.orderNumber + '</p><p style="color:#565959">Amount Paid: ₹' + Number(amount).toLocaleString("en-IN") + '</p><p style="color:#007600;font-weight:600">✓ Payment Verified</p><a href="/orders.html" style="color:#007185">View Orders</a> · <a href="/index.html" style="color:#007185;margin-left:12px">Continue Shopping</a></div>';
+              }
+            });
+        },
+        prefill: { email: email },
+        theme: { color: "#131921" }
+      };
+      var rzp = new (window as any).Razorpay(options);
+      rzp.open();
+      document.getElementById("payBtn").disabled = false;
+      document.getElementById("payBtn").textContent = "Pay ₹" + Number(amount).toLocaleString("en-IN");
+    }).catch(function(){ alert("Payment failed. Please try again."); document.getElementById("payBtn").disabled = false; document.getElementById("payBtn").textContent = "Pay ₹" + Number(amount).toLocaleString("en-IN"); });
+}
 </script>
 </div>`,
   });

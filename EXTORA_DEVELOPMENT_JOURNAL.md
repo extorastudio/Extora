@@ -4327,3 +4327,34 @@ execute depending on browser behavior.
 - `updateCartCount()` now toggles `display:flex`/`display:none`
 
 **CI:** All green | **Pages:** 36
+
+
+### Phase 184-185: Payment + Pincode + Shipping Plugins, Admin Pages
+**Date:** June 19, 2026 | **Commit:** (upcoming)
+**Duration:** ~60 minutes
+
+**Phase 184: Checkout + Payment System**
+- Fixed checkout to auto-fill email from session when logged in (no more prompt)
+- Added payment method selection: COD + Razorpay
+- COD_AVAILABLE and RAZORPAY_AVAILABLE JS flags embedded in every page
+- PluginState extended: cod + razorpay boolean flags
+- `POST /api/v1/config/cod` — admin toggle for Cash on Delivery
+- `checkout.html` page with payment method selection + Razorpay integration
+- Razorpay: order creation API, payment verification, signature validation
+- COD orders go through standard checkout flow
+
+**Phase 185: Admin Panel — Plugin Settings Pages**
+- RazorpaySettings.tsx — API key configuration, webhook URL, event monitoring
+- PincodeManager.tsx — CRUD table for serviceable pincodes with delivery days, extra charges, COD toggle
+- ShippingSettings.tsx — delivery charges, free shipping threshold, extra charge % and fixed amount
+- Orders.tsx management page — filter by status, search, status transitions (confirm→process→ship→deliver→cancel)
+- All pages wired to App.tsx PAGE_MAP + DashboardLayout.tsx sidebar (conditioned on active plugins)
+- Pincode + Shipping API routes in admin-routes.ts (direct, not via plugin sandbox)
+
+**Plugin infrastructure fixes:**
+- Fixed plugin loader path: PLUGINS_DIR = join(cwd, "..", "..", "plugins")
+- Docker already copies plugins/ and themes/ directories
+- Plugin manifest auto-discovery from extora.json files
+
+**New files:** 6 pages + 3 plugin manifests + 3 plugin source files
+**CI:** All green | **Pages:** 36

@@ -1,0 +1,11 @@
+{
+  "name": "@extora/razorpay",
+  "version": "1.0.0",
+  "title": "Razorpay Payments",
+  "description": "Accept online payments via Razorpay payment gateway",
+  "author": "Extora",
+  "license": "MIT",
+  "category": "payments",
+  "icon": "credit-card",
+  "tags": ["payment", "razorpay", "gateway", "checkout"]
+}

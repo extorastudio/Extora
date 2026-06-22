@@ -1,0 +1,11 @@
+{
+  "name": "@extora/pincode",
+  "version": "1.0.0",
+  "title": "Pincode Serviceability",
+  "description": "Manage serviceable pincodes and delivery availability by area",
+  "author": "Extora",
+  "license": "MIT",
+  "category": "shipping",
+  "icon": "map-pin",
+  "tags": ["pincode", "delivery", "serviceability", "shipping"]
+}

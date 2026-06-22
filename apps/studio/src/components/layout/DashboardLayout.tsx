@@ -7,7 +7,7 @@ import {
   HardDrive, FileText, Image, Activity, LogOut, Menu, X, Package,
   ShoppingCart, ShoppingBag, Globe, CheckCircle, AlertCircle, Loader2,
   ChevronDown, ChevronRight, FolderTree, Shield, Tags, Grid3X3, MessageSquare,
-  PanelTop, Type, TrendingUp,
+  PanelTop, Type, TrendingUp, CreditCard, MapPin, Truck,
 } from "lucide-react";
 
 interface NavItem {
@@ -41,6 +41,9 @@ export default function DashboardLayout({ children, currentPage }: DashboardLayo
   const cmsActive = activePlugins.some((p) => p.name.includes("cms") && p.isActive);
   const analyticsActive = activePlugins.some((p) => p.name.includes("product-analytics") && p.isActive);
   const seoActive = activePlugins.some((p) => p.name.includes("seo") && p.isActive);
+  const razorpayActive = activePlugins.some((p) => p.name.includes("razorpay") && p.isActive);
+  const pincodeActive = activePlugins.some((p) => p.name.includes("pincode") && p.isActive);
+  const shippingActive = activePlugins.some((p) => p.name.includes("shipping") && p.isActive);
 
   // Build nav items dynamically based on active plugins
   const navItems: NavItem[] = [
@@ -59,6 +62,9 @@ export default function DashboardLayout({ children, currentPage }: DashboardLayo
     ...(commerceActive ? [{ id: "orders", label: "Orders", icon: ShoppingCart } as NavItem] : []),
     ...(analyticsActive ? [{ id: "analytics", label: "Analytics", icon: TrendingUp } as NavItem] : []),
     ...(seoActive ? [{ id: "seo", label: "SEO", icon: Globe } as NavItem] : []),
+    ...(razorpayActive ? [{ id: "razorpay", label: "Razorpay", icon: CreditCard } as NavItem] : []),
+    ...(pincodeActive ? [{ id: "pincode", label: "Pincodes", icon: MapPin } as NavItem] : []),
+    ...(shippingActive ? [{ id: "shipping", label: "Shipping", icon: Truck } as NavItem] : []),
     ...(cmsActive ? [{ id: "content", label: "Content", icon: FileText } as NavItem] : []),
     ...(cmsActive ? [{
       id: "builder", label: "Builder", icon: Layout,

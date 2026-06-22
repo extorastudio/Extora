@@ -19,6 +19,9 @@ import OrdersPage from "./pages/Orders";
 import BuilderPage from "./pages/Builder";
 import AnalyticsDashboard from "./pages/Analytics";
 import SeoSettingsPage from "./pages/SeoSettings";
+import RazorpaySettingsPage from "./pages/RazorpaySettings";
+import PincodeManagerPage from "./pages/PincodeManager";
+import ShippingSettingsPage from "./pages/ShippingSettings";
 import { Package, Users2, Clock, FileText, ShoppingCart, TrendingUp, Globe } from "lucide-react";
 import { CardSkeleton } from "./components/ui/Skeleton";
 
@@ -164,6 +167,9 @@ const PAGE_MAP: Record<string, React.ComponentType> = {
   orders: OrdersPage,
   analytics: AnalyticsDashboard,
   seo: SeoSettingsPage,
+  razorpay: RazorpaySettingsPage,
+  pincode: PincodeManagerPage,
+  shipping: ShippingSettingsPage,
   services: ServicesPage,
   config: ConfigPage,
   themeSettings: ThemeSettingsPage,

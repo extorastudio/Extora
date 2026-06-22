@@ -268,6 +268,103 @@ export function registerAdminRoutes(server: FastifyInstance, prisma: PrismaClien
   });
 
   // =========================================================================
+  // COD (Cash on Delivery) Config
+  // =========================================================================
+
+  server.get("/api/v1/config/cod", async (_request: FastifyRequest, reply: FastifyReply) => {
+    const config = await prisma.systemConfig.findUnique({ where: { key: "cod_enabled" } });
+    return await reply.send({ data: { cod_enabled: config ? config.value === "true" : true } });
+  });
+
+  server.post("/api/v1/config/cod", async (request: FastifyRequest, reply: FastifyReply) => {
+    await authenticate(request, reply, prisma);
+    const body = request.body as Record<string, unknown> | undefined;
+    const enabled = body?.enabled !== false;
+    await prisma.systemConfig.upsert({
+      where: { key: "cod_enabled" },
+      create: { key: "cod_enabled", value: String(enabled) },
+      update: { value: String(enabled) },
+    });
+    return await reply.send({ data: { cod_enabled: enabled } });
+  });
+
+  // =========================================================================
+  // Pincode Management
+  // =========================================================================
+
+  server.get("/api/v1/pincode/check", async (request: FastifyRequest, reply: FastifyReply) => {
+    const pincode = ((request.query as Record<string, string>)?.pincode || "").trim();
+    if (pincode?.length !== 6) return reply.send({ data: { serviceable: false, message: "Enter a valid 6-digit pincode" } });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const rows: any[] = await (prisma as any).$queryRawUnsafe(`SELECT * FROM "Pincode" WHERE pincode = $1 LIMIT 1`, pincode);
+    if (rows.length && rows[0].isServiceable) {
+      const r = rows[0];
+      return reply.send({ data: { serviceable: true, pincode: r.pincode, city: r.city, state: r.state, deliveryDays: r.deliveryDays, extraCharge: r.extraCharge, codAvailable: r.codAvailable, message: `Delivery to ${r.city}, ${r.state} in ${r.deliveryDays} days` } });
+    }
+    return reply.send({ data: { serviceable: false, message: "Not serviceable" } });
+  });
+
+  server.get("/api/v1/pincode", async (_request: FastifyRequest, reply: FastifyReply) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const rows: any[] = await (prisma as any).$queryRawUnsafe(`SELECT * FROM "Pincode" ORDER BY pincode ASC`);
+    return reply.send({ data: rows });
+  });
+
+  server.post("/api/v1/pincode", async (request: FastifyRequest, reply: FastifyReply) => {
+    const body = request.body as Record<string, unknown> | undefined;
+    const p = String(body?.pincode || "").trim();
+    if (p?.length !== 6) return reply.status(400).send({ code: "INVALID", message: "Valid 6-digit pincode required" });
+    await (prisma as any).$executeRawUnsafe(
+      `INSERT INTO "Pincode" (pincode, city, state, "isServiceable", "deliveryDays", "extraCharge", "codAvailable", "prepaidAvailable") VALUES ($1,$2,$3,$4,$5,$6,$7,$8) ON CONFLICT (pincode) DO UPDATE SET city=$2, state=$3, "isServiceable"=$4, "deliveryDays"=$5, "extraCharge"=$6, "codAvailable"=$7, "prepaidAvailable"=$8`,
+      p, String(body?.city ?? ""), String(body?.state ?? ""), body?.isServiceable !== false, Number(body?.deliveryDays ?? 3), Number(body?.extraCharge ?? 0), body?.codAvailable !== false, body?.prepaidAvailable !== false,
+    );
+    return reply.send({ data: { success: true } });
+  });
+
+  server.delete("/api/v1/pincode/:pincode", async (request: FastifyRequest, reply: FastifyReply) => {
+    const p = (request.params as { pincode: string }).pincode;
+    await (prisma as any).$executeRawUnsafe(`DELETE FROM "Pincode" WHERE pincode = $1`, p);
+    return reply.send({ data: { deleted: true } });
+  });
+
+  // =========================================================================
+  // Shipping Management
+  // =========================================================================
+
+  server.get("/api/v1/shipping/config", async (_request: FastifyRequest, reply: FastifyReply) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const rows: any[] = await (prisma as any).$queryRawUnsafe(`SELECT * FROM "ShippingConfig" WHERE "isActive" = true ORDER BY "createdAt" DESC LIMIT 1`);
+    return reply.send({ data: rows[0] || {} });
+  });
+
+  server.post("/api/v1/shipping/config", async (request: FastifyRequest, reply: FastifyReply) => {
+    const body = request.body as Record<string, unknown> | undefined;
+    await (prisma as any).$executeRawUnsafe(
+      `INSERT INTO "ShippingConfig" (name, type, "baseCharge", "freeAbove", "perKgCharge", "extraChargeEnabled", "extraChargePercent", "extraChargeFixed", zones) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9::jsonb)`,
+      String(body?.name ?? "Standard"), String(body?.type ?? "flat"), Number(body?.baseCharge ?? 49), Number(body?.freeAbove ?? 499), Number(body?.perKgCharge ?? 0), body?.extraChargeEnabled === true, Number(body?.extraChargePercent ?? 0), Number(body?.extraChargeFixed ?? 0), JSON.stringify(body?.zones ?? []),
+    );
+    return reply.send({ data: { success: true } });
+  });
+
+  server.get("/api/v1/shipping/calculate", async (request: FastifyRequest, reply: FastifyReply) => {
+    const amount = Number((request.query as Record<string, string>)?.amount || 0);
+    const pincode = ((request.query as Record<string, string>)?.pincode || "").trim();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const configRows: any[] = await (prisma as any).$queryRawUnsafe(`SELECT * FROM "ShippingConfig" WHERE "isActive" = true ORDER BY "createdAt" DESC LIMIT 1`);
+    const cfg = configRows[0] || { baseCharge: 49, freeAbove: 499, extraChargeEnabled: false };
+    const charge: number = amount >= (Number(cfg.freeAbove) || 499) ? 0 : (Number(cfg.baseCharge) || 49);
+    let extra = 0;
+    if (pincode?.length === 6) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const pinRows: any[] = await (prisma as any).$queryRawUnsafe(`SELECT "extraCharge" FROM "Pincode" WHERE pincode = $1 AND "isServiceable" = true LIMIT 1`, pincode);
+      if (pinRows.length && pinRows[0].extraCharge) extra += Number(pinRows[0].extraCharge);
+    }
+    if (cfg.extraChargeEnabled && Number(cfg.extraChargePercent) > 0) extra += Math.round(amount * Number(cfg.extraChargePercent) / 100);
+    if (cfg.extraChargeEnabled && Number(cfg.extraChargeFixed) > 0) extra += Number(cfg.extraChargeFixed);
+    return reply.send({ data: { shippingCharge: charge, extraCharge: extra, totalCharge: charge + extra, freeShipping: charge === 0 } });
+  });
+
+  // =========================================================================
   // Publishing Endpoint
   // =========================================================================
 

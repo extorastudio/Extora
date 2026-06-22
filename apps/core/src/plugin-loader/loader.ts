@@ -5,7 +5,7 @@ import type { PluginManifest, PluginLifecycle, PluginSandbox, LoadedPlugin } fro
 import { tryLoadManifest } from "./manifest.js";
 import { resolveDependencies } from "./resolver.js";
 
-const PLUGINS_DIR = join(process.cwd(), "plugins");
+const PLUGINS_DIR = join(process.cwd(), "..", "..", "plugins");
 
 export async function discoverPlugins(prisma: PrismaClient): Promise<LoadedPlugin[]> {
   const installed = await prisma.plugin.findMany({
