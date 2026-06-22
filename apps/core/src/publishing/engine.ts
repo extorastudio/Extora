@@ -1349,12 +1349,28 @@ function renderContentBody(body: string): string {
     slug: "search", title: "Search Products", description: "Find products",
     content: `<div class="page-content">
 <h1>Search Products</h1>
-<div style="margin-bottom:20px;display:flex;gap:8px">
+<div style="margin-bottom:16px;display:flex;gap:8px">
 <input type="text" id="searchInput" placeholder="Search by name, category, brand..." style="flex:1;padding:12px 16px;border:1px solid #ddd;border-radius:8px;font-size:1rem;outline:none" onkeyup="doSearch()" />
+<select id="sortBy" onchange="doSearch()" style="padding:12px 16px;border:1px solid #ddd;border-radius:8px;font-size:.9rem;background:white;cursor:pointer"><option value="relevance">Sort: Relevance</option><option value="price_low">Price: Low to High</option><option value="price_high">Price: High to Low</option><option value="rating">Rating</option><option value="discount">Discount</option></select>
 <button onclick="doSearch()" style="padding:12px 24px;background:#ffd814;border:1px solid #fcd200;border-radius:8px;font-weight:600;cursor:pointer;white-space:nowrap">Search</button>
 </div>
-<div id="searchResults" class="products-grid"><div class="skeleton-card"><div class="skeleton sk-img"></div><div class="skeleton sk-line"></div><div class="skeleton sk-line short"></div><div class="skeleton sk-line price"></div><div class="skeleton sk-btn"></div></div><div class="skeleton-card"><div class="skeleton sk-img"></div><div class="skeleton sk-line"></div><div class="skeleton sk-line short"></div><div class="skeleton sk-line price"></div><div class="skeleton sk-btn"></div></div><div class="skeleton-card"><div class="skeleton sk-img"></div><div class="skeleton sk-line"></div><div class="skeleton sk-line short"></div><div class="skeleton sk-line price"></div><div class="skeleton sk-btn"></div></div><div class="skeleton-card"><div class="skeleton sk-img"></div><div class="skeleton sk-line"></div><div class="skeleton sk-line short"></div><div class="skeleton sk-line price"></div><div class="skeleton sk-btn"></div></div><div class="skeleton-card"><div class="skeleton sk-img"></div><div class="skeleton sk-line"></div><div class="skeleton sk-line short"></div><div class="skeleton sk-line price"></div><div class="skeleton sk-btn"></div></div><div class="skeleton-card"><div class="skeleton sk-img"></div><div class="skeleton sk-line"></div><div class="skeleton sk-line short"></div><div class="skeleton sk-line price"></div><div class="skeleton sk-btn"></div></div><div class="skeleton-card"><div class="skeleton sk-img"></div><div class="skeleton sk-line"></div><div class="skeleton sk-line short"></div><div class="skeleton sk-line price"></div><div class="skeleton sk-btn"></div></div><div class="skeleton-card"><div class="skeleton sk-img"></div><div class="skeleton sk-line"></div><div class="skeleton sk-line short"></div><div class="skeleton sk-line price"></div><div class="skeleton sk-btn"></div></div></div>
-<p id="noResults" style="display:none;text-align:center;padding:40px;color:#565959">No products found. Try a different search term.</p>
+<div style="display:flex;gap:20px">
+<div id="filterSidebar" style="width:220px;min-width:220px;border-right:1px solid #e7e7e7;padding-right:16px">
+<h4 style="font-size:.9rem;margin:0 0 8px">Price Range</h4>
+<div style="display:flex;gap:4px;margin-bottom:12px"><input type="number" id="priceMin" placeholder="₹ Min" onchange="doSearch()" style="width:50%;padding:6px 8px;border:1px solid #ddd;border-radius:4px;font-size:.8rem"><span style="color:#999;font-size:.8rem;padding:6px 0">—</span><input type="number" id="priceMax" placeholder="₹ Max" onchange="doSearch()" style="width:50%;padding:6px 8px;border:1px solid #ddd;border-radius:4px;font-size:.8rem"></div>
+<h4 style="font-size:.9rem;margin:12px 0 8px">Rating</h4>
+<div id="ratingFilters" style="margin-bottom:12px">${[4,3,2,1].map(n => '<label style="display:flex;align-items:center;gap:4px;cursor:pointer;font-size:.8rem;margin-bottom:4px"><input type="checkbox" value="'+String(n)+'" onchange="doSearch()"> '+'★'.repeat(n)+'☆'.repeat(5-n)+' & up</label>').join("")}</div>
+<h4 style="font-size:.9rem;margin:12px 0 8px">Category <span id="catCount" style="font-weight:400;color:#999;font-size:.75rem"></span></h4>
+<div id="categoryFilters" style="margin-bottom:12px;max-height:200px;overflow-y:auto"></div>
+<h4 style="font-size:.9rem;margin:12px 0 8px">Brand <span id="brandCount" style="font-weight:400;color:#999;font-size:.75rem"></span></h4>
+<div id="brandFilters" style="margin-bottom:12px;max-height:200px;overflow-y:auto"></div>
+<button onclick="clearFilters()" style="width:100%;padding:8px;background:#eee;border:1px solid #ddd;border-radius:4px;cursor:pointer;font-size:.8rem">Clear All</button>
+</div>
+<div style="flex:1">
+<div id="resultCount" style="font-size:.85rem;color:#565959;margin-bottom:8px"></div>
+<div id="searchResults" class="products-grid"><div class="skeleton-card"><div class="skeleton sk-img"></div><div class="skeleton sk-line"></div><div class="skeleton sk-line short"></div><div class="skeleton sk-line price"></div><div class="skeleton sk-btn"></div></div><div class="skeleton-card"><div class="skeleton sk-img"></div><div class="skeleton sk-line"></div><div class="skeleton sk-line short"></div><div class="skeleton sk-line price"></div><div class="skeleton sk-btn"></div></div><div class="skeleton-card"><div class="skeleton sk-img"></div><div class="skeleton sk-line"></div><div class="skeleton sk-line short"></div><div class="skeleton sk-line price"></div><div class="skeleton sk-btn"></div></div><div class="skeleton-card"><div class="skeleton sk-img"></div><div class="skeleton sk-line"></div><div class="skeleton sk-line short"></div><div class="skeleton sk-line price"></div><div class="skeleton sk-btn"></div></div></div>
+<p id="noResults" style="display:none;text-align:center;padding:40px;color:#565959">No products found. Try different filters.</p>
+</div></div>
 </div>
 <script>
 const ALL_PRODUCTS = ${productJson};
@@ -1362,36 +1378,73 @@ const params = new URLSearchParams(window.location.search);
 const q = params.get("q");
 if (q) { document.getElementById("searchInput").value = q; }
 
+function getUniqueValues(field) {
+  var seen = {}; var vals = [];
+  ALL_PRODUCTS.forEach(function(p){ var v = p[field]; if (typeof v === "string" && v && !seen[v]) { seen[v] = 1; vals.push(v); } });
+  return vals.sort();
+}
+(function buildFilters(){
+  var htmlC = ""; getUniqueValues("category").forEach(function(c, i){ htmlC += '<label style="display:flex;align-items:center;gap:4px;cursor:pointer;font-size:.8rem;margin-bottom:4px"><input type="checkbox" value="'+c.replace(/"/g,'&quot;')+'" onchange="doSearch()"> '+c+'</label>'; });
+  document.getElementById("categoryFilters").innerHTML = htmlC;
+  var htmlB = ""; getUniqueValues("brand").forEach(function(b, i){ htmlB += '<label style="display:flex;align-items:center;gap:4px;cursor:pointer;font-size:.8rem;margin-bottom:4px"><input type="checkbox" value="'+b.replace(/"/g,'&quot;')+'" onchange="doSearch()"> '+b+'</label>'; });
+  document.getElementById("brandFilters").innerHTML = htmlB;
+})();
+
+function getChecked(containerId) {
+  var cbs = document.querySelectorAll("#"+containerId+" input[type=checkbox]:checked");
+  var vals = []; cbs.forEach(function(cb){ vals.push(cb.value); }); return vals;
+}
 function doSearch() {
-  const query = document.getElementById("searchInput").value.toLowerCase().trim();
-  const container = document.getElementById("searchResults");
-  const noRes = document.getElementById("noResults");
-  if (!query) { container.innerHTML = ""; noRes.style.display = "none"; return; }
+  var query = document.getElementById("searchInput").value.toLowerCase().trim();
+  var container = document.getElementById("searchResults");
+  var noRes = document.getElementById("noResults");
+  var resultCount = document.getElementById("resultCount");
+  var all = ALL_PRODUCTS;
 
-  const matches = ALL_PRODUCTS.filter(p =>
-    p.name.toLowerCase().includes(query) ||
-    p.category.toLowerCase().includes(query) ||
-    p.brand.toLowerCase().includes(query)
-  );
+  if (query) {
+    all = all.filter(function(p){ return p.name.toLowerCase().includes(query) || p.category.toLowerCase().includes(query) || p.brand.toLowerCase().includes(query); });
+  }
 
-  if (matches.length === 0) {
+  var selCats = getChecked("categoryFilters");
+  if (selCats.length) all = all.filter(function(p){ return selCats.indexOf(p.category) !== -1; });
+
+  var selBrands = getChecked("brandFilters");
+  if (selBrands.length) all = all.filter(function(p){ return selBrands.indexOf(p.brand) !== -1; });
+
+  var minPrice = parseFloat(document.getElementById("priceMin").value) || 0;
+  var maxPrice = parseFloat(document.getElementById("priceMax").value) || Infinity;
+  all = all.filter(function(p){ return p.price >= minPrice && p.price <= maxPrice; });
+
+  var selRatings = getChecked("ratingFilters");
+  if (selRatings.length) all = all.filter(function(p){ return selRatings.some(function(r){ return p.rating >= Number(r); }); });
+
+  // Sort
+  var sort = document.getElementById("sortBy").value;
+  if (sort === "price_low") all.sort(function(a,b){ return a.price - b.price; });
+  else if (sort === "price_high") all.sort(function(a,b){ return b.price - a.price; });
+  else if (sort === "rating") all.sort(function(a,b){ return b.rating - a.rating; });
+  else if (sort === "discount") all.sort(function(a,b){ var da=a.mrp&&a.mrp>a.price?((a.mrp-a.price)/a.mrp):0; var db=b.mrp&&b.mrp>b.price?((b.mrp-b.mrp)/b.price):0; return db-da; });
+
+  resultCount.textContent = all.length + " result" + (all.length!==1?"s":"");
+
+  if (all.length === 0) {
     container.innerHTML = "";
     noRes.style.display = "block";
-    showRelatedSearches(query);
   } else {
     noRes.style.display = "none";
-    container.innerHTML = matches.map(p => {
-      const mrp = p.mrp && p.mrp > p.price ? '<span class="mrp" style="font-size:.8rem;color:#565959;text-decoration:line-through">₹' + p.mrp.toLocaleString("en-IN") + '</span>' : '';
-      const discount = p.mrp && p.mrp > p.price ? '<span class="badge">-' + Math.round((1-p.price/p.mrp)*100) + '%</span>' : '';
-      return '<div class="product-card"><a href="/product-' + p.slug + '.html" style="text-decoration:none;color:inherit;display:flex;flex-direction:column;padding:16px;height:100%">' +
-      (p.img ? '<div class="img-wrap"><img src="' + p.img + '" alt="" loading="lazy"></div>' : '<div class="img-wrap"><span style="color:#999">No Image</span></div>') +
-      '<span class="pname">' + p.name + '</span>' +
-      (p.rating > 0 ? '<span class="stars">' + "★".repeat(Math.floor(p.rating)) + '</span>' : '') +
-      '<div class="pr"><span class="p">₹' + p.price.toLocaleString("en-IN") + '</span>' + mrp + '</div>' +
-      discount + (p.deal ? '<span class="badge" style="background:#c45500">' + p.deal + '</span>' : '') +
-      ''+(p.stockStatus==='outofstock'||(p.stockQty||10)<=0?'<span class="stock-no">Out of Stock</span><button class="btn-cart" style="margin-left:auto;padding:6px 12px;background:#eee;border:1px solid #ccc;border-radius:16px;font-size:.75rem;cursor:pointer;color:#888" onclick="notifyMe(\''+p.slug+'\',\''+p.name.replace(/'/g,"&#39;")+'\');event.preventDefault();event.stopPropagation()"">Notify Me</button>':(p.stockStatus==='low'||(p.stockQty||10)<=5?'<span class="stock-low">Only '+(p.stockQty||10)+' left</span>':'<span class="stock-ok">In Stock</span>'))+'<button class="btn-cart" style="margin-left:auto;padding:5px 10px;background:#ffd814;border:1px solid #fcd200;border-radius:12px;font-size:.7rem;font-weight:600;cursor:pointer;color:#0f1111" data-name="' + p.name.replace(/"/g,'&quot;') + '" data-price="' + p.price + '" onclick="addToCart(this);return false">Add</button></span></a></div>';
+    container.innerHTML = all.map(function(p){
+      var mrp = p.mrp && p.mrp > p.price ? '<span class="mrp" style="font-size:.8rem;color:#565959;text-decoration:line-through">₹' + p.mrp.toLocaleString("en-IN") + '</span>' : '';
+      var discount = p.mrp && p.mrp > p.price ? '<span class="badge">-' + Math.round((1-p.price/p.mrp)*100) + '%</span>' : '';
+      return '<div class="product-card"><a href="/product-' + p.slug + '.html" style="text-decoration:none;color:inherit;display:flex;flex-direction:column;padding:16px;height:100%"><div class="img-wrap">'+(p.img?'<img src="'+p.img+'" alt="" loading="lazy">':'<span style="color:#999">No Image</span>')+'</div><span class="pname">'+p.name+'</span>'+(p.rating>0?'<span class="stars">'+"★".repeat(Math.floor(p.rating))+'</span>':'')+'<div class="pr"><span class="p">₹'+p.price.toLocaleString("en-IN")+'</span>'+mrp+'</div>'+discount+(p.deal?'<span class="badge" style="background:#c45500">'+p.deal+'</span>':'')+'<span style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">'+(p.stockStatus==='outofstock'||(p.stockQty||10)<=0?'<span class="stock-no">Out of Stock</span><button class="btn-cart" style="padding:6px 12px;background:#eee;border:1px solid #ccc;border-radius:16px;font-size:.75rem;cursor:pointer;color:#888" onclick="notifyMe(\''+p.slug+'\',\''+p.name.replace(/'/g,"&#39;")+'\');event.preventDefault();event.stopPropagation()">Notify Me</button>':(p.stockStatus==='low'||(p.stockQty||10)<=5?'<span class="stock-low">Only '+(p.stockQty||10)+' left</span>':'<span class="stock-ok">In Stock</span>'))+'<button class="btn-cart" style="padding:5px 10px;background:#ffd814;border:1px solid #fcd200;border-radius:12px;font-size:.7rem;font-weight:600;cursor:pointer;color:#0f1111" data-name="'+p.name.replace(/"/g,'&quot;')+'" data-price="'+p.price+'" onclick="addToCart(this);return false">Add</button></span></a></div>';
     }).join("");
   }
+}
+function clearFilters(){
+  document.querySelectorAll("#filterSidebar input[type=checkbox]").forEach(function(cb){ cb.checked = false; });
+  document.getElementById("priceMin").value = "";
+  document.getElementById("priceMax").value = "";
+  document.getElementById("sortBy").value = "relevance";
+  doSearch();
 }
 doSearch();
 </script>`,

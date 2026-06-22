@@ -13,6 +13,7 @@ import BackupsPage from "./pages/Backups";
 import ProductsPage from "./pages/Products";
 import ContentPage from "./pages/Content";
 import MediaPage from "./pages/Media";
+import ReviewsPage from "./pages/Reviews";
 import ThemeSettingsPage from "./pages/ThemeSettings";
 import OrdersPage from "./pages/Orders";
 import BuilderPage from "./pages/Builder";
@@ -152,7 +153,7 @@ const PAGE_MAP: Record<string, React.ComponentType> = {
   brands: ProductsPage,
   tags: ProductsPage,
   attributes: ProductsPage,
-  reviews: ProductsPage,
+  reviews: ReviewsPage,
   content: ContentPage,
   builder: BuilderPage,
   "builder-layout": BuilderPage,

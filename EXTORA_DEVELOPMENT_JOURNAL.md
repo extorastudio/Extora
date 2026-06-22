@@ -4081,3 +4081,28 @@ sellerName, sellerRating, multiBuyEnabled
 
 **Verification:** All 3 features rendered + functional on Mechanical Keyboard product page
 **CI:** All green | **Pages:** 35
+
+
+### Phase 175-176: Advanced Search + Review Management
+**Date:** June 19, 2026 | **Commit:** (upcoming)
+**Duration:** ~30 minutes
+
+**Phase 175: Advanced Search Filters (Amazon-style)**
+- Sidebar with price range (min/max), category checkboxes, brand checkboxes, rating (4★+) filters
+- Sort dropdown: Relevance, Price Low/High, Rating, Discount
+- Result count display with dynamic filtering
+- "Clear All" button resets all filters
+- Client-side filtering over ALL_PRODUCTS JSON
+- Dynamic category/brand checkbox lists built from product data
+
+**Phase 176: Review Management in Admin Panel**
+- New `Reviews.tsx` page at `#/reviews`
+- Filter tabs: All, Pending, Approved with counts
+- Approve/Reject buttons per review (Check/X icons)
+- Rating stars display, author info, date
+- Connected to `GET/PATCH /api/v1/commerce/reviews` API
+- Added to `PAGE_MAP` in App.tsx
+
+**ESLint fix:** `restrict-plus-operands` error from number + string in rating filter HTML
+**Verification:** Search filters all visible, Review page accessible at /admin-panel/#/reviews
+**CI:** All green | **Pages:** 35
