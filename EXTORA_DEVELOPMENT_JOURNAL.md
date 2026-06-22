@@ -4253,3 +4253,29 @@ sellerName, sellerRating, multiBuyEnabled
 
 **Verification:** Changed all 6 colors via API, re-published, confirmed colors appear in HTML. DB verified: 8+ settings stored.
 **CI:** All green | **Pages:** 36 | **Docker:** Rebuilt + deployed
+
+
+### Phase 181: Cart Bug Fixes — Drawer CSS, Add to Cart, OOS Buttons
+**Date:** June 19, 2026 | **Commit:** (upcoming)
+**Duration:** ~40 minutes
+
+**Bug 1: Cart drawer appearing at bottom of page**
+- Root cause: All cart drawer CSS rules (`.cart-drawer`, `.cart-drawer-overlay`, `.cart-item`, `.cart-item-img`, `.cart-qty`, `.cart-item-remove`) were NESTED inside `@media(max-width:480px)` — only applied on mobile
+- Fix: Moved 20+ cart drawer CSS rules OUTSIDE the media query to global scope (before `@media(max-width:768px)`)
+- Removed duplicate copy from inside `@media(480px)`
+- Also added `overflow:hidden`, `flex-shrink:0` to drawer parts, `min-width:0`/`word-break:break-word` to item info
+
+**Bug 2: Add to Cart button not responding**
+- Root cause: Login gate `if (!localStorage.getItem("at")) { location.href = "/account.html" }` was blocking
+- Fix: Removed login requirement from `addToCart()` — guest users can add to cart
+- Auth still required for checkout (existing logic)
+
+**Bug 3: Out of stock — disable cart/buy**
+- Product detail page main buttons (full-width Add to Cart + Buy Now) were ALWAYS shown regardless of stock
+- Fix: Added ternary check `${p.stockStatus === "outofstock" || Number(p.stockQty ?? 10) <= 0 ? ... : ...}` 
+- OOS shows disabled buttons: gray background, `cursor:not-allowed`, `disabled` attribute
+- In-stock shows normal Add to Cart + Buy Now buttons
+- API: `POST /api/v1/commerce/cart/add` now checks stock before allowing add — returns `OUT_OF_STOCK` error
+
+**Verification:** All fixes confirmed on correct product detail URL
+**CI:** All green | **Pages:** 36

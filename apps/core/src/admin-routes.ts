@@ -872,6 +872,13 @@ export function registerAdminRoutes(server: FastifyInstance, prisma: PrismaClien
     const body = request.body as Record<string, unknown> | undefined;
     if (!body?.productId) return reply.status(400).send({ code: "BAD_REQUEST", message: "productId required" });
 
+    // Check stock availability
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const product = await (prisma as any).product.findFirst({ where: { name: String(body.productId) } });
+    if (product && (product.stockStatus === "outofstock" || Number(product.stockQty ?? 10) <= 0)) {
+      return reply.status(400).send({ code: "OUT_OF_STOCK", message: "This product is currently unavailable" });
+    }
+
     const cart = carts.get(userId) ?? { items: [], updatedAt: "" };
     const existing = cart.items.find((i) => i.productId === String(body.productId));
     if (existing) {

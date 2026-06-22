@@ -198,6 +198,25 @@ footer h4{font-size:.9rem;margin-bottom:8px}
 footer a{display:block;color:#ddd;text-decoration:none;font-size:.8rem;padding:2px 0}
 footer a:hover{text-decoration:underline}
 footer .bt{grid-column:1/-1;text-align:center;color:#999;font-size:.75rem;padding-top:16px;border-top:1px solid #3a4553}
+.cart-drawer-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);z-index:999;display:none}
+.cart-drawer{position:fixed;top:0;right:-420px;width:400px;height:100%;background:white;z-index:1000;transition:right .3s ease;display:flex;flex-direction:column;overflow:hidden}
+.cart-drawer.open{right:0}
+.cart-drawer-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid #e7e7e7;background:#f0f2f2;flex-shrink:0}
+.cart-drawer-header h3{margin:0;font-size:1.1rem}
+.cart-drawer-header button{background:none;border:none;font-size:1.4rem;cursor:pointer;color:#565959;padding:4px 8px;line-height:1}
+.cart-drawer-body{flex:1;overflow-y:auto;padding:16px 20px}
+.cart-drawer-footer{border-top:1px solid #e7e7e7;padding:16px 20px;background:#fafafa;flex-shrink:0}
+.cart-item{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid #e7e7e7;align-items:flex-start}
+.cart-item-img{width:80px;height:80px;object-fit:cover;border-radius:4px;border:1px solid #e7e7e7;flex-shrink:0;background:#f0f2f2}
+.cart-item-info{flex:1;min-width:0}
+.cart-item-info .name{font-size:.9rem;color:#0f1111;margin:0 0 4px;word-break:break-word}
+.cart-item-info .price{font-size:.85rem;color:#b12704;font-weight:600}
+.cart-qty{display:flex;align-items:center;gap:6px;margin-top:6px}
+.cart-qty button{width:28px;height:28px;border:1px solid #ddd;border-radius:4px;background:white;cursor:pointer;font-size:1rem;line-height:1;display:flex;align-items:center;justify-content:center;color:#333}
+.cart-qty button:hover{background:#f0f2f2}
+.cart-qty span{min-width:24px;text-align:center;font-size:.9rem}
+.cart-item-remove{color:#cc0c39;font-size:.75rem;cursor:pointer;background:none;border:none;padding:2px 0;margin-top:4px}
+.cart-item-remove:hover{text-decoration:underline}
 @media(max-width:768px){
 .pdetail{grid-template-columns:1fr}
 .pdetail .gallery .zoom-result{display:none!important}
@@ -231,26 +250,6 @@ footer .inner{grid-template-columns:repeat(2,1fr)}
 .wishlist-btn{width:26px;height:26px;font-size:.8rem}
 .compare-check{font-size:.9rem}
 .back-to-top{width:36px;height:36px;bottom:16px;right:12px}
-.cart-drawer-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);z-index:999;display:none}
-.cart-drawer{position:fixed;top:0;right:-420px;width:400px;height:100%;background:white;z-index:1000;transition:right .3s ease;display:flex;flex-direction:column}
-.cart-drawer.open{right:0}
-.cart-drawer-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid #e7e7e7;background:#f0f2f2}
-.cart-drawer-header h3{margin:0;font-size:1.1rem}
-.cart-drawer-header button{background:none;border:none;font-size:1.2rem;cursor:pointer;color:#565959;padding:4px 8px}
-.cart-drawer-body{flex:1;overflow-y:auto;padding:16px 20px}
-.cart-drawer-footer{border-top:1px solid #e7e7e7;padding:16px 20px;background:#fafafa}
-.cart-item{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid #e7e7e7;align-items:flex-start}
-.cart-item-img{width:80px;height:80px;object-fit:cover;border-radius:4px;border:1px solid #e7e7e7;flex-shrink:0}
-.cart-item-info{flex:1}
-.cart-item-info .name{font-size:.9rem;color:#0f1111;margin:0 0 4px}
-.cart-item-info .price{font-size:.85rem;color:#b12704;font-weight:600}
-.cart-qty{display:flex;align-items:center;gap:6px;margin-top:6px}
-.cart-qty button{width:28px;height:28px;border:1px solid #ddd;border-radius:4px;background:white;cursor:pointer;font-size:1rem;line-height:1;display:flex;align-items:center;justify-content:center;color:#333}
-.cart-qty button:hover{background:#f0f2f2}
-.cart-qty span{min-width:24px;text-align:center;font-size:.9rem}
-.cart-item-remove{color:#cc0c39;font-size:.75rem;cursor:pointer;background:none;border:none;padding:2px 0;margin-top:4px}
-.cart-item-remove:hover{text-decoration:underline}
-.cart-drawer-saved{border-top:1px solid #e7e7e7;padding:12px 20px;font-size:.8rem;color:#007600}
 }
 <style>
 /* Theme Overrides */
@@ -334,7 +333,6 @@ function getCart() { try { return JSON.parse(localStorage.getItem("extora_cart")
 function saveCart(c) { localStorage.setItem("extora_cart", JSON.stringify(c)); updateCartCount(); }
 function updateCartCount() { const c = getCart(); const count = c.reduce((s,i) => s + i.qty, 0); const el = document.getElementById("cartCount"); if (el) el.textContent = count || ""; }
 function addToCart(el) {
-  if (!localStorage.getItem("at")) { location.href = "/account.html"; return false; }
   const name = el.getAttribute("data-name") || "Product";
   const price = parseFloat(el.getAttribute("data-price") || "0");
   const img = el.getAttribute("data-img") || "";
@@ -1068,8 +1066,13 @@ ${p.codAvailable ? `<div class="cod">Cash on Delivery available</div>` : ""}
 <div class="qty-row">Quantity: <select id="qtySelect-${e(p.slug)}" onchange="updateMultiBuy('${e(p.slug)}',${price},this.value)">${[1,2,3,4,5].map((n) => `<option value="${n}">${n}</option>`).join("")}</select><span id="multiBuyMsg-${e(p.slug)}" style="font-size:.82rem;color:#007600"></span></div>
 ${p.multiBuyEnabled !== false ? `<div style="font-size:.78rem;color:#565959;margin:-8px 0 8px">Buy 2: 5% off · Buy 3: 10% off · Buy 5: 15% off</div>` : ""}
 <div class="buttons">
+${p.stockStatus === "outofstock" || Number(p.stockQty ?? 10) <= 0 ? `
+<button class="btn-cart" style="background:#eee;border:1px solid #ccc;color:#888;cursor:not-allowed;padding:12px 24px;border-radius:24px;font-size:1rem;font-weight:500" disabled>Currently Unavailable</button>
+<button class="btn-buy" style="background:#eee;border:1px solid #ccc;color:#888;cursor:not-allowed;padding:12px 24px;border-radius:24px;font-size:1rem;font-weight:500" disabled>Buy Now</button>
+` : `
 <button class="btn-cart" data-name="${e(p.name)}" data-price="${p.price ?? 0}" data-img="${e(firstImg)}" data-slug="${e(p.slug)}" onclick="addToCart(this);return false">Add to Cart</button>
 <button class="btn-buy" data-name="${e(p.name)}" data-price="${p.price ?? 0}" data-img="${e(firstImg)}" data-slug="${e(p.slug)}" onclick="buyNow(this);return false">Buy Now</button>
+`}
 </div>
 <div class="secure">🔒 Secure transaction</div>
 <div class="seller-info">Sold by <strong>${e(p.sellerName ?? "Extora Seller")}</strong> (${p.sellerRating ? stars(Number(p.sellerRating)) : "★★★★"} ${p.sellerRating ?? "4.0"})</div>
